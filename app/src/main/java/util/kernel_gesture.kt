@@ -1,13 +1,9 @@
 package util
 
 import java.io.*
-import android.R.attr.process
 import android.content.*
 import android.os.PowerManager
-import android.system.Os.*
 import android.util.Log
-import java.lang.Compiler.command
-import java.util.*
 import kotlin.concurrent.thread
 
 class GestureDetect(context: Context)
@@ -30,12 +26,9 @@ class GestureDetect(context: Context)
 
         try {
             val lines: List<String> = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
-            for (name in arrayOf("mtk-tpd","qwerty2","ft5x06_ts"))
-            {
-                val device = findDevicePath(name, lines)
-                if (device != null) devices += device
-            }
-
+            arrayOf("mtk-tpd","qwerty2","ft5x06_ts")
+                    .mapNotNull { findDevicePath(it, lines) }
+                    .forEach { devices += it }
         }catch (e:Exception){}
 
         return devices.isNotEmpty()
@@ -68,18 +61,16 @@ class GestureDetect(context: Context)
     class Event<T> {
         private val handlers = arrayListOf<(Event<T>.(T) -> Unit)>()
         operator fun plusAssign(handler: Event<T>.(T) -> Unit) { handlers.add(handler) }
-        fun invoke(value: T) {
-            Runnable {
-                for (handler in handlers) handler(value)
-            }.run()
-        }
+        fun invoke(value: T) = Runnable {
+            for (handler in handlers) handler(value)
+        }.run()
     }
 
     private fun startWait()
     {
         bStartWait = detectGesture()
         thread {
-            while (bStartWait && startWaitThread())
+            while (bStartWait && startWaitThread()) {}
             stopWait()
         }
     }
@@ -88,8 +79,7 @@ class GestureDetect(context: Context)
     }
     private fun startWaitThread():Boolean
     {
-        for ((key, value) in devices)
-        {
+        devices.forEach { (key, value) ->
             if (!bStartWait) return false
 
             try {
@@ -144,9 +134,7 @@ class GestureDetect(context: Context)
         return true
     }
     private fun readExecLine():String?
-    {
-        return su()?.inputStream?.bufferedReader()?.readLine()
-    }
+            = su()?.inputStream?.bufferedReader()?.readLine()
     /*
     ADD Manifest:
         <uses-permission android:name="android.permission.WAKE_LOCK" />
