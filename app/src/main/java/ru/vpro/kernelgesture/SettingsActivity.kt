@@ -32,39 +32,22 @@ import android.content.IntentFilter
  */
 class SettingsActivity : AppCompatPreferenceActivity() {
 
-    val gesture = GestureDetect()
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupActionBar()
 
-        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-        registerReceiver(object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent) {
-                if (intent.action == Intent.ACTION_SCREEN_OFF) {
-                    Log.d(TAG, Intent.ACTION_SCREEN_OFF)
-                    gesture.startWait()
-                } else if (intent.action == Intent.ACTION_SCREEN_ON) {
-                    Log.d(TAG, Intent.ACTION_SCREEN_ON)
-                    gesture.stopWait()
-                }
-            }
-        }, intentFilter)
-
-        gesture.onGesture += {
+        val gesture = GestureDetect(this)
+         gesture.onGesture += {
             Log.d("GestureDetect command", it)
             gesture.screenON(applicationContext)
         }
-        gesture.startWait()
     }
 
     /**
      * Set up the [android.app.ActionBar], if the API is available.
      */
     private fun setupActionBar() {
-        val actionBar = supportActionBar
-        actionBar?.setDisplayHomeAsUpEnabled(true)
+//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
     }
 
     /**
@@ -79,7 +62,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     override fun onBuildHeaders(target: List<PreferenceActivity.Header>) {
-        loadHeadersFromResource(R.xml.pref_headers, target)
+//        loadHeadersFromResource(R.xml.pref_headers, target)
+        fragmentManager.beginTransaction().replace(android.R.id.content, GesturePreferenceFragment()).commit()
     }
 
     /**

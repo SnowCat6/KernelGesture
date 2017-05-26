@@ -2,7 +2,7 @@ package util
 
 import java.io.*
 import android.R.attr.process
-import android.content.Context
+import android.content.*
 import android.os.PowerManager
 import android.system.Os.*
 import android.util.Log
@@ -10,12 +10,18 @@ import java.lang.Compiler.command
 import java.util.*
 import kotlin.concurrent.thread
 
-class GestureDetect()
+class GestureDetect(context: Context)
 {
     val onGesture:Event<String> = Event()
-    var devices = emptyMap<String,String>()
-    var bStartWait = false
-    var processSU:Process? = null
+
+    private var devices = emptyMap<String,String>()
+    private var bStartWait = false
+    private var processSU:Process? = null
+
+    init {
+        initIndent(context)
+        startWait()
+    }
 
     fun detectGesture():Boolean
     {
@@ -69,19 +75,15 @@ class GestureDetect()
         }
     }
 
-    fun startWait()
+    private fun startWait()
     {
-        if (detectGesture()) {
-            bStartWait = true;
-            thread {
-                while (bStartWait) {
-                    if (!startWaitThread())
-                        stopWait()
-                }
-            }
+        bStartWait = detectGesture()
+        thread {
+            while (bStartWait && startWaitThread())
+            stopWait()
         }
     }
-    fun stopWait(){
+    private fun stopWait(){
         bStartWait = false
     }
     private fun startWaitThread():Boolean
@@ -155,5 +157,30 @@ class GestureDetect()
         val wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG")
         wakeLock.acquire()
         wakeLock.release()
+    }
+
+    private fun initIndent(context:Context)
+    {
+        val intentFilter =  IntentFilter(Intent.ACTION_SCREEN_ON)
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
+
+        context.registerReceiver(object : BroadcastReceiver()
+        {
+            override fun onReceive(context: Context, intent: Intent)
+            {
+                when(intent.action)
+                {
+                    Intent.ACTION_SCREEN_OFF->{
+                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
+                        startWait()
+                    }
+                    Intent.ACTION_SCREEN_ON ->{
+                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
+                        stopWait()
+                    }
+                }
+            }
+        }, intentFilter)
+
     }
 }
