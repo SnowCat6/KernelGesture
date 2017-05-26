@@ -23,17 +23,12 @@ class GestureDetect()
         if (su() == null) return false
 
         try {
-            var device:Pair<String,String>?
             val lines: List<String> = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
-
-            device = findDevicePath("mtk-tpd", lines)
-            if (device != null) devices += device
-
-            device = findDevicePath("qwerty2", lines)
-            if (device != null) devices += device
-
-            device = findDevicePath("ft5x06_ts", lines)
-            if (device != null) devices += device
+            for (name in arrayOf("mtk-tpd","qwerty2","ft5x06_ts"))
+            {
+                val device = findDevicePath(name, lines)
+                if (device != null) devices += device
+            }
 
         }catch (e:Exception){}
 
@@ -41,7 +36,7 @@ class GestureDetect()
     }
     private fun findDevicePath(name:String, lines: List<String>):Pair<String,String>?
     {
-        var findName:String = ""
+        var findName = ""
 
         for (line in lines)
         {
@@ -91,20 +86,20 @@ class GestureDetect()
     }
     private fun startWaitThread():Boolean
     {
-        for (device in devices)
+        for ((key, value) in devices)
         {
             if (!bStartWait) return false
 
             try {
-                val cmd = "getevent -c 1 -l /dev/input/${device.value}"
+                val cmd = "getevent -c 1 -l /dev/input/${value}"
                 if (!exec(cmd)) return false
 
                 val line = readExecLine()
                 if (!bStartWait) return false
                 if (line == null) return false;
 
-                Log.d("GestureDetect", line)
-                when(device.key){
+                Log.d("Gesture detect", line)
+                when(key){
                     "mtk-tpd" -> {
                         val arg = line.replace(Regex("\\s+"), " ").split(" ")
                         if (arg[0] == "EV_KEY") onGesture.invoke(arg[1])
