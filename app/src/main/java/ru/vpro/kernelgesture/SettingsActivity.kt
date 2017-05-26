@@ -2,8 +2,7 @@ package ru.vpro.kernelgesture
 
 
 import android.annotation.TargetApi
-import android.content.Context
-import android.content.Intent
+import android.content.*
 import android.content.res.Configuration
 import android.media.RingtoneManager
 import android.net.Uri
@@ -15,8 +14,10 @@ import android.util.Log
 import android.view.MenuItem
 import util.GestureDetect
 import android.content.ContentValues.TAG
+import android.content.Intent
 import android.content.BroadcastReceiver
-import android.content.IntentFilter
+
+
 
 
 /**
@@ -32,15 +33,44 @@ import android.content.IntentFilter
  */
 class SettingsActivity : AppCompatPreferenceActivity() {
 
+    var onScreenIntent:BroadcastReceiver? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupActionBar()
 
-        val gesture = GestureDetect(this)
+        val gesture = GestureDetect()
          gesture.onGesture += {
             Log.d("GestureDetect command", it)
             gesture.screenON(applicationContext)
         }
+
+        val intentFilter =  IntentFilter(Intent.ACTION_SCREEN_ON)
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
+
+        onScreenIntent = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent)
+            {
+                when(intent.action)
+                {
+                    Intent.ACTION_SCREEN_OFF->{
+                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
+                        gesture.startWait()
+                    }
+                    Intent.ACTION_SCREEN_ON ->{
+                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
+                        gesture.stopWait()
+                    }
+                }
+            }
+        }
+
+        registerReceiver(onScreenIntent, intentFilter)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(onScreenIntent)
     }
 
     /**

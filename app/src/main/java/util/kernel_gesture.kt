@@ -6,7 +6,7 @@ import android.os.PowerManager
 import android.util.Log
 import kotlin.concurrent.thread
 
-class GestureDetect(context: Context)
+class GestureDetect()
 {
     val onGesture:Event<String> = Event()
 
@@ -15,7 +15,6 @@ class GestureDetect(context: Context)
     private var processSU:Process? = null
 
     init {
-        initIndent(context)
         startWait()
     }
 
@@ -66,7 +65,7 @@ class GestureDetect(context: Context)
         }.run()
     }
 
-    private fun startWait()
+    fun startWait()
     {
         bStartWait = detectGesture()
         thread {
@@ -74,7 +73,7 @@ class GestureDetect(context: Context)
             stopWait()
         }
     }
-    private fun stopWait(){
+    fun stopWait(){
         bStartWait = false
     }
     private fun startWaitThread():Boolean
@@ -92,7 +91,7 @@ class GestureDetect(context: Context)
 
                 Log.d("Gesture detect", line)
                 when(key){
-                    "mtk-tpd" -> {
+                    "mtk-tpd","ft5x06_ts" -> {
                         val arg = line.replace(Regex("\\s+"), " ").split(" ")
                         if (arg[0] == "EV_KEY") onGesture.invoke(arg[1])
                     }
