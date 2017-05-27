@@ -16,8 +16,7 @@ import util.GestureDetect
 import android.content.ContentValues.TAG
 import android.content.Intent
 import android.content.BroadcastReceiver
-
-
+import util.GestureService
 
 
 /**
@@ -33,45 +32,13 @@ import android.content.BroadcastReceiver
  */
 class SettingsActivity : AppCompatPreferenceActivity() {
 
-    var onScreenIntent:BroadcastReceiver? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupActionBar()
 
-        val gesture = GestureDetect()
-         gesture.onGesture += {
-            Log.d("GestureDetect command", it)
-            gesture.screenON(applicationContext)
-        }
-
-        val intentFilter =  IntentFilter(Intent.ACTION_SCREEN_ON)
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-
-        onScreenIntent = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent)
-            {
-                when(intent.action)
-                {
-                    Intent.ACTION_SCREEN_OFF->{
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
-                        gesture.startWait()
-                    }
-                    Intent.ACTION_SCREEN_ON ->{
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
-                        gesture.stopWait()
-                    }
-                }
-            }
-        }
-
-        registerReceiver(onScreenIntent, intentFilter)
+        startService(Intent(this, GestureService::class.java))
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(onScreenIntent)
-    }
 
     /**
      * Set up the [android.app.ActionBar], if the API is available.

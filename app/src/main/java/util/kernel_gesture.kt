@@ -91,7 +91,7 @@ class GestureDetect()
                 if (!bStartWait) return false
 
                 Log.d("Gesture detect", line)
-                return second.onDetect(line)
+                return second.onEvent(this, line)
             }catch (e: Exception) {
                 return false
             }
