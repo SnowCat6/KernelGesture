@@ -22,33 +22,34 @@ class GestureService : Service() {
             gesture.screenON(baseContext)
         }
 
-        val intentFilter =  IntentFilter(Intent.ACTION_SCREEN_ON)
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
+        if (onScreenIntent == null) {
+            val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
+            intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
 
-        onScreenIntent = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent)
-            {
-                when(intent.action)
-                {
-                    Intent.ACTION_SCREEN_OFF->{
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
-                        gesture.startWait()
-                    }
-                    Intent.ACTION_SCREEN_ON ->{
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
-                        gesture.stopWait()
+            onScreenIntent = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    when (intent.action) {
+                        Intent.ACTION_SCREEN_OFF -> {
+                            Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
+                            gesture.startWait()
+                        }
+                        Intent.ACTION_SCREEN_ON -> {
+                            Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
+                            gesture.stopWait()
+                        }
                     }
                 }
             }
-        }
 
-        registerReceiver(onScreenIntent, intentFilter)
+            registerReceiver(onScreenIntent, intentFilter)
+        }
 
         return super.onStartCommand(intent, flags, startId)
     }
 
     override fun stopService(name: Intent?): Boolean {
         unregisterReceiver(onScreenIntent)
+        onScreenIntent = null
         return super.stopService(name)
     }
 }
