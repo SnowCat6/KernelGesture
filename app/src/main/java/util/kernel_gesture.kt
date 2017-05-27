@@ -10,9 +10,10 @@ class GestureDetect()
 {
     val onGesture:Event<String> = Event()
 
-    private var devices = emptyMap<String,String>()
+    private var devices = emptyArray<Pair<String,InputHandler>>()
     private var bStartWait = false
     private var processSU:Process? = null
+    private val inputHandlers = arrayOf(InputMTK(), InputFTS())
 
     init {
         startWait()
@@ -20,30 +21,31 @@ class GestureDetect()
 
     fun detectGesture():Boolean
     {
-        devices = emptyMap()
+        devices = emptyArray()
         if (su() == null) return false
 
         try {
-            val lines: List<String> = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
-            arrayOf("mtk-tpd","qwerty2","ft5x06_ts")
-                    .mapNotNull { findDevicePath(it, lines) }
-                    .forEach { devices += it }
+            val lines = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
+            inputHandlers.forEach {
+                val input = findDevicePath(it, lines) ?: return@forEach
+                devices += Pair(input, it)
+            }
         }catch (e:Exception){}
 
         return devices.isNotEmpty()
     }
-    private fun findDevicePath(name:String, lines: List<String>):Pair<String,String>?
+    private fun findDevicePath(handler:InputHandler, lines: List<String>):String?
     {
-        var findName = ""
+        var bThisEntry = false
 
         for (line in lines)
         {
-            if (findName.isNotEmpty())
+            if (bThisEntry)
             {
                 val ix = line.indexOf("Handlers=")
                 if (ix >= 0){
                     val a = line.substring(ix + 9).split(" ")
-                    return Pair(name, a[1])
+                    return a[1]
                 }
             }
 
@@ -51,8 +53,7 @@ class GestureDetect()
             if (ix < 0) continue
 
             val n = line.substring(ix+5).trim('"')
-            if (n != name) findName = ""
-            else findName = n
+            bThisEntry = handler.onDetect(n)
         }
         return null
     }
@@ -67,6 +68,7 @@ class GestureDetect()
 
     fun startWait()
     {
+        if (bStartWait) return;
         bStartWait = detectGesture()
         thread {
             while (bStartWait && startWaitThread()) {}
@@ -78,27 +80,18 @@ class GestureDetect()
     }
     private fun startWaitThread():Boolean
     {
-        devices.forEach { (key, value) ->
+        for ((first, second) in devices) {
             if (!bStartWait) return false
 
             try {
-                val cmd = "getevent -c 1 -l /dev/input/${value}"
+                val cmd = "getevent -c 1 -l /dev/input/$first"
                 if (!exec(cmd)) return false
 
-                val line = readExecLine()
+                val line = readExecLine() ?: return false
                 if (!bStartWait) return false
-                if (line == null) return false;
 
                 Log.d("Gesture detect", line)
-                when(key){
-                    "mtk-tpd","ft5x06_ts" -> {
-                        val arg = line.replace(Regex("\\s+"), " ").split(" ")
-                        if (arg[0] == "EV_KEY") onGesture.invoke(arg[1])
-                    }
-                }
-
-                return true
-
+                return second.onDetect(line)
             }catch (e: Exception) {
                 return false
             }
@@ -146,28 +139,26 @@ class GestureDetect()
         wakeLock.release()
     }
 
-    private fun initIndent(context:Context)
+    interface InputHandler
     {
-        val intentFilter =  IntentFilter(Intent.ACTION_SCREEN_ON)
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-
-        context.registerReceiver(object : BroadcastReceiver()
-        {
-            override fun onReceive(context: Context, intent: Intent)
-            {
-                when(intent.action)
-                {
-                    Intent.ACTION_SCREEN_OFF->{
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
-                        startWait()
-                    }
-                    Intent.ACTION_SCREEN_ON ->{
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
-                        stopWait()
-                    }
-                }
-            }
-        }, intentFilter)
-
+        fun onDetect(name:String):Boolean
+        fun onEvent(detector:GestureDetect, line:String):Boolean
+    }
+    open class InputMTK: InputHandler
+    {
+        override fun onDetect(name:String):Boolean{
+            return name == "mtk-tpd"
+        }
+        override fun onEvent(detector:GestureDetect, line:String):Boolean{
+            val arg = line.replace(Regex("\\s+"), " ").split(" ")
+            if (arg[0] == "EV_KEY") detector.onGesture.invoke(arg[1])
+            return true
+        }
+    }
+    class InputFTS: InputMTK()
+    {
+        override fun onDetect(name:String):Boolean{
+            return name == "ft5x06_ts"
+        }
     }
 }
