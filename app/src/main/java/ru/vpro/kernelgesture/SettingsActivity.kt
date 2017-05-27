@@ -10,13 +10,9 @@ import android.os.Build
 import android.os.Bundle
 import android.preference.*
 import android.text.TextUtils
-import android.util.Log
 import android.view.MenuItem
-import util.GestureDetect
-import android.content.ContentValues.TAG
 import android.content.Intent
-import android.content.BroadcastReceiver
-import util.GestureService
+import gesture.GestureService
 
 
 /**

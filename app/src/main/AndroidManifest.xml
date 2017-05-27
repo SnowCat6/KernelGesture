@@ -23,7 +23,7 @@
         </activity>
 
         <service
-            android:name="util.GestureService"
+            android:name="gesture.GestureService"
             android:enabled="true"
             android:exported="true"></service>
     </application>

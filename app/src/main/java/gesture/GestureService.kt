@@ -1,4 +1,4 @@
-package util
+package gesture
 
 import android.app.Service
 import android.content.*
