@@ -50,7 +50,7 @@
         />
     <SwitchPreference
         android:defaultValue="true"
-        android:key="KEY_GESTURE_Z"
+        android:key="KEY_GESTURE_U"
         />
 
 </PreferenceScreen>
