@@ -1,56 +1,64 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_U"
+        android:defaultValue="false"
+        android:key="KEY_U"
+        android:title="@string/ui_dblclick"
      />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_UP"
+        android:defaultValue="false"
+        android:key="KEY_UP"
+        android:title="@string/ui_swipe_up"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_DOWN"
+        android:defaultValue="false"
+        android:key="KEY_DOWN"
+        android:title="@string/ui_swipe_down"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_LEFT"
+        android:defaultValue="false"
+        android:key="KEY_LEFT"
+        android:title="@string/ui_swipe_left"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_RIGHT"
+        android:defaultValue="false"
+        android:key="KEY_RIGHT"
+        android:title="@string/ui_swipe_rught"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_O"
+        android:defaultValue="false"
+        android:key="KEY_O"
+        android:title="@string/ui_draw_o"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_E"
+        android:defaultValue="false"
+        android:key="KEY_E"
+        android:title="@string/ui_draw_e"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_M"
+        android:defaultValue="false"
+        android:key="KEY_M"
+        android:title="@string/ui_draw_m"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_L"
+        android:defaultValue="false"
+        android:key="KEY_L"
+        android:title="@string/ui_draw_l"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_W"
+        android:defaultValue="false"
+        android:key="KEY_W"
+        android:title="@string/ui_draw_w"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_S"
+        android:defaultValue="false"
+        android:key="KEY_S"
+        android:title="@string/ui_draw_s"
         />
     <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_V"
-        />
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="KEY_GESTURE_U"
+        android:defaultValue="false"
+        android:key="KEY_V"
+        android:title="@string/ui_draw_v"
         />
 
 </PreferenceScreen>

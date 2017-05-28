@@ -1,5 +1,18 @@
 <resources>
     <string name="app_name">KernelGesture</string>
+    <string name="ui_no_action">No action</string>
+    <string name="ui_dblclick">Double click screen</string>
+    <string name="ui_swipe_up">Swipe to UP</string>
+    <string name="ui_swipe_down">Swipe to DOWN</string>
+    <string name="ui_swipe_left">Swipe to LEFT</string>
+    <string name="ui_swipe_rught">Swipe to RIGHT</string>
+    <string name="ui_draw_o">Draw O letter</string>
+    <string name="ui_draw_e">Draw E letter</string>
+    <string name="ui_draw_m">Draw M letter</string>
+    <string name="ui_draw_l">Draw L letter</string>
+    <string name="ui_draw_w">Draw W letter</string>
+    <string name="ui_draw_s">Draw S letter</string>
+    <string name="ui_draw_v">Draw V letter</string>
 
     <!-- Strings related to Settings -->
 

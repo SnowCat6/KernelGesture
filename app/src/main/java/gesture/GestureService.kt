@@ -6,7 +6,7 @@ import android.os.IBinder
 import android.util.Log
 import android.content.Intent
 import android.content.BroadcastReceiver
-
+import android.preference.PreferenceManager
 
 
 class GestureService : Service() {
@@ -22,8 +22,7 @@ class GestureService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
         gesture.onGesture += {
-            Log.d("GestureDetect command", it)
-            gesture.screenON(baseContext)
+            onGesture(it)
         }
 
         if (onScreenIntent == null) {
@@ -47,6 +46,7 @@ class GestureService : Service() {
 
             registerReceiver(onScreenIntent, intentFilter)
         }
+        gesture.onGesture.invoke("KEY_UP")
 
         return super.onStartCommand(intent, flags, startId)
     }
@@ -55,5 +55,17 @@ class GestureService : Service() {
         unregisterReceiver(onScreenIntent)
         onScreenIntent = null
         return super.stopService(name)
+    }
+    fun onGesture(it:String)
+    {
+        Log.d("GestureDetect command", it)
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(baseContext)
+        try {
+            val gestureEnable = sharedPreferences.getBoolean(it, false)
+            if (!gestureEnable) return
+//            val action = sharedPreferences.getString("${it}_ACTION", null)
+//            if (action == null || action.isEmpty()) return
+            gesture.screenON(baseContext)
+        }catch (e:Exception){}
     }
 }

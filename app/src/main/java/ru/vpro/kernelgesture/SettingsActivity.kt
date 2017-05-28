@@ -12,6 +12,7 @@ import android.preference.*
 import android.text.TextUtils
 import android.view.MenuItem
 import android.content.Intent
+import android.util.Log
 import gesture.GestureService
 
 
@@ -75,20 +76,20 @@ class SettingsActivity : AppCompatPreferenceActivity() {
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     class GesturePreferenceFragment : PreferenceFragment()
     {
-        val gestureKeys:Array<Pair<String,Int>> = arrayOf(
-                Pair("KEY_GESTURE_U", 0),
-                Pair("KEY_GESTURE_UP", 0),
-                Pair("KEY_GESTURE_DOWN", 0),
-                Pair("KEY_GESTURE_LEFT", 0),
-                Pair("KEY_GESTURE_RIGHT", 0),
-                Pair("KEY_GESTURE_O", 0),
-                Pair("KEY_GESTURE_E", 0),
-                Pair("KEY_GESTURE_M", 0),
-                Pair("KEY_GESTURE_L", 0),
-                Pair("KEY_GESTURE_W", 0),
-                Pair("KEY_GESTURE_S", 0),
-                Pair("KEY_GESTURE_V", 0),
-                Pair("KEY_GESTURE_Z", 0)
+        val gestureKeys:Array<Pair<String,Boolean>> = arrayOf(
+                Pair("KEY_U", false),
+                Pair("KEY_UP", false),
+                Pair("KEY_DOWN", false),
+                Pair("KEY_LEFT", false),
+                Pair("KEY_RIGHT", false),
+                Pair("KEY_O", false),
+                Pair("KEY_E", false),
+                Pair("KEY_M", false),
+                Pair("KEY_L", false),
+                Pair("KEY_W", false),
+                Pair("KEY_S", false),
+                Pair("KEY_V", false),
+                Pair("KEY_Z", false)
         )
 
         override fun onCreate(savedInstanceState: Bundle?) {
@@ -100,12 +101,11 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             // to their values. When their values change, their summaries are
             // updated to reflect the new value, per the Android Design
             // guidelines.
-
             for ((first) in gestureKeys)
             {
-                val p = findPreference(first) ?: continue
-                p.title = first
-                p.summary = first
+                val preference = findPreference(first) ?: continue
+                preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
+                sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, false)
             }
         }
 
@@ -126,48 +126,21 @@ class SettingsActivity : AppCompatPreferenceActivity() {
          * to reflect its new value.
          */
         private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
-            val stringValue = value.toString()
 
-            if (preference is ListPreference) {
-                // For list preferences, look up the correct display value in
-                // the preference's 'entries' list.
-                val listPreference = preference
-                val index = listPreference.findIndexOfValue(stringValue)
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(preference.context)
+            val gestureEnable = sharedPreferences.getBoolean(preference.key, false)
 
-                // Set the summary to reflect the new value.
-                preference.setSummary(
-                        if (index >= 0)
-                            listPreference.entries[index]
-                        else
-                            null)
+            var action:String? = null
+            try {
+                action = sharedPreferences.getString("${preference.key}_ACTION", null)
+            }catch (e:Exception){ }
 
-            } else if (preference is RingtonePreference) {
-                // For ringtone preferences, look up the correct display value
-                // using RingtoneManager.
-                if (TextUtils.isEmpty(stringValue)) {
-                    // Empty values correspond to 'silent' (no ringtone).
-//                    preference.setSummary(R.string.pref_ringtone_silent)
-
-                } else {
-                    val ringtone = RingtoneManager.getRingtone(
-                            preference.getContext(), Uri.parse(stringValue))
-
-                    if (ringtone == null) {
-                        // Clear the summary if there was a lookup error.
-                        preference.setSummary(null)
-                    } else {
-                        // Set the summary to reflect the new ringtone display
-                        // name.
-                        val name = ringtone.getTitle(preference.getContext())
-                        preference.setSummary(name)
-                    }
-                }
-
-            } else {
-                // For all other preferences, set the summary to the value's
-                // simple string representation.
-                preference.summary = stringValue
+            if (action == null || action.isEmpty()){
+                preference.summary = preference.context.getString(R.string.ui_no_action)
+            }else{
+                preference.summary = action
             }
+
             true
         }
 
@@ -178,26 +151,5 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         private fun isXLargeTablet(context: Context): Boolean {
             return context.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
         }
-
-        /**
-         * Binds a preference's summary to its value. More specifically, when the
-         * preference's value is changed, its summary (line of text below the
-         * preference title) is updated to reflect the value. The summary is also
-         * immediately updated upon calling this method. The exact display format is
-         * dependent on the type of preference.
-
-         * @see .sBindPreferenceSummaryToValueListener
-         */
-        private fun bindPreferenceSummaryToValue(preference: Preference) {
-            // Set the listener to watch for value changes.
-            preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
-
-            // Trigger the listener immediately with the preference's
-            // current value.
-            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference,
-                    PreferenceManager
-                            .getDefaultSharedPreferences(preference.context)
-                            .getString(preference.key, ""))
-        }
-    }
+  }
 }

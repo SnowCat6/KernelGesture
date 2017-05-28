@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">KernelGesture</string>
+    <string name="ui_no_action">Нет действия</string>
+    <string name="ui_dblclick">Тап на экране</string>
+    <string name="ui_swipe_up">Скольжение ВВЕРХ</string>
+    <string name="ui_swipe_down">Скольжение ВНИЗ</string>
+    <string name="ui_swipe_left">Скольжение ВЛЕВО</string>
+    <string name="ui_swipe_rught">Скольжение ВПАВО</string>
+    <string name="ui_draw_o">Рисовать букву O</string>
+    <string name="ui_draw_e">Рисовать букву E</string>
+    <string name="ui_draw_m">Рисовать букву M</string>
+    <string name="ui_draw_l">Рисовать букву L</string>
+    <string name="ui_draw_w">Рисовать букву W</string>
+    <string name="ui_draw_s">Рисовать букву S</string>
+    <string name="ui_draw_v">Рисовать букву V</string>
+</resources>
