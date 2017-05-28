@@ -13,6 +13,7 @@
     <string name="ui_draw_w">Draw W letter</string>
     <string name="ui_draw_s">Draw S letter</string>
     <string name="ui_draw_v">Draw V letter</string>
+    <string name="ui_use_gesture">Use gestures</string>
 
     <!-- Strings related to Settings -->
 

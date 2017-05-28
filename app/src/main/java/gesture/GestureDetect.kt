@@ -14,7 +14,7 @@ class GestureDetect()
     private var devices = emptyArray<Pair<String,InputHandler>>()
     private var bStartWait = false
     private var processSU:Process? = null
-    private val inputHandlers = arrayOf(InputMTK(), InputFTS())
+    private val inputHandlers = arrayOf(InputMTK(), InputMTK_KPD(), InputQCOMM())
 
     init {
         startWait()
@@ -81,27 +81,41 @@ class GestureDetect()
     }
     private fun startWaitThread():Boolean
     {
-        for ((first, second) in devices) {
+        while(bStartWait){
+            val line = getEvent(null) ?: return false
             if (!bStartWait) return false
 
-            try {
-                val cmd = "getevent -c 1 -l /dev/input/$first"
-                if (!exec(cmd)) return false
-
-                val line = readExecLine() ?: return false
-                if (!bStartWait) return false
-
-                Log.d("Gesture detect", line)
-                return second.onEvent(this, line)
-            }catch (e: Exception) {
-                return false
+            devices.forEach { (first, second) ->
+                val name = "/dev/input/$first: "
+                if (name in line) {
+                    val ev = line.substring(name.length)
+                    Log.d("Gesture detect", line)
+                    return second.onEvent(this, ev)
+                }
             }
         }
         return false
     }
+    private fun getEvent(input:String?):String?
+    {
+        try {
+            if (input != null) {
+                if (!exec("getevent -c 1 -l /dev/input/$input")) return null
+                return readExecLine()
+            }
+            if (!exec("getevent -c 1 -l | grep EV_")) return null
+            return readExecLine()
+
+        }catch (e:Exception)
+        {
+            Log.d("Read", e.toString())
+        }
+        return null;
+    }
     private fun su():Process?
     {
         try {
+//            if (processSU == null) processSU = Runtime.getRuntime().exec("sh")
             if (processSU == null) processSU = Runtime.getRuntime().exec("su")
             try {
                 if (processSU != null && processSU!!.exitValue() != 0) processSU = null;
@@ -126,8 +140,8 @@ class GestureDetect()
 
         return true
     }
-    private fun readExecLine():String?
-            = su()?.inputStream?.bufferedReader()?.readLine()
+    private fun readExecLine():String
+            = su()!!.inputStream.bufferedReader().readLine()
     /*
     ADD Manifest:
         <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -144,6 +158,8 @@ class GestureDetect()
     {
         fun onDetect(name:String):Boolean
         fun onEvent(detector:GestureDetect, line:String):Boolean
+        fun setEnable(enable:Boolean){}
+        fun getEnable():Boolean{ return false }
     }
     open class InputMTK: InputHandler
     {
@@ -156,11 +172,45 @@ class GestureDetect()
             return true
         }
     }
-    class InputFTS: InputMTK()
+
+    open class InputMTK_KPD: InputHandler
     {
         override fun onDetect(name:String):Boolean{
-            return name == "ft5x06_ts"
+            return name == "mtk-kpd"
         }
+        override fun onEvent(detector:GestureDetect, line:String):Boolean
+        {
+            val arg = line.replace(Regex("\\s+"), " ").split(" ")
+            if (arg[0] == "EV_KEY" && arg[1] == "KEY_PROG3") onEvent(detector)
+            return true
+        }
+        private fun onEvent(detector:GestureDetect)
+        {
+            val keys = arrayListOf<Pair<String,String>>(
+                    Pair("UP",      "KEY_UP"),
+                    Pair("DOWN",    "KEY_DOWN"),
+                    Pair("LEFT",    "KEY_LEFT"),
+                    Pair("RIGHT",   "KEY_RIGHT")
+            )
+
+            //  get gesture name
+            detector.exec("cat sys/devices/bus/bus\\:touch@/tpgesture")
+            val gs = detector.readExecLine()
+
+            for ((first, second) in keys) {
+                if (gs != first) return
+                detector.onGesture.invoke(second)
+                break
+            }
+       }
+    }
+    /*
+    Qualcomm keyboard volume key and touchscreen ft5x06_ts for testing
+     */
+    open class InputQCOMM: InputMTK()
+    {
+        override fun onDetect(name:String):Boolean
+                = name == "qpnp_pon" || name == "ft5x06_ts"
     }
 
     companion object {

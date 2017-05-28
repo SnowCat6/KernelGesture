@@ -46,7 +46,7 @@ class GestureService : Service() {
 
             registerReceiver(onScreenIntent, intentFilter)
         }
-        gesture.onGesture.invoke("KEY_UP")
+//        gesture.onGesture.invoke("KEY_UP")
 
         return super.onStartCommand(intent, flags, startId)
     }
