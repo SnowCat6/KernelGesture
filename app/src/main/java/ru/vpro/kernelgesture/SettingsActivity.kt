@@ -80,7 +80,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         val gestureKeys:Array<Pair<String,String>> = arrayOf(
                 Pair("KEY_U",       "screen.on"),
                 Pair("KEY_UP",      "phone"),
-                Pair("KEY_DOWN",    ""),
+                Pair("KEY_DOWN",    "phone.contacts"),
                 Pair("KEY_LEFT",    "music.prev|photo"),
                 Pair("KEY_RIGHT",   "music.next|google"),
                 Pair("KEY_O",   ""),
@@ -106,7 +106,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             gestureKeys.forEach { (first, second) ->
                 val preference = findPreference(first) ?: return@forEach
 
-                var action:String? = GestureDetect.getAction(activity, first)
+                val action:String? = null // GestureDetect.getAction(activity, first)
                 if (action == null) GestureDetect.setAction(activity, first, second)
 
                 preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
