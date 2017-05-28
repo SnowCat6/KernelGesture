@@ -3,6 +3,7 @@ package gesture
 import java.io.*
 import android.content.*
 import android.os.PowerManager
+import android.preference.PreferenceManager
 import android.util.Log
 import kotlin.concurrent.thread
 
@@ -159,6 +160,41 @@ class GestureDetect()
     {
         override fun onDetect(name:String):Boolean{
             return name == "ft5x06_ts"
+        }
+    }
+
+    companion object {
+
+        fun getEnable(context: Context, key: String): Boolean {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            return sharedPreferences.getBoolean(key, false)
+        }
+
+        fun setEnable(context: Context, key: String, value: Boolean) {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            val e = sharedPreferences.edit()
+            e.putBoolean(key, value)
+            e.apply()
+        }
+
+        fun getAction(context: Context, key: String): String? {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+
+            var action: String? = null
+            try {
+                action = sharedPreferences.getString("${key}_ACTION", null)
+            } catch (e: Exception) {
+            }
+
+            if (action == null || action.isEmpty()) return null
+            return action
+        }
+
+        fun setAction(context: Context, key: String, value: String) {
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
+            val e = sharedPreferences.edit()
+            e.putString("${key}_ACTION", value)
+            e.apply()
         }
     }
 }

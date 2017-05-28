@@ -58,14 +58,9 @@ class GestureService : Service() {
     }
     fun onGesture(it:String)
     {
+        if (!GestureDetect.getEnable(this, it)) return
+
         Log.d("GestureDetect command", it)
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(baseContext)
-        try {
-            val gestureEnable = sharedPreferences.getBoolean(it, false)
-            if (!gestureEnable) return
-//            val action = sharedPreferences.getString("${it}_ACTION", null)
-//            if (action == null || action.isEmpty()) return
-            gesture.screenON(baseContext)
-        }catch (e:Exception){}
+        gesture.screenON(baseContext)
     }
 }
