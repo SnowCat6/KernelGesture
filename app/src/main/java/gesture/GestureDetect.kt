@@ -215,6 +215,13 @@ class GestureDetect()
 
     companion object {
 
+        fun getAllEnable(context: Context): Boolean
+        {
+            return getEnable(context, "GESTURE_ENABLE")
+        }
+        fun setAllEnable(context: Context, value: Boolean) {
+            setEnable(context, "GESTURE_ENABLE", value)
+        }
         fun getEnable(context: Context, key: String): Boolean {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getBoolean(key, false)

@@ -1,8 +1,16 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="GESTURE_ENABLE"
+        android:title="@string/ui_gesture_enable"
+        android:summaryOn="@string/ui_gesture_enabled"
+        android:summaryOff="@string/ui_gesture_disabled"
+        />
+
     <PreferenceCategory
         android:title="@string/ui_use_gesture"
-        android:key="GESTURE_ENABLE">
+        android:key="GESTURE_GROUP">
 
         <SwitchPreference
             android:defaultValue="false"

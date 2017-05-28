@@ -112,6 +112,10 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
                 sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, false)
             }
+
+            val preferenceEnable = findPreference("GESTURE_ENABLE")
+            preferenceEnable.onPreferenceChangeListener = sBindPreferenceEnableListener
+            sBindPreferenceEnableListener.onPreferenceChange(preferenceEnable, GestureDetect.getAllEnable(activity))
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -142,6 +146,14 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             true
         }
 
+        private val sBindPreferenceEnableListener = Preference.OnPreferenceChangeListener { preference, value ->
+
+            val preferenceEnable = preference.getPreferenceManager().findPreference("GESTURE_GROUP")
+            GestureDetect.setAllEnable(preference.context, value as Boolean)
+            preferenceEnable.isEnabled = value
+
+            true
+        }
         /**
          * Helper method to determine if the device has an extra-large screen. For
          * example, 10" tablets are extra-large.

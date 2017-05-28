@@ -23,7 +23,7 @@ class GestureService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
         gesture.onGesture += { onGestureEvent(it) }
-        gesture.onGesture.invoke("KEY_UP")
+//        gesture.onGesture.invoke("KEY_UP")
 
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)

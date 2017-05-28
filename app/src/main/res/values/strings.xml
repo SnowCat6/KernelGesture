@@ -14,6 +14,9 @@
     <string name="ui_draw_s">Draw S letter</string>
     <string name="ui_draw_v">Draw V letter</string>
     <string name="ui_use_gesture">Use gestures</string>
+    <string name="ui_gesture_enable">Enable gesture</string>
+    <string name="ui_gesture_enabled">Enabled gestures</string>
+    <string name="ui_gesture_disabled">Disabled gestures</string>
 
     <!-- Strings related to Settings -->
 
