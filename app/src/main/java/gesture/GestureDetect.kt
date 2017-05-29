@@ -46,7 +46,7 @@ class GestureDetect()
                 val ix = line.indexOf("Handlers=")
                 if (ix >= 0){
                     val a = line.substring(ix + 9).split(" ")
-                    return a[1]
+                    return a.firstOrNull { it.substring(0, 5) == "event" }
                 }
             }
 
@@ -112,6 +112,12 @@ class GestureDetect()
         }
         return null;
     }
+    private fun getFileLine(name:String):String?
+    {
+        exec("cat $name")
+        if (processSU == null || processSU!!.errorStream.available() > 0) return null
+        return readExecLine()
+    }
     private fun su():Process?
     {
         try {
@@ -134,6 +140,7 @@ class GestureDetect()
 
         Log.d("GestureDetect exec", "$cmd\n")
         val su:Process = processSU!!
+        su.errorStream.skip(su.errorStream.available().toLong())
         val out = DataOutputStream(su.outputStream)
         out.writeBytes("$cmd\n")
         out.flush()
@@ -181,10 +188,12 @@ class GestureDetect()
         override fun onEvent(detector:GestureDetect, line:String):Boolean
         {
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] == "EV_KEY" && arg[1] == "KEY_PROG3") onEvent(detector)
+            if (arg[0] == "EV_KEY" && arg[1] == "KEY_PROG3")    onEventHCT(detector)
+            if (arg[0] == "EV_KEY" && arg[1] == "BTN_JOYSTICK") onEventOKK(detector)
             return true
         }
-        private fun onEvent(detector:GestureDetect)
+        //  HCT gesture give from file
+        private fun onEventHCT(detector:GestureDetect)
         {
             val keys = arrayListOf<Pair<String,String>>(
                     Pair("UP",      "KEY_UP"),
@@ -194,8 +203,7 @@ class GestureDetect()
             )
 
             //  get gesture name
-            detector.exec("cat sys/devices/bus/bus\\:touch@/tpgesture")
-            val gs = detector.readExecLine()
+            val gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
 
             for ((first, second) in keys) {
                 if (gs != first) return
@@ -203,6 +211,11 @@ class GestureDetect()
                 break
             }
        }
+        //  Oukitel K4000 device gesture
+        private fun onEventOKK(detector:GestureDetect)
+        {
+
+        }
     }
     /*
     Qualcomm keyboard volume key and touchscreen ft5x06_ts for testing
