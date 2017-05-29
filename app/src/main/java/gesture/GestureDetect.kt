@@ -188,12 +188,12 @@ class GestureDetect()
         override fun onEvent(detector:GestureDetect, line:String):Boolean
         {
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] == "EV_KEY" && arg[1] == "KEY_PROG3")    onEventHCT(detector)
-            if (arg[0] == "EV_KEY" && arg[1] == "BTN_JOYSTICK") onEventOKK(detector)
+            if (arg[0] == "EV_KEY" && arg[1] == "KEY_PROG3" && onEventHCT(detector)) return true
+            if (arg[0] == "EV_KEY" && onEventOKK(detector, arg[1])) return true
             return true
         }
         //  HCT gesture give from file
-        private fun onEventHCT(detector:GestureDetect)
+        private fun onEventHCT(detector:GestureDetect):Boolean
         {
             val keys = arrayListOf<Pair<String,String>>(
                     Pair("UP",      "KEY_UP"),
@@ -206,15 +206,31 @@ class GestureDetect()
             val gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
 
             for ((first, second) in keys) {
-                if (gs != first) return
+                if (gs != first) continue
                 detector.onGesture.invoke(second)
-                break
+                return true
             }
+            return false
        }
         //  Oukitel K4000 device gesture
-        private fun onEventOKK(detector:GestureDetect)
+        private fun onEventOKK(detector:GestureDetect, key:String):Boolean
         {
-
+            val keys = arrayListOf<Pair<String,String>>(
+                    Pair("BTN_JOYSTICK","KEY_UP"),
+                    Pair("BTN_THUMB",   "KEY_C"),
+                    Pair("BTN_THUMB2",  "KEY_E"),
+                    Pair("BTN_TOP2",    "KEY_O"),
+                    Pair("012c",        "KEY_S"),
+                    Pair("BTN_BASE6",   "KEY_V"),
+                    Pair("BTN_BASE4",   "KEY_W"),
+                    Pair("BTN_BASE5",   "KEY_Z")
+            )
+            for ((first, second) in keys) {
+                if (key != first) continue
+                detector.onGesture.invoke(second)
+                return true
+            }
+            return false
         }
     }
     /*
