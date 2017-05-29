@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">KernelGesture</string>
+    <string name="app_name" translatable="false">Any Kernel Gesture</string>
     <string name="ui_no_action">No action</string>
     <string name="ui_dblclick">Double click screen</string>
     <string name="ui_swipe_up">Swipe to UP</string>
