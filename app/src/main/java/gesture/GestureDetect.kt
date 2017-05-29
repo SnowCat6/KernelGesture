@@ -149,6 +149,25 @@ class GestureDetect()
     }
     private fun readExecLine():String
             = su()!!.inputStream.bufferedReader().readLine()
+
+    private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):Boolean
+    {
+        if (key == null || key.isEmpty())
+            return false;
+
+        if (convert == null){
+            onGesture.invoke(key)
+            return true
+        }
+
+        for ((first, second) in convert) {
+            if (key != first) continue
+            onGesture.invoke(second)
+            return true
+        }
+
+        return false
+    }
     /*
     ADD Manifest:
         <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -175,7 +194,7 @@ class GestureDetect()
         }
         override fun onEvent(detector:GestureDetect, line:String):Boolean{
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] == "EV_KEY") detector.onGesture.invoke(arg[1])
+            if (arg[0] == "EV_KEY") detector.runGesture(arg[1])
             return true
         }
     }
@@ -195,7 +214,7 @@ class GestureDetect()
         //  HCT gesture give from file
         private fun onEventHCT(detector:GestureDetect):Boolean
         {
-            val keys = arrayListOf<Pair<String,String>>(
+            val keys = arrayOf<Pair<String,String>>(
                     Pair("UP",      "KEY_UP"),
                     Pair("DOWN",    "KEY_DOWN"),
                     Pair("LEFT",    "KEY_LEFT"),
@@ -204,18 +223,12 @@ class GestureDetect()
 
             //  get gesture name
             val gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
-
-            for ((first, second) in keys) {
-                if (gs != first) continue
-                detector.onGesture.invoke(second)
-                return true
-            }
-            return false
+            return detector.runGesture(gs, keys)
        }
         //  Oukitel K4000 device gesture
         private fun onEventOKK(detector:GestureDetect, key:String):Boolean
         {
-            val keys = arrayListOf<Pair<String,String>>(
+            val keys = arrayOf<Pair<String,String>>(
                     Pair("BTN_JOYSTICK","KEY_UP"),
                     Pair("BTN_THUMB",   "KEY_C"),
                     Pair("BTN_THUMB2",  "KEY_E"),
@@ -225,14 +238,10 @@ class GestureDetect()
                     Pair("BTN_BASE4",   "KEY_W"),
                     Pair("BTN_BASE5",   "KEY_Z")
             )
-            for ((first, second) in keys) {
-                if (key != first) continue
-                detector.onGesture.invoke(second)
-                return true
-            }
-            return false
+            return detector.runGesture(key, keys)
         }
     }
+
     /*
     Qualcomm keyboard volume key and touchscreen ft5x06_ts for testing
      */
