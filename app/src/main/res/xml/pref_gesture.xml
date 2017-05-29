@@ -74,4 +74,25 @@
             />
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="Additional settings"
+        >
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="GESTURE_DEFAULT_ACTION"
+            android:title="@string/ui_default_action"
+            />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:key="GESTURE_VIBRATION"
+            android:title="@string/ui_vibrate"
+            />
+        <RingtonePreference
+            android:title="@string/ui_notify"
+            android:key="GESTURE_NOTIFY"
+            android:ringtoneType="notification"
+            />
+    </PreferenceCategory>
+
 </PreferenceScreen>

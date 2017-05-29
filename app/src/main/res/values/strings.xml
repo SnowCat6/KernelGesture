@@ -17,6 +17,9 @@
     <string name="ui_gesture_enable">Enable gesture</string>
     <string name="ui_gesture_enabled">Enabled gestures</string>
     <string name="ui_gesture_disabled">Disabled gestures</string>
+    <string name="ui_default_action">Default action on all gestures</string>
+    <string name="ui_vibrate">Vibrate on gesture</string>
+    <string name="ui_notify">Play notify on gesture</string>
 
     <!-- Strings related to Settings -->
 
