@@ -29,7 +29,7 @@ class GestureService : Service() {
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onScreenIntent, intentFilter)
 
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
 
     val onScreenIntent: BroadcastReceiver = object : BroadcastReceiver() {

@@ -209,6 +209,7 @@ class GestureDetect()
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
             if (arg[0] == "EV_KEY" && arg[1] == "KEY_PROG3" && onEventHCT(detector)) return true
             if (arg[0] == "EV_KEY" && onEventOKK(detector, arg[1])) return true
+
             return true
         }
         //  HCT gesture give from file
