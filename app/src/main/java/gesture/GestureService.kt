@@ -7,10 +7,9 @@ import android.util.Log
 import android.content.Intent
 import android.content.BroadcastReceiver
 import android.net.Uri
+import android.preference.PreferenceManager
 import android.provider.ContactsContract
-
-
-
+import android.media.MediaPlayer
 
 class GestureService : Service() {
 
@@ -62,7 +61,7 @@ class GestureService : Service() {
 
         when(action){
             "screen.on" ->{
-                gesture.screenON(baseContext)
+                screenON()
             }
             "phone" -> {
                 //For the dial pad
@@ -86,9 +85,20 @@ class GestureService : Service() {
     }
     fun startNewActivity(context: Context, intent: Intent)
     {
-        gesture.screenON(baseContext)
-
+        screenON()
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
+    }
+    private fun screenON()
+    {
+        if (GestureDetect.getEnable(this, "GESTURE_VIBRATION")) GestureDetect.vibrate(this)
+
+        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        try {
+            val notify = sharedPreferences.getString("GESTURE_NOTIFY", null)
+            if (notify != null && notify.isNotEmpty()) GestureDetect.playNotify(notify)
+        }catch (e:Exception){}
+
+        GestureDetect.screenON(this)
     }
 }

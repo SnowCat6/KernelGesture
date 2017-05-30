@@ -15,6 +15,9 @@ import android.content.Intent
 import android.util.Log
 import gesture.GestureDetect
 import gesture.GestureService
+import android.media.Ringtone
+
+
 
 
 /**
@@ -118,6 +121,10 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             val preferenceEnable = findPreference("GESTURE_ENABLE")
             preferenceEnable.onPreferenceChangeListener = sBindPreferenceEnableListener
             sBindPreferenceEnableListener.onPreferenceChange(preferenceEnable, GestureDetect.getAllEnable(activity))
+
+            val preferenceNotify = findPreference("GESTURE_NOTIFY")
+            preferenceNotify.onPreferenceChangeListener = sBindPreferenceNotifyListenerListener
+            sBindPreferenceNotifyListenerListener.onPreferenceChange(preferenceNotify, false)
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -153,6 +160,31 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             val preferenceEnable = preference.getPreferenceManager().findPreference("GESTURE_GROUP")
             GestureDetect.setAllEnable(preference.context, value as Boolean)
             preferenceEnable.isEnabled = value
+
+            true
+        }
+
+        private val sBindPreferenceNotifyListenerListener = Preference.OnPreferenceChangeListener { preference, value ->
+
+            var notify:String? = null
+            if (value is String) notify = value
+
+            try {
+                if (notify == null) {
+                    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(preference.context)
+                    notify = sharedPreferences.getString("GESTURE_NOTIFY", null)
+                }
+            }catch (e:Exception){}
+
+            if (notify == null || notify.isEmpty()) preference.summary = "No notify on gesture"
+            else{
+
+                val ringtone = RingtoneManager.getRingtone(preference.context, Uri.parse(notify))
+                when (ringtone) {
+                    null -> preference.summary = preference.context.getString(R.string.ui_sound_default)
+                    else -> preference.summary = ringtone.getTitle(preference.context)
+                }
+            }
 
             true
         }

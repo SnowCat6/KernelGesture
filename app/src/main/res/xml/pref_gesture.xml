@@ -97,6 +97,8 @@
             android:defaultValue="true"
             android:key="GESTURE_VIBRATION"
             android:title="@string/ui_vibrate"
+            android:summaryOff="@string/ui_vibrate_off"
+            android:summaryOn="@string/ui_vibrate_on"
             />
         <RingtonePreference
             android:title="@string/ui_notify"
