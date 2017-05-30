@@ -52,11 +52,13 @@ class GestureService : Service() {
         return super.stopService(name)
     }
 
-    fun onGestureEvent(it:String)
+    fun onGestureEvent(gestureKey:String)
     {
+        Log.d("Gesture action", gestureKey)
+
         if (!GestureDetect.getAllEnable(this)) return
-        if (!GestureDetect.getEnable(this, it)) return
-        val action = GestureDetect.getAction(this, it) ?: return
+        if (!GestureDetect.getEnable(this, gestureKey)) return
+        val action = GestureDetect.getAction(this, gestureKey) ?: return
 
         when(action){
             "screen.on" ->{
