@@ -90,7 +90,9 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 Pair("KEY_W",   "browser"),
                 Pair("KEY_S",   "sound.off"),
                 Pair("KEY_V",   ""),
-                Pair("KEY_Z",   "")
+                Pair("KEY_Z",   ""),
+                Pair("KEY_VOLUMEUP",    ""),
+                Pair("KEY_VOLUMEDOWN",  "")
         )
 
         override fun onCreate(savedInstanceState: Bundle?) {

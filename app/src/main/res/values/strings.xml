@@ -21,6 +21,8 @@
     <string name="ui_vibrate">Vibrate on gesture</string>
     <string name="ui_notify">Play notify on gesture</string>
     <string name="ui_adv_settings">Additional settings</string>
+    <string name="ui_volume_up">Press volume key UP</string>
+    <string name="ui_volume_down">Press volume key DOWN</string>
 
     <!-- Strings related to Settings -->
 

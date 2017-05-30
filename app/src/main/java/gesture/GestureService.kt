@@ -80,10 +80,11 @@ class GestureService : Service() {
             intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse("market://details?id=" + packageName)
         }
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+        startNewActivity(context, intent)
     }
-    fun startNewActivity(context: Context, intent: Intent) {
+    fun startNewActivity(context: Context, intent: Intent)
+    {
+        gesture.screenON(baseContext)
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     }
