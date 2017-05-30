@@ -91,6 +91,8 @@ class GestureService : Service() {
     }
     private fun screenON()
     {
+        GestureDetect.screenON(this)
+
         if (GestureDetect.getEnable(this, "GESTURE_VIBRATION")) GestureDetect.vibrate(this)
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -98,7 +100,5 @@ class GestureService : Service() {
             val notify = sharedPreferences.getString("GESTURE_NOTIFY", null)
             if (notify != null && notify.isNotEmpty()) GestureDetect.playNotify(notify)
         }catch (e:Exception){}
-
-        GestureDetect.screenON(this)
     }
 }
