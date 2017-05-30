@@ -20,4 +20,5 @@
     <string name="ui_default_action">Действие для всех жестов</string>
     <string name="ui_vibrate">Вибрировать при разблокировке</string>
     <string name="ui_notify">Звук при разблокировке</string>
+    <string name="ui_adv_settings">Дополнительные настройки</string>
 </resources>

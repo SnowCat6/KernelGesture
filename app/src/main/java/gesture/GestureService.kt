@@ -54,6 +54,7 @@ class GestureService : Service() {
 
     fun onGestureEvent(it:String)
     {
+        if (!GestureDetect.getAllEnable(this)) return
         if (!GestureDetect.getEnable(this, it)) return
         val action = GestureDetect.getAction(this, it) ?: return
 
@@ -63,13 +64,11 @@ class GestureService : Service() {
             }
             "phone" -> {
                 //For the dial pad
-                val i = Intent(Intent.ACTION_DIAL, null)
-                startActivity(i)
+                startNewActivity(this, Intent(Intent.ACTION_DIAL, null))
             }
             "phone.contacts" -> {
                 //For the contacts (viewing them)
-                val i = Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI)
-                startActivity(i)
+                startNewActivity(this, Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
             }
         }
     }
@@ -81,6 +80,10 @@ class GestureService : Service() {
             intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse("market://details?id=" + packageName)
         }
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    }
+    fun startNewActivity(context: Context, intent: Intent) {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     }

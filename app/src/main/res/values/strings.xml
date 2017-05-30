@@ -20,6 +20,7 @@
     <string name="ui_default_action">Default action on all gestures</string>
     <string name="ui_vibrate">Vibrate on gesture</string>
     <string name="ui_notify">Play notify on gesture</string>
+    <string name="ui_adv_settings">Additional settings</string>
 
     <!-- Strings related to Settings -->
 

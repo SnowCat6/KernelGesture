@@ -75,7 +75,7 @@
     </PreferenceCategory>
 
     <PreferenceCategory
-        android:title="Additional settings"
+        android:title="@string/ui_adv_settings"
         >
         <SwitchPreference
             android:defaultValue="false"

@@ -220,6 +220,7 @@ class GestureDetect()
                     Pair("LEFT",    "KEY_LEFT"),
                     Pair("RIGHT",   "KEY_RIGHT")
             )
+            return detector.runGesture("KEY_U")
 
             //  get gesture name
             val gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
@@ -229,7 +230,7 @@ class GestureDetect()
         private fun onEventOKK(detector:GestureDetect, key:String):Boolean
         {
             val keys = arrayOf<Pair<String,String>>(
-                    Pair("BTN_JOYSTICK","KEY_UP"),
+                    Pair("BTN_JOYSTICK","KEY_U"),
                     Pair("BTN_THUMB",   "KEY_C"),
                     Pair("BTN_THUMB2",  "KEY_E"),
                     Pair("BTN_TOP2",    "KEY_O"),
@@ -278,8 +279,7 @@ class GestureDetect()
             var action: String? = null
             try {
                 action = sharedPreferences.getString("${key}_ACTION", null)
-            } catch (e: Exception) {
-            }
+            } catch (e: Exception) { }
 
             if (action == null || action.isEmpty()) return null
             return action
