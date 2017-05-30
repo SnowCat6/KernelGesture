@@ -176,8 +176,9 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 }
             }catch (e:Exception){}
 
-            if (notify == null || notify.isEmpty()) preference.summary = "No notify on gesture"
-            else{
+            if (notify == null || notify.isEmpty()) {
+                preference.summary = preference.context.getString(R.string.ui_no_notify)
+            }else{
 
                 val ringtone = RingtoneManager.getRingtone(preference.context, Uri.parse(notify))
                 when (ringtone) {

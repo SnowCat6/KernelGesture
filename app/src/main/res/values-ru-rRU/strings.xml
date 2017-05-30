@@ -26,4 +26,5 @@
     <string name="ui_vibrate_off">Без вибрации</string>
     <string name="ui_vibrate_on">Вибрация при активации</string>
     <string name="ui_sound_default">Системный звук</string>
+    <string name="ui_no_notify">Без звука</string>
 </resources>
