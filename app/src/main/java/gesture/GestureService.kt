@@ -87,6 +87,7 @@ class GestureService : Service() {
     fun startNewActivity(context: Context, intent: Intent)
     {
         gesture.screenON(baseContext)
+
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(intent)
     }

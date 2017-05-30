@@ -94,7 +94,7 @@
             />
 
         <SwitchPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="GESTURE_VIBRATION"
             android:title="@string/ui_vibrate"
             />

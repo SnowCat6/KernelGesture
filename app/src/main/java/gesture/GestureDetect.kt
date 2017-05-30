@@ -6,6 +6,10 @@ import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.util.Log
 import kotlin.concurrent.thread
+import android.content.Context.VIBRATOR_SERVICE
+import android.os.Vibrator
+
+
 
 class GestureDetect()
 {
@@ -170,15 +174,24 @@ class GestureDetect()
         return false
     }
     /*
-    ADD Manifest:
         <uses-permission android:name="android.permission.WAKE_LOCK" />
     */
     fun screenON(context:Context)
     {
+        if (GestureDetect.getEnable(context, "GESTURE_VIBRATION")) vibrate(context)
+
         val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG")
         wakeLock.acquire(10)
         wakeLock.release()
+    }
+    /*
+    <uses-permission android:name="android.permission.VIBRATE"/>
+     */
+    fun vibrate(context:Context){
+        // Vibrate for 500 milliseconds
+        val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        vibrator?.vibrate(200)
     }
 
     interface InputHandler
