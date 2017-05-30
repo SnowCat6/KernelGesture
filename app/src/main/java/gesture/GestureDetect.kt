@@ -14,7 +14,7 @@ class GestureDetect()
     private var devices = emptyArray<Pair<String,InputHandler>>()
     private var bStartWait = false
     private var processSU:Process? = null
-    private val inputHandlers = arrayOf(InputMTK(), InputMTK_KPD(), InputQCOMM())
+    private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_TPD())
 
     init {
         startWait()
@@ -187,6 +187,9 @@ class GestureDetect()
         fun setEnable(enable:Boolean){}
         fun getEnable():Boolean{ return false }
     }
+    /*
+    MT touchscreen with gestures
+     */
     open class InputMTK: InputHandler
     {
         override fun onDetect(name:String):Boolean{
@@ -194,21 +197,30 @@ class GestureDetect()
         }
         override fun onEvent(detector:GestureDetect, line:String):Boolean{
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] == "EV_KEY") detector.runGesture(arg[1])
+            if (arg[0] == "EV_KEY" && arg[2] == "DOWN") detector.runGesture(arg[1])
             return true
         }
     }
 
-    open class InputMTK_KPD: InputHandler
+    /*
+    MTK and QCOMM keyboard
+     */
+    open class InputKPD : InputHandler
     {
-        override fun onDetect(name:String):Boolean{
-            return name == "mtk-kpd"
-        }
+        override fun onDetect(name:String):Boolean
+                = name == "mtk-kpd" || name == "qpnp_pon"
+
         override fun onEvent(detector:GestureDetect, line:String):Boolean
         {
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] == "EV_KEY" && arg[1] == "KEY_PROG3" && onEventHCT(detector)) return true
-            if (arg[0] == "EV_KEY" && onEventOKK(detector, arg[1])) return true
+            if (arg[0] != "EV_KEY"|| arg[2] != "DOWN") return true
+
+            when(arg[1]){
+                "KEY_PROG3" ->  if (onEventHCT(detector)) return true
+                "KEY_VOLUMEUP",
+                "KEY_VOLUMEDOWN" ->  return detector.runGesture(arg[1])
+            }
+            if (onEventOKK(detector, arg[1])) return true
 
             return true
         }
@@ -216,15 +228,25 @@ class GestureDetect()
         private fun onEventHCT(detector:GestureDetect):Boolean
         {
             val keys = arrayOf<Pair<String,String>>(
-                    Pair("UP",      "KEY_UP"),
-                    Pair("DOWN",    "KEY_DOWN"),
-                    Pair("LEFT",    "KEY_LEFT"),
-                    Pair("RIGHT",   "KEY_RIGHT")
+                    Pair("UP",          "KEY_UP"),
+                    Pair("DOWN",        "KEY_DOWN"),
+                    Pair("LEFT",        "KEY_LEFT"),
+                    Pair("RIGHT",       "KEY_RIGHT"),
+                    Pair("DOUBCLICK",   "KEY_U"),
+                    Pair("c",           "KEY_C"),
+                    Pair("o",           "KEY_O"),
+                    Pair("w",           "KEY_W"),
+                    Pair("e",           "KEY_E"),
+                    Pair("v",           "KEY_V"),
+                    Pair("m",           "KEY_M"),
+                    Pair("z",           "KEY_Z"),
+                    Pair("s",           "KEY_S")
             )
-            return detector.runGesture("KEY_U")
 
             //  get gesture name
-            val gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
+            var gs = detector.getFileLine("/sys/devices/platform/mtk-tpd/tpgesture")
+            if (gs == null) gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
+
             return detector.runGesture(gs, keys)
        }
         //  Oukitel K4000 device gesture
@@ -245,12 +267,12 @@ class GestureDetect()
     }
 
     /*
-    Qualcomm keyboard volume key and touchscreen ft5x06_ts for testing
+    Qualcomm touchscreen ft5x06_ts for testing
      */
-    open class InputQCOMM: InputMTK()
+    open class InputQCOMM_TPD : InputKPD()
     {
         override fun onDetect(name:String):Boolean
-                = name == "qpnp_pon" || name == "ft5x06_ts"
+                = name == "ft5x06_ts"
     }
 
     companion object {
