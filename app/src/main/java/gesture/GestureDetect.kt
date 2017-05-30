@@ -72,6 +72,7 @@ class GestureDetect()
         if (bStartWait) return;
         bStartWait = detectGesture()
         thread {
+            for (it in devices) it.second.setEnable(true)
             while (bStartWait && startWaitThread()) {}
             stopWait()
         }
@@ -205,8 +206,17 @@ class GestureDetect()
     /*
     MTK and QCOMM keyboard
      */
-    open class InputKPD : InputHandler
+    inner open class InputKPD : InputHandler
     {
+        //  HCT version gesture for Android 5x and Android 6x
+        val HCT_GESTURE_PATH = arrayOf(
+                "/sys/devices/platform/mtk-tpd",
+                "/sys/devices/bus/bus\\:touch@")
+
+        override fun setEnable(enable:Boolean){
+           HCT_GESTURE_PATH.forEach { exec("echo on > $it/tpgesture_status") }
+        }
+
         override fun onDetect(name:String):Boolean
                 = name == "mtk-kpd" || name == "qpnp_pon"
 
@@ -216,16 +226,16 @@ class GestureDetect()
             if (arg[0] != "EV_KEY"|| arg[2] != "DOWN") return true
 
             when(arg[1]){
-                "KEY_PROG3" ->  if (onEventHCT(detector)) return true
+                "KEY_PROG3" ->  if (onEventHCT()) return true
                 "KEY_VOLUMEUP",
-                "KEY_VOLUMEDOWN" ->  return detector.runGesture(arg[1])
+                "KEY_VOLUMEDOWN" ->  return runGesture(arg[1])
             }
             if (onEventOKK(detector, arg[1])) return true
 
             return true
         }
         //  HCT gesture give from file
-        private fun onEventHCT(detector:GestureDetect):Boolean
+        private fun onEventHCT():Boolean
         {
             val keys = arrayOf<Pair<String,String>>(
                     Pair("UP",          "KEY_UP"),
@@ -244,11 +254,17 @@ class GestureDetect()
             )
 
             //  get gesture name
+            for (it in HCT_GESTURE_PATH) {
+                val gs = getFileLine("$it/tpgesture")
+                if (gs != null) return runGesture(gs, keys)
+            }
+            return false
+/*
             var gs = detector.getFileLine("/sys/devices/platform/mtk-tpd/tpgesture")
             if (gs == null) gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
 
             return detector.runGesture(gs, keys)
-       }
+ */      }
         //  Oukitel K4000 device gesture
         private fun onEventOKK(detector:GestureDetect, key:String):Boolean
         {
@@ -269,7 +285,7 @@ class GestureDetect()
     /*
     Qualcomm touchscreen ft5x06_ts for testing
      */
-    open class InputQCOMM_TPD : InputKPD()
+    inner open class InputQCOMM_TPD : InputKPD()
     {
         override fun onDetect(name:String):Boolean
                 = name == "ft5x06_ts"

@@ -25,7 +25,7 @@
         <service
             android:name="gesture.GestureService"
             android:enabled="true"
-            android:exported="true">
+            android:exported="false">
         </service>
 
         <!-- Declaring broadcast receiver for BOOT_COMPLETED event. -->
