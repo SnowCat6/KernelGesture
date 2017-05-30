@@ -16,9 +16,10 @@ class GestureDetect()
 {
     val onGesture:Event<String> = Event()
 
-    private var devices = emptyArray<Pair<String,InputHandler>>()
     private var bStartWait = false
     private var processSU:Process? = null
+
+    private var devices = emptyArray<Pair<String,InputHandler>>()
     private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_TPD())
 
     init {
