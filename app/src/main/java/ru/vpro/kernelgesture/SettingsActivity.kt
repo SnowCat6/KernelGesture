@@ -90,8 +90,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
     {
         val gestureKeys:Array<Pair<String,String>> = arrayOf(
                 Pair("KEY_U",       "screen.on"),
-                Pair("KEY_UP",      "phone"),
-                Pair("KEY_DOWN",    "phone.contacts"),
+                Pair("KEY_UP",      ""),
+                Pair("KEY_DOWN",    ""),
                 Pair("KEY_LEFT",    ""),
                 Pair("KEY_RIGHT",   ""),
                 Pair("KEY_O",       ""),
@@ -214,8 +214,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             var items:List<Any> = emptyList()
             items += "none"
             items += "screen.on"
-            items += "phone"
-            items += "phone.contacts"
+//            items += "phone"
+//            items += "phone.contacts"
             pkgAppsList.forEach { items += it }
 /*
             var items = arrayOf("none", "screen.on", "phone", "phone.contacts")
