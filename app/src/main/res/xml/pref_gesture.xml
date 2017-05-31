@@ -12,72 +12,73 @@
         android:title="@string/ui_use_gesture"
         android:key="GESTURE_GROUP">
 
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_U"
             android:title="@string/ui_dblclick"
-         />
-        <SwitchPreference
+            />
+
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_UP"
             android:title="@string/ui_swipe_up"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_DOWN"
             android:title="@string/ui_swipe_down"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_LEFT"
             android:title="@string/ui_swipe_left"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_RIGHT"
             android:title="@string/ui_swipe_rught"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_O"
             android:title="@string/ui_draw_o"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_E"
             android:title="@string/ui_draw_e"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_M"
             android:title="@string/ui_draw_m"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_L"
             android:title="@string/ui_draw_l"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_W"
             android:title="@string/ui_draw_w"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_S"
             android:title="@string/ui_draw_s"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_V"
             android:title="@string/ui_draw_v"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_VOLUMEUP"
             android:title="@string/ui_volume_up"
             />
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_VOLUMEDOWN"
             android:title="@string/ui_volume_down"
@@ -87,7 +88,7 @@
     <PreferenceCategory
         android:title="@string/ui_adv_settings"
         >
-        <SwitchPreference
+        <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="GESTURE_DEFAULT_ACTION"
             android:title="@string/ui_default_action"

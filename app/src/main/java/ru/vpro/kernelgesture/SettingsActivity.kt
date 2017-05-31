@@ -16,6 +16,10 @@ import android.util.Log
 import gesture.GestureDetect
 import gesture.GestureService
 import android.media.Ringtone
+import android.R.attr.name
+import android.preference.PreferenceScreen
+
+
 
 
 
@@ -94,20 +98,20 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 Pair("KEY_S",       "sound.off"),
                 Pair("KEY_V",       ""),
                 Pair("KEY_Z",       ""),
-                Pair("KEY_VOLUMEUP",    ""),
-                Pair("KEY_VOLUMEDOWN",  "")
+                Pair("KEY_VOLUMEUP",            ""),
+                Pair("KEY_VOLUMEDOWN",          ""),
+                Pair("GESTURE_DEFAULT_ACTION",  "")
         )
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(R.xml.pref_gesture)
             setHasOptionsMenu(true)
-
-            // Bind the summaries of EditText/List/Dialog/Ringtone preferences
-            // to their values. When their values change, their summaries are
-            // updated to reflect the new value, per the Android Design
-            // guidelines.
-
+/*
+            val group = preferenceManager.findPreference("GESTURE_GROUP") as PreferenceCategory
+            var sw = SwitchPreference(activity)
+            group.addPreference(sw)
+*/
             gestureKeys.forEach { (first, second) ->
                 val preference = findPreference(first) ?: return@forEach
 
@@ -116,6 +120,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
                 preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
                 sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, false)
+
+                preference.onPreferenceClickListener = sBindPreferenceClickListener
             }
 
             val preferenceEnable = findPreference("GESTURE_ENABLE")
@@ -196,5 +202,10 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         private fun isXLargeTablet(context: Context): Boolean {
             return context.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
         }
-  }
+
+        private val sBindPreferenceClickListener = Preference.OnPreferenceClickListener { preference ->
+            true
+        }
+
+    }
 }
