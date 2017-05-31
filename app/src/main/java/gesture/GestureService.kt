@@ -65,13 +65,17 @@ class GestureService : Service() {
             }
             "phone" -> {
                 //For the dial pad
-                startNewActivity(this, Intent(Intent.ACTION_DIAL, null))
+                startNewActivity(Intent(Intent.ACTION_DIAL, null))
             }
             "phone.contacts" -> {
                 //For the contacts (viewing them)
-                startNewActivity(this, Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
+                startNewActivity(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
             }
         }
+
+        val intent = packageManager.getLaunchIntentForPackage(action)
+        if (intent == null) return
+        startNewActivity(intent)
     }
 
     fun startNewActivity(context: Context, packageName: String) {
@@ -81,13 +85,13 @@ class GestureService : Service() {
             intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse("market://details?id=" + packageName)
         }
-        startNewActivity(context, intent)
+        startNewActivity(intent)
     }
-    fun startNewActivity(context: Context, intent: Intent)
+    fun startNewActivity(intent: Intent)
     {
         screenON()
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        context.startActivity(intent)
+        startActivity(intent)
     }
     private fun screenON()
     {
