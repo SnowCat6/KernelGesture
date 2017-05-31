@@ -73,9 +73,11 @@ class GestureService : Service() {
             }
         }
 
-        val intent = packageManager.getLaunchIntentForPackage(action)
-        if (intent == null) return
-        startNewActivity(intent)
+        try {
+            val intent = packageManager.getLaunchIntentForPackage(action)
+            if (intent == null) return
+            startNewActivity(intent)
+        }catch (e:Exception){}
     }
 
     fun startNewActivity(context: Context, packageName: String) {
@@ -90,8 +92,10 @@ class GestureService : Service() {
     fun startNewActivity(intent: Intent)
     {
         screenON()
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        startActivity(intent)
+        try {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            startActivity(intent)
+        }catch (e:Exception){}
     }
     private fun screenON()
     {

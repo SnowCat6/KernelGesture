@@ -303,6 +303,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 is String -> {
 
                     when(item){
+                        "none"  -> return context.getString(R.string.ui_no_action)
                         "screen.on" -> return context.getString(R.string.ui_screen_on)
                         "phone" -> return context.getString(R.string.ui_phone)
                         "phone.contacts" -> return context.getString(R.string.ui_contacts)
