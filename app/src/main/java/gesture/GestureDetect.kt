@@ -8,6 +8,8 @@ import android.util.Log
 import kotlin.concurrent.thread
 import android.content.Context.VIBRATOR_SERVICE
 import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Vibrator
 
 
@@ -352,13 +354,9 @@ class GestureDetect()
             val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             vibrator?.vibrate(200)
         }
-        fun playNotify(notify: String)
+        fun playNotify(context:Context, notify: Uri)
         {
-            val mp = MediaPlayer()
-            mp.reset()
-            mp.setDataSource(notify)
-            mp.prepare()
-            mp.start()
+            RingtoneManager.getRingtone(context, notify).play();
         }
     }
 }

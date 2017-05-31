@@ -97,8 +97,8 @@ class GestureService : Service() {
 
         val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         try {
-            val notify = sharedPreferences.getString("GESTURE_NOTIFY", null)
-            if (notify != null && notify.isNotEmpty()) GestureDetect.playNotify(notify)
+            val notify = Uri.parse(sharedPreferences.getString("GESTURE_NOTIFY", null))
+            if (notify != null) GestureDetect.playNotify(this, notify)
         }catch (e:Exception){}
     }
 }
