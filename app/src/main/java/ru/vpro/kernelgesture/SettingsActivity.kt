@@ -92,14 +92,14 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 Pair("KEY_U",       "screen.on"),
                 Pair("KEY_UP",      "phone"),
                 Pair("KEY_DOWN",    "phone.contacts"),
-                Pair("KEY_LEFT",    "music.prev|photo"),
-                Pair("KEY_RIGHT",   "music.next|google"),
+                Pair("KEY_LEFT",    ""),
+                Pair("KEY_RIGHT",   ""),
                 Pair("KEY_O",       ""),
                 Pair("KEY_E",       ""),
-                Pair("KEY_M",       "music"),
+                Pair("KEY_M",       ""),
                 Pair("KEY_L",       ""),
-                Pair("KEY_W",       "browser"),
-                Pair("KEY_S",       "sound.off"),
+                Pair("KEY_W",       ""),
+                Pair("KEY_S",       ""),
                 Pair("KEY_V",       ""),
                 Pair("KEY_Z",       ""),
                 Pair("KEY_VOLUMEUP",            ""),
@@ -155,16 +155,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             if (action == null){
                 preference.summary = preference.context.getString(R.string.ui_no_action)
             }else{
-                val pm = preference.context.getPackageManager()
-                var ai: ApplicationInfo?
-                try {
-                    ai = pm.getApplicationInfo(action, 0)
-                } catch (e: Exception) {
-                    ai = null
-                }
-
-                val applicationName = if (ai != null) pm.getApplicationLabel(ai) else action
-                preference.summary = applicationName
+                preference.summary = actionName(preference.context, action)
             }
 
             true
@@ -219,6 +210,13 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             val mainIntent = Intent(Intent.ACTION_MAIN, null)
             mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
             val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
+
+            var items:List<Any> = emptyList()
+            items += "none"
+            items += "screen.on"
+            items += "phone"
+            items += "phone.contacts"
+            pkgAppsList.forEach { items += it }
 /*
             var items = arrayOf("none", "screen.on", "phone", "phone.contacts")
             var items_action = arrayOf("none", "screen.on", "phone", "phone.contacts")
@@ -229,17 +227,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 */
             val builder = AlertDialog.Builder(preference.context)
             builder.setTitle(preference.context.getString(R.string.iu_choose_action))
- /*
-            builder.setItems(items, DialogInterface.OnClickListener { dialog, item ->
 
-                var value =  items_action[item]
-                if (value == "none") value = ""
-
-                GestureDetect.setAction(preference.context, preference.key, value)
-                sBindPreferenceNotifyListenerListener.onPreferenceChange(preference, value)
-            })
-*/
-            val adapter = BoxAdapter(preference, pkgAppsList)
+            val adapter = BoxAdapter(preference, items)
             builder.setAdapter(adapter, onClickListener)
 
             val alert = builder.create()
@@ -252,23 +241,24 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
             val lw = (dialogInterface as AlertDialog).listView
             val adapter = lw.adapter as BoxAdapter
-            val item = adapter.getThisItem(i)
+            val item = adapter.getItem(i)
+            val preference = adapter.getPreference()
 
-            var value =  item.activityInfo.packageName
+            var value =  actionAction(preference.context, item)
             if (value == "none") value = ""
 
-            val preference = adapter.getPreference()
             GestureDetect.setAction(lw.context, preference.key, value)
             sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, value)
-        }
 
+            val p = preference as TwoStatePreference?
+            p?.isChecked = value.isNotEmpty()
+        }
 
         class BoxAdapter internal constructor(
                 internal val preference: Preference,
-                internal val objects: List<ResolveInfo>) : BaseAdapter()
+                internal val objects: List<Any>) : BaseAdapter()
         {
             val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            val pm = preference.context.packageManager
 
             fun getPreference():Preference = preference
 
@@ -292,9 +282,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                     view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
                 }else view = convertView
 
-                val thisItem = getThisItem(position)
-                (view.findViewById(R.id.title) as TextView)
-                        .setText(pm?.getApplicationLabel(thisItem.activityInfo.applicationInfo))
+                val thisItem = getItem(position)
+                (view.findViewById(R.id.title) as TextView).text = actionName(preference.context, thisItem)
 
                 return view
             }
@@ -303,6 +292,44 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             internal fun getThisItem(position: Int): ResolveInfo {
                 return getItem(position) as ResolveInfo
             }
+        }
+        fun actionName(context:Context, item:Any):String
+        {
+            when(item){
+                is ResolveInfo -> return context.packageManager
+                        .getApplicationLabel(item.activityInfo.applicationInfo)
+                        .toString()
+
+                is String -> {
+
+                    when(item){
+                        "screen.on" -> return context.getString(R.string.ui_screen_on)
+                        "phone" -> return context.getString(R.string.ui_phone)
+                        "phone.contacts" -> return context.getString(R.string.ui_contacts)
+                    }
+
+                    val pm = context.getPackageManager()
+                    var ai: ApplicationInfo?
+                    try {
+                        ai = pm.getApplicationInfo(item, 0)
+                    } catch (e: Exception) {
+                        ai = null
+                    }
+
+                    return if (ai != null) {
+                        pm.getApplicationLabel(ai).toString()
+                    } else item
+                }
+            }
+            return ""
+        }
+        fun actionAction(context:Context, item:Any):String
+        {
+            when(item){
+                is ResolveInfo -> return item.activityInfo.packageName
+                is String -> return item
+            }
+            return ""
         }
     }
 }

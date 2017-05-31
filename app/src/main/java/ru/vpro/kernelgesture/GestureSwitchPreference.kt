@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.widget.Switch
 import android.view.View
 import android.widget.Checkable
+import android.widget.CompoundButton
 
 
 /**
@@ -29,15 +30,17 @@ class GestureSwitchPreference(context: Context, attrs: AttributeSet) :
         }
 
         val checkableView:Switch? = view.findViewById(R.id.switch_widget) as Switch?
-        checkableView?.setOnClickListener {
-            if (!callChangeListener(isChecked)) {
+        checkableView?.setOnCheckedChangeListener({ compoundButton: CompoundButton, b: Boolean ->
+
+            if (!callChangeListener(b)) {
                 // Listener didn't like it, change it back.
                 // CompoundButton will make sure we don't recurse.
-                checkableView.setChecked(!isChecked)
+                checkableView.setChecked(!b)
             }else {
-                setChecked(isChecked)
+                setChecked(b)
             }
-        }
+
+        })
         checkableView?.isChecked = isChecked
     }
 }
