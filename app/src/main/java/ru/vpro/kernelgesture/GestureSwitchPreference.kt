@@ -23,7 +23,7 @@ class GestureSwitchPreference(context: Context, attrs: AttributeSet) :
             onPreferenceClickListener?.onPreferenceClick(this)
         }
 
-        val checkableView = view.findViewById(android.R.id.switch_widget) as Switch
+        val checkableView:Switch? = view.findViewById(android.R.id.switch_widget) as Switch?
         checkableView?.setOnClickListener {
             if (!callChangeListener(isChecked)) {
                 // Listener didn't like it, change it back.

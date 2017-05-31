@@ -9,26 +9,20 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.preference.*
-import android.text.TextUtils
 import android.view.MenuItem
 import android.content.Intent
-import android.util.Log
 import gesture.GestureDetect
 import gesture.GestureService
-import android.media.Ringtone
-import android.R.attr.name
 import android.app.AlertDialog
-import android.preference.PreferenceScreen
 import android.content.pm.ResolveInfo
 import android.content.DialogInterface
+import android.widget.TextView
+import android.view.ViewGroup
+import android.view.LayoutInflater
+import android.view.View
+import android.widget.BaseAdapter
+import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-
-
-
-
-
-
-
 
 
 
@@ -161,7 +155,16 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             if (action == null){
                 preference.summary = preference.context.getString(R.string.ui_no_action)
             }else{
-                preference.summary = action
+                val pm = preference.context.getPackageManager()
+                var ai: ApplicationInfo?
+                try {
+                    ai = pm.getApplicationInfo(action, 0)
+                } catch (e: Exception) {
+                    ai = null
+                }
+
+                val applicationName = if (ai != null) pm.getApplicationLabel(ai) else action
+                preference.summary = applicationName
             }
 
             true
@@ -216,27 +219,90 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             val mainIntent = Intent(Intent.ACTION_MAIN, null)
             mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
             val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
-
+/*
             var items = arrayOf("none", "screen.on", "phone", "phone.contacts")
+            var items_action = arrayOf("none", "screen.on", "phone", "phone.contacts")
             pkgAppsList.forEach {
-                items += it.activityInfo.packageName // pm.getApplicationLabel(it.activityInfo.applicationInfo).toString()
+                items_action += it.activityInfo.packageName
+                items += pm.getApplicationLabel(it.activityInfo.applicationInfo).toString()
             }
-
+*/
             val builder = AlertDialog.Builder(preference.context)
             builder.setTitle(preference.context.getString(R.string.iu_choose_action))
+ /*
             builder.setItems(items, DialogInterface.OnClickListener { dialog, item ->
 
-                var value =  items[item]
+                var value =  items_action[item]
                 if (value == "none") value = ""
 
                 GestureDetect.setAction(preference.context, preference.key, value)
                 sBindPreferenceNotifyListenerListener.onPreferenceChange(preference, value)
             })
+*/
+            val adapter = BoxAdapter(preference, pkgAppsList)
+            builder.setAdapter(adapter, onClickListener)
+
             val alert = builder.create()
             alert.show()
 
             true
         }
 
+        val onClickListener = DialogInterface.OnClickListener() { dialogInterface: DialogInterface, i: Int ->
+
+            val lw = (dialogInterface as AlertDialog).listView
+            val adapter = lw.adapter as BoxAdapter
+            val item = adapter.getThisItem(i)
+
+            var value =  item.activityInfo.packageName
+            if (value == "none") value = ""
+
+            val preference = adapter.getPreference()
+            GestureDetect.setAction(lw.context, preference.key, value)
+            sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, value)
+        }
+
+
+        class BoxAdapter internal constructor(
+                internal val preference: Preference,
+                internal val objects: List<ResolveInfo>) : BaseAdapter()
+        {
+            val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            val pm = preference.context.packageManager
+
+            fun getPreference():Preference = preference
+
+            override fun getCount(): Int {
+                return objects.size
+            }
+            override fun getItem(position: Int): Any {
+                return objects[position]
+            }
+            // id по позиции
+            override fun getItemId(position: Int): Long {
+                return position.toLong()
+            }
+
+            // пункт списка
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
+            {
+                // используем созданные, но не используемые view
+                val view: View
+                if (convertView == null) {
+                    view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
+                }else view = convertView
+
+                val thisItem = getThisItem(position)
+                (view.findViewById(R.id.title) as TextView)
+                        .setText(pm?.getApplicationLabel(thisItem.activityInfo.applicationInfo))
+
+                return view
+            }
+
+            // товар по позиции
+            internal fun getThisItem(position: Int): ResolveInfo {
+                return getItem(position) as ResolveInfo
+            }
+        }
     }
 }
