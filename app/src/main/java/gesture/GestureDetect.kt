@@ -121,8 +121,18 @@ class GestureDetect()
     }
     private fun getFileLine(name:String):String?
     {
-        exec("cat $name")
-        if (processSU == null || processSU!!.errorStream.available() > 0) return null
+        if (!isFileExists(name)) return null
+        if (!exec("cat $name")) return null
+        return readExecLine()
+    }
+    private fun isFileExists(name:String):Boolean
+    {
+        if (!exec("test -e $name")) return false
+        return suExitCode() == "0"
+    }
+    private fun suExitCode():String
+    {
+        if (!exec("echo $?")) return ""
         return readExecLine()
     }
     private fun su():Process?
@@ -147,7 +157,6 @@ class GestureDetect()
 
         Log.d("GestureDetect exec", "$cmd\n")
         val su:Process = processSU!!
-        su.errorStream.skip(su.errorStream.available().toLong())
         val out = DataOutputStream(su.outputStream)
         out.writeBytes("$cmd\n")
         out.flush()
@@ -299,7 +308,6 @@ class GestureDetect()
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getBoolean(key, false)
         }
-
         fun setEnable(context: Context, key: String, value: Boolean) {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val e = sharedPreferences.edit()
