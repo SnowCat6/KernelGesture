@@ -17,7 +17,17 @@ import gesture.GestureDetect
 import gesture.GestureService
 import android.media.Ringtone
 import android.R.attr.name
+import android.app.AlertDialog
 import android.preference.PreferenceScreen
+import android.content.pm.ResolveInfo
+import android.content.DialogInterface
+import android.content.pm.PackageManager
+
+
+
+
+
+
 
 
 
@@ -107,15 +117,11 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(R.xml.pref_gesture)
             setHasOptionsMenu(true)
-/*
-            val group = preferenceManager.findPreference("GESTURE_GROUP") as PreferenceCategory
-            var sw = SwitchPreference(activity)
-            group.addPreference(sw)
-*/
+
             gestureKeys.forEach { (first, second) ->
                 val preference = findPreference(first) ?: return@forEach
 
-                val action:String? = null // GestureDetect.getAction(activity, first)
+                val action:String? = GestureDetect.getAction(activity, first)
                 if (action == null) GestureDetect.setAction(activity, first, second)
 
                 preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
@@ -204,6 +210,31 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         }
 
         private val sBindPreferenceClickListener = Preference.OnPreferenceClickListener { preference ->
+
+            val pm =  preference.context.getPackageManager()
+
+            val mainIntent = Intent(Intent.ACTION_MAIN, null)
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+            val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
+
+            var items = arrayOf("none", "screen.on", "phone", "phone.contacts")
+            pkgAppsList.forEach {
+                items += it.activityInfo.packageName // pm.getApplicationLabel(it.activityInfo.applicationInfo).toString()
+            }
+
+            val builder = AlertDialog.Builder(preference.context)
+            builder.setTitle(preference.context.getString(R.string.iu_choose_action))
+            builder.setItems(items, DialogInterface.OnClickListener { dialog, item ->
+
+                var value =  items[item]
+                if (value == "none") value = ""
+
+                GestureDetect.setAction(preference.context, preference.key, value)
+                sBindPreferenceNotifyListenerListener.onPreferenceChange(preference, value)
+            })
+            val alert = builder.create()
+            alert.show()
+
             true
         }
 

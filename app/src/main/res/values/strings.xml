@@ -27,6 +27,7 @@
     <string name="ui_vibrate_on">Vibrate on gesture</string>
     <string name="ui_sound_default">System default</string>
     <string name="ui_no_notify">No notify on gesture</string>
+    <string name="iu_choose_action">Action for gesture</string>
 
     <!-- Strings related to Settings -->
 
