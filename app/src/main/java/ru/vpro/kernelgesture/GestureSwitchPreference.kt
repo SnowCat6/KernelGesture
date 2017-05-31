@@ -6,6 +6,7 @@ import android.preference.SwitchPreference
 import android.util.AttributeSet
 import android.widget.Switch
 import android.view.View
+import android.widget.Checkable
 
 
 /**
@@ -14,6 +15,10 @@ import android.view.View
 class GestureSwitchPreference(context: Context, attrs: AttributeSet) :
         SwitchPreference(context, attrs)
 {
+    init
+    {
+        widgetLayoutResource = R.layout.preference_switch_item
+    }
 
     override fun onBindView(view: View)
     {
@@ -23,7 +28,7 @@ class GestureSwitchPreference(context: Context, attrs: AttributeSet) :
             onPreferenceClickListener?.onPreferenceClick(this)
         }
 
-        val checkableView:Switch? = view.findViewById(android.R.id.switch_widget) as Switch?
+        val checkableView:Switch? = view.findViewById(R.id.switch_widget) as Switch?
         checkableView?.setOnClickListener {
             if (!callChangeListener(isChecked)) {
                 // Listener didn't like it, change it back.
@@ -33,5 +38,6 @@ class GestureSwitchPreference(context: Context, attrs: AttributeSet) :
                 setChecked(isChecked)
             }
         }
+        checkableView?.isChecked = isChecked
     }
 }
