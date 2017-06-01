@@ -69,7 +69,10 @@ class GestureDetect()
                 val ix = line.indexOf("Handlers=")
                 if (ix >= 0){
                     val a = line.substring(ix + 9).split(" ")
-                    return a.firstOrNull { it.substring(0, 5) == "event" }
+                    for (ev in a){
+                        if (ev.length >5 && ev.substring(0, 5) == "event") return ev
+                    }
+                    return null
                 }
             }
 
