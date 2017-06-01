@@ -23,9 +23,10 @@ import android.view.View
 import android.widget.BaseAdapter
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-
-
-
+import android.graphics.Color
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.Icon
+import android.widget.ImageView
 
 
 /**
@@ -154,8 +155,10 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
             if (action == null){
                 preference.summary = preference.context.getString(R.string.ui_no_action)
+                preference.setIcon(actionIcon(preference.context, ""))
             }else{
                 preference.summary = actionName(preference.context, action)
+                preference.setIcon(actionIcon(preference.context, action))
             }
 
             true
@@ -285,6 +288,9 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 val thisItem = getItem(position)
                 (view.findViewById(R.id.title) as TextView).text = actionName(preference.context, thisItem)
 
+                val icon = actionIcon(preference.context, thisItem)
+                (view.findViewById(R.id.icon) as ImageView).setImageDrawable(icon)
+
                 return view
             }
 
@@ -310,16 +316,11 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                     }
 
                     val pm = context.getPackageManager()
-                    var ai: ApplicationInfo?
-                    try {
-                        ai = pm.getApplicationInfo(item, 0)
-                    } catch (e: Exception) {
-                        ai = null
-                    }
+                    val ai: ApplicationInfo? = getAppInfo(context, item)
 
-                    return if (ai != null) {
-                        pm.getApplicationLabel(ai).toString()
-                    } else item
+                    if (ai != null) {
+                        return pm.getApplicationLabel(ai).toString()
+                    } else return item
                 }
             }
             return ""
@@ -331,6 +332,29 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 is String -> return item
             }
             return ""
+        }
+        fun actionIcon(context:Context, item:Any): Drawable
+        {
+            when(item){
+                is ResolveInfo -> {
+                    val pm = context.getPackageManager()
+                    return pm.getApplicationIcon(item.activityInfo.applicationInfo)
+                }
+                is String -> {
+                    val pm = context.getPackageManager()
+                    val ai:ApplicationInfo? = getAppInfo(context, item)
+                    if (ai != null) return pm.getApplicationIcon(ai)
+                }
+            }
+            return context.getDrawable(android.R.color.transparent)
+        }
+        fun getAppInfo(context:Context, action:String):ApplicationInfo?
+        {
+            val pm = context.getPackageManager()
+            try {
+                return pm.getApplicationInfo(action, 0)
+            } catch (e: Exception) {}
+            return null
         }
     }
 }

@@ -31,6 +31,7 @@
     <string name="ui_screen_on">Screen on</string>
     <string name="ui_phone">Dialer</string>
     <string name="ui_contacts">Contacts</string>
+    <string name="ui_icon">Icon</string>
 
     <!-- Strings related to Settings -->
 
