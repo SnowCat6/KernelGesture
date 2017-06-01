@@ -26,7 +26,9 @@ class GestureService : Service() {
         registerReceiver(onScreenIntent, intentFilter)
 
         gesture.clear()
-        gesture.onGesture += { onGestureEvent(it) }
+        gesture.onGesture += {
+            onGestureEvent(it)
+        }
 //        gesture.onGesture.invoke("KEY_UP")
 
         if (!GestureDetect.isScreenOn(this)) {
@@ -63,7 +65,14 @@ class GestureService : Service() {
 
         if (!GestureDetect.getAllEnable(this)) return
         if (!GestureDetect.getEnable(this, gestureKey)) return
-        val action = GestureDetect.getAction(this, gestureKey) ?: return
+
+        var action:String? = GestureDetect.getAction(this, gestureKey)
+
+        if (action == null && GestureDetect.getEnable(this, "GESTURE_DEFAULT_ACTION"))
+        {
+            action = GestureDetect.getAction(this, "GESTURE_DEFAULT_ACTION")
+        }
+        if (action == null) return
 
         when(action){
             "screen.on" ->{
