@@ -110,14 +110,19 @@ class GestureDetect()
     }
     fun stopWait(){
         bStartWait = false
-        processSU?.outputStream?.write(3) // Control-C
-        processSU?.outputStream?.flush()
+        try {
+            processSU?.outputStream?.write(3) // Control-C
+            processSU?.outputStream?.flush()
+        }catch (e:Exception){}
     }
     private fun startWaitThread():Boolean
     {
         while(bStartWait){
             val line = getEvent(null) ?: return false
             if (!bStartWait) return false
+            if (BuildConfig.DEBUG) {
+                Log.d("Read line", line)
+            }
 
             devices.forEach { (first, second) ->
                 val name = "/dev/input/$first: "
@@ -136,10 +141,10 @@ class GestureDetect()
     {
         try {
             if (input != null) {
-                if (!exec("getevent -c 1 -l /dev/input/$input")) return null
+                if (!exec("getevent -c 1 -l /dev/input/$input | grep EV_KEY")) return null
                 return readExecLine()
             }
-            if (!exec("getevent -c 1 -l | grep EV_")) return null
+            if (!exec("getevent -c 1 -l | grep EV_KEY")) return null
             return readExecLine()
 
         }catch (e:Exception){
@@ -187,6 +192,7 @@ class GestureDetect()
             Log.d("GestureDetect exec", "$cmd\n")
         }
         val su:Process = processSU!!
+//        su.inputStream.skip(su.inputStream.available().toLong())
         val out = DataOutputStream(su.outputStream)
         out.writeBytes("$cmd\n")
         out.flush()
@@ -327,7 +333,7 @@ class GestureDetect()
     inner open class InputQCOMM_TPD : InputKPD()
     {
         override fun onDetect(name:String):Boolean
-                = name == "ft5x06_ts"
+                = false && name == "ft5x06_ts"
     }
 
     companion object {
