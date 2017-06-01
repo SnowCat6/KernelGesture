@@ -382,8 +382,8 @@ class GestureDetect()
         {
             val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
             val wakeLock = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.FULL_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "TAG")
-            wakeLock.acquire(10)
-            wakeLock.release()
+            wakeLock.acquire(500)
+//            wakeLock.release()
         }
         /*
         <uses-permission android:name="android.permission.VIBRATE"/>

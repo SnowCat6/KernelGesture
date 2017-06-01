@@ -350,6 +350,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                     var icon:Drawable? = if (ai == null) null else pm.getApplicationIcon(ai)
                     if (icon == null) icon = context.getDrawable(android.R.color.transparent)
                     appIcon += Pair(item, icon!!)
+                    return icon
                 }
             }
             return context.getDrawable(android.R.color.transparent)
