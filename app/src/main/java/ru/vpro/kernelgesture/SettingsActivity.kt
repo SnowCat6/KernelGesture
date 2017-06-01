@@ -121,7 +121,6 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
                 preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
                 sBindPreferenceSummaryToValueListener.onPreferenceChange(preference, false)
-
                 preference.onPreferenceClickListener = sBindPreferenceClickListener
             }
 
@@ -299,6 +298,10 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 return getItem(position) as ResolveInfo
             }
         }
+
+        var appInfo = emptyMap<String, ApplicationInfo?>()
+        var appIcon = emptyMap<String, Drawable>()
+
         fun actionName(context:Context, item:Any):String
         {
             when(item){
@@ -315,7 +318,7 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                         "phone.contacts" -> return context.getString(R.string.ui_contacts)
                     }
 
-                    val pm = context.getPackageManager()
+                    val pm = context.packageManager
                     val ai: ApplicationInfo? = getAppInfo(context, item)
 
                     if (ai != null) {
@@ -337,23 +340,32 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         {
             when(item){
                 is ResolveInfo -> {
-                    val pm = context.getPackageManager()
+                    val pm = context.packageManager
                     return pm.getApplicationIcon(item.activityInfo.applicationInfo)
                 }
                 is String -> {
-                    val pm = context.getPackageManager()
+                    if (appIcon.containsKey(item)) return appIcon[item]!!
+                    val pm = context.packageManager
                     val ai:ApplicationInfo? = getAppInfo(context, item)
-                    if (ai != null) return pm.getApplicationIcon(ai)
+                    var icon:Drawable? = if (ai == null) null else pm.getApplicationIcon(ai)
+                    if (icon == null) icon = context.getDrawable(android.R.color.transparent)
+                    appIcon += Pair(item, icon!!)
                 }
             }
             return context.getDrawable(android.R.color.transparent)
         }
         fun getAppInfo(context:Context, action:String):ApplicationInfo?
         {
-            val pm = context.getPackageManager()
+            if (appInfo.contains(action)) return appInfo[action]
+
+            val pm = context.packageManager
             try {
-                return pm.getApplicationInfo(action, 0)
+                val p = pm.getApplicationInfo(action, 0)
+                appInfo += Pair(action, p)
+                return p
             } catch (e: Exception) {}
+
+            appInfo += Pair(action, null)
             return null
         }
     }
