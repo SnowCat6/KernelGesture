@@ -21,12 +21,17 @@ class GestureService : Service() {
     val gesture = GestureDetect()
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
-        gesture.onGesture += { onGestureEvent(it) }
-//        gesture.onGesture.invoke("KEY_UP")
-
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onScreenIntent, intentFilter)
+
+        gesture.clear()
+        gesture.onGesture += { onGestureEvent(it) }
+//        gesture.onGesture.invoke("KEY_UP")
+
+        if (!GestureDetect.isScreenOn(this)) {
+            gesture.startWait()
+        }
 
         return START_STICKY
     }
@@ -47,6 +52,7 @@ class GestureService : Service() {
     }
 
     override fun stopService(name: Intent?): Boolean {
+        gesture.clear()
         unregisterReceiver(onScreenIntent)
         return super.stopService(name)
     }
@@ -93,6 +99,7 @@ class GestureService : Service() {
     {
         screenON()
         try {
+            GestureDetect.screenUnlock(this)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
         }catch (e:Exception){}

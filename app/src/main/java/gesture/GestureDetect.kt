@@ -1,5 +1,6 @@
 package gesture
 
+import android.app.admin.DevicePolicyManager
 import java.io.*
 import android.content.*
 import android.os.PowerManager
@@ -10,7 +11,15 @@ import android.content.Context.VIBRATOR_SERVICE
 import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.Debug
 import android.os.Vibrator
+import ru.vpro.kernelgesture.BuildConfig
+import android.content.Context.POWER_SERVICE
+import android.view.Display
+import android.content.Context.DISPLAY_SERVICE
+import android.hardware.display.DisplayManager
+import android.os.Build
+
 
 
 
@@ -25,7 +34,7 @@ class GestureDetect()
     private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_TPD())
 
     init {
-        startWait()
+        detectGesture()
     }
 
     fun detectGesture():Boolean
@@ -42,6 +51,12 @@ class GestureDetect()
         }catch (e:Exception){}
 
         return devices.isNotEmpty()
+    }
+    fun clear(){
+        onGesture.clear()
+        stopWait()
+        processSU?.destroy()
+        processSU = null
     }
     private fun findDevicePath(handler:InputHandler, lines: List<String>):String?
     {
@@ -73,12 +88,17 @@ class GestureDetect()
         fun invoke(value: T) = Runnable {
             for (handler in handlers) handler(value)
         }.run()
+        fun clear () = handlers.clear()
     }
 
     fun startWait()
     {
         if (bStartWait) return;
         bStartWait = detectGesture()
+        if (su() == null){
+            stopWait()
+            return
+        }
         thread {
             for (it in devices) it.second.setEnable(true)
             while (bStartWait && startWaitThread()) {}
@@ -87,6 +107,8 @@ class GestureDetect()
     }
     fun stopWait(){
         bStartWait = false
+        processSU?.outputStream?.write(3) // Control-C
+        processSU?.outputStream?.flush()
     }
     private fun startWaitThread():Boolean
     {
@@ -98,7 +120,9 @@ class GestureDetect()
                 val name = "/dev/input/$first: "
                 if (name in line) {
                     val ev = line.substring(name.length)
-                    Log.d("Gesture detect", line)
+                    if (BuildConfig.DEBUG) {
+                        Log.d("Gesture detect", line)
+                    }
                     return second.onEvent(this, ev)
                 }
             }
@@ -115,8 +139,7 @@ class GestureDetect()
             if (!exec("getevent -c 1 -l | grep EV_")) return null
             return readExecLine()
 
-        }catch (e:Exception)
-        {
+        }catch (e:Exception){
             Log.d("Gesture read", e.toString())
         }
         return null;
@@ -157,7 +180,9 @@ class GestureDetect()
     {
         if (su() == null) return false
 
-        Log.d("GestureDetect exec", "$cmd\n")
+        if (BuildConfig.DEBUG) {
+            Log.d("GestureDetect exec", "$cmd\n")
+        }
         val su:Process = processSU!!
         val out = DataOutputStream(su.outputStream)
         out.writeBytes("$cmd\n")
@@ -357,6 +382,15 @@ class GestureDetect()
         fun playNotify(context:Context, notify: Uri)
         {
             RingtoneManager.getRingtone(context, notify).play();
+        }
+
+        fun isScreenOn(context: Context): Boolean
+        {
+            val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+            return dm.displays.any { it.state != Display.STATE_OFF }
+        }
+        fun screenUnlock(context: Context){
+            // todo: add screen unlock
         }
     }
 }
