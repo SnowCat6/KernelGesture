@@ -7,21 +7,12 @@ import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.util.Log
 import kotlin.concurrent.thread
-import android.content.Context.VIBRATOR_SERVICE
-import android.media.MediaPlayer
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Debug
 import android.os.Vibrator
 import ru.vpro.kernelgesture.BuildConfig
-import android.content.Context.POWER_SERVICE
 import android.view.Display
-import android.content.Context.DISPLAY_SERVICE
 import android.hardware.display.DisplayManager
-import android.os.Build
-
-
-
 
 class GestureDetect()
 {
@@ -154,19 +145,18 @@ class GestureDetect()
     }
     private fun getFileLine(name:String):String?
     {
-        if (!isFileExists(name)) return null
-        if (!exec("cat $name")) return null
-        return readExecLine()
+        if (isFileExists(name) && exec("cat $name")) return readExecLine()
+        return null
     }
     private fun isFileExists(name:String):Boolean
     {
-        if (!exec("test -e $name")) return false
-        return suExitCode() == "0"
+        if (exec("test -e $name")) return suExitCode() == "0"
+        return false
     }
-    private fun suExitCode():String
+    private fun suExitCode():String?
     {
-        if (!exec("echo $?")) return ""
-        return readExecLine()
+        if (exec("echo $?")) return readExecLine()
+        return null
     }
     private fun su():Process?
     {
@@ -191,16 +181,13 @@ class GestureDetect()
         if (BuildConfig.DEBUG) {
             Log.d("GestureDetect exec", "$cmd\n")
         }
-        val su:Process = processSU!!
-//        su.inputStream.skip(su.inputStream.available().toLong())
-        val out = DataOutputStream(su.outputStream)
-        out.writeBytes("$cmd\n")
-        out.flush()
+        processSU?.outputStream?.write("$cmd\n".toByteArray())
+        processSU?.outputStream?.flush()
 
         return true
     }
-    private fun readExecLine():String
-            = su()!!.inputStream.bufferedReader().readLine()
+    private fun readExecLine():String?
+            = processSU?.inputStream?.bufferedReader()?.readLine()
 
     private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):Boolean
     {
