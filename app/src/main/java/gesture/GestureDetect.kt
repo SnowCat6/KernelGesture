@@ -303,6 +303,10 @@ class GestureDetect()
         private fun onEventOKK(detector:GestureDetect, key:String):Boolean
         {
             val keys = arrayOf<Pair<String,String>>(
+                    Pair("BTN_PINKIE",  "KEY_UP"),
+                    Pair("BTN_BASE",    "KEY_DOWN"),
+                    Pair("BTN_BASE2",   "KEY_LEFT"),
+                    Pair("BTN_BASE3",   "KEY_RIGHT"),
                     Pair("BTN_JOYSTICK","KEY_U"),
                     Pair("BTN_THUMB",   "KEY_C"),
                     Pair("BTN_THUMB2",  "KEY_E"),
@@ -310,6 +314,7 @@ class GestureDetect()
                     Pair("012c",        "KEY_S"),
                     Pair("BTN_BASE6",   "KEY_V"),
                     Pair("BTN_BASE4",   "KEY_W"),
+                    Pair("BTN_TOP",     "KEY_M"),
                     Pair("BTN_BASE5",   "KEY_Z")
             )
             return detector.runGesture(key, keys)
