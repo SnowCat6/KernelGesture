@@ -14,22 +14,20 @@ import ru.vpro.kernelgesture.BuildConfig
 import android.view.Display
 import android.hardware.display.DisplayManager
 
-class GestureDetect()
-{
-    val onGesture:Event<String> = Event()
+class GestureDetect() {
+    val onGesture: Event<String> = Event()
 
     private var bStartWait = false
-    private var processSU:Process? = null
+    private var processSU: Process? = null
 
-    private var devices = emptyArray<Pair<String,InputHandler>>()
+    private var devices = emptyArray<Pair<String, InputHandler>>()
     private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_TPD())
 
     init {
         detectGesture()
     }
 
-    fun detectGesture():Boolean
-    {
+    fun detectGesture(): Boolean {
         devices = emptyArray()
         if (su() == null) return false
 
@@ -39,29 +37,29 @@ class GestureDetect()
                 val input = findDevicePath(it, lines) ?: return@forEach
                 devices += Pair(input, it)
             }
-        }catch (e:Exception){}
+        } catch (e: Exception) {
+        }
 
         return devices.isNotEmpty()
     }
-    fun clear(){
+
+    fun clear() {
         onGesture.clear()
         stopWait()
         processSU?.destroy()
         processSU = null
     }
-    private fun findDevicePath(handler:InputHandler, lines: List<String>):String?
-    {
+
+    private fun findDevicePath(handler: InputHandler, lines: List<String>): String? {
         var bThisEntry = false
 
-        for (line in lines)
-        {
-            if (bThisEntry)
-            {
+        for (line in lines) {
+            if (bThisEntry) {
                 val ix = line.indexOf("Handlers=")
-                if (ix >= 0){
+                if (ix >= 0) {
                     val a = line.substring(ix + 9).split(" ")
-                    for (ev in a){
-                        if (ev.length >5 && ev.substring(0, 5) == "event") return ev
+                    for (ev in a) {
+                        if (ev.length > 5 && ev.substring(0, 5) == "event") return ev
                     }
                     return null
                 }
@@ -70,7 +68,7 @@ class GestureDetect()
             val ix = line.indexOf("Name=")
             if (ix < 0) continue
 
-            val n = line.substring(ix+5).trim('"')
+            val n = line.substring(ix + 5).trim('"')
             bThisEntry = handler.onDetect(n)
         }
         return null
@@ -78,37 +76,43 @@ class GestureDetect()
 
     class Event<T> {
         private val handlers = arrayListOf<(Event<T>.(T) -> Unit)>()
-        operator fun plusAssign(handler: Event<T>.(T) -> Unit) { handlers.add(handler) }
+        operator fun plusAssign(handler: Event<T>.(T) -> Unit) {
+            handlers.add(handler)
+        }
+
         fun invoke(value: T) = Runnable {
             for (handler in handlers) handler(value)
         }.run()
-        fun clear () = handlers.clear()
+
+        fun clear() = handlers.clear()
     }
 
-    fun startWait()
-    {
+    fun startWait() {
         if (bStartWait) return;
         bStartWait = detectGesture()
-        if (su() == null){
+        if (su() == null) {
             stopWait()
             return
         }
         thread {
             for (it in devices) it.second.setEnable(true)
-            while (bStartWait && startWaitThread()) {}
+            while (bStartWait && startWaitThread()) {
+            }
             stopWait()
         }
     }
-    fun stopWait(){
+
+    fun stopWait() {
         bStartWait = false
         try {
             processSU?.outputStream?.write(3) // Control-C
             processSU?.outputStream?.flush()
-        }catch (e:Exception){}
+        } catch (e: Exception) {
+        }
     }
-    private fun startWaitThread():Boolean
-    {
-        while(bStartWait){
+
+    private fun startWaitThread(): Boolean {
+        while (bStartWait) {
             val line = getEvent(null) ?: return false
             if (!bStartWait) return false
             if (BuildConfig.DEBUG) {
@@ -128,8 +132,8 @@ class GestureDetect()
         }
         return false
     }
-    private fun getEvent(input:String?):String?
-    {
+
+    private fun getEvent(input: String?): String? {
         try {
             if (input != null) {
                 if (!exec("getevent -c 1 -l /dev/input/$input | grep EV_KEY")) return null
@@ -138,56 +142,69 @@ class GestureDetect()
             if (!exec("getevent -c 1 -l | grep EV_KEY")) return null
             return readExecLine()
 
-        }catch (e:Exception){
+        } catch (e: Exception) {
             Log.d("Gesture read", e.toString())
         }
         return null;
     }
-    private fun getFileLine(name:String):String?
-    {
+
+    private fun getFileLine(name: String): String? {
         if (isFileExists(name) && exec("cat $name")) return readExecLine()
         return null
     }
-    private fun isFileExists(name:String):Boolean
-    {
+
+    private fun isFileExists(name: String): Boolean {
         if (exec("test -e $name")) return suExitCode() == "0"
         return false
     }
-    private fun suExitCode():String?
-    {
+
+    private fun suExitCode(): String? {
         if (exec("echo $?")) return readExecLine()
         return null
     }
-    private fun su():Process?
-    {
+
+    private fun su(): Process? {
         try {
 //            if (processSU == null) processSU = Runtime.getRuntime().exec("sh")
             if (processSU == null) processSU = Runtime.getRuntime().exec("su")
             try {
                 if (processSU != null && processSU!!.exitValue() != 0) processSU = null;
-            }catch (e:Exception){
+            } catch (e: Exception) {
                 return processSU
             }
             return processSU
-        }catch (e:Exception){}
+        } catch (e: Exception) {
+        }
 
         processSU = null
         return null
     }
-    private fun exec(cmd:String): Boolean
-    {
+
+    private fun exec(cmd: String): Boolean {
         if (su() == null) return false
 
         if (BuildConfig.DEBUG) {
             Log.d("GestureDetect exec", "$cmd\n")
         }
+        val r = processSU?.inputStream?.available()
+        if (r != null) processSU?.inputStream?.skip(r.toLong())
+
         processSU?.outputStream?.write("$cmd\n".toByteArray())
         processSU?.outputStream?.flush()
 
+        if (processSU?.inputStream?.available() == 0) Thread.sleep(10)
+
         return true
     }
-    private fun readExecLine():String?
-            = processSU?.inputStream?.bufferedReader()?.readLine()
+
+    private fun readExecLine(): String? {
+        try {
+            return processSU?.inputStream?.bufferedReader()?.readLine()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+        return null
+    }
 
     private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):Boolean
     {
