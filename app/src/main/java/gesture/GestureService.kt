@@ -9,62 +9,79 @@ import android.content.BroadcastReceiver
 import android.net.Uri
 import android.preference.PreferenceManager
 import android.provider.ContactsContract
-import android.media.MediaPlayer
+import kotlin.concurrent.thread
 
-class GestureService : Service() {
+class GestureService() : Service()
+{
+    companion object
+    {
+        val gesture = GestureDetect()
+        var bRunning = false
+    }
+    fun startGesture()
+    {
+        if (bRunning) return
+        bRunning = true
+        gesture.lock = false
 
+        thread {
+            while (!gesture.lock) {
+                val ev = gesture.waitGesture(this) ?: break
+                onGestureEvent(ev)
+            }
+            bRunning = false
+            gesture.lock = true
+        }
+    }
     override fun onBind(intent: Intent): IBinder? {
         // TODO: Return the communication channel to the service.
         throw UnsupportedOperationException("Not yet implemented")
     }
 
-    val gesture = GestureDetect()
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onScreenIntent, intentFilter)
+        super.onStartCommand(intent, flags, startId)
 
-        gesture.clear()
-        gesture.onGesture += {
-            onGestureEvent(it)
-        }
-//        gesture.onGesture.invoke("KEY_UP")
-
-        if (!GestureDetect.isScreenOn(this)) {
-            gesture.startWait()
+        if (!GestureDetect.isScreenOn(this)){
+            startGesture()
         }
 
         return START_STICKY
     }
 
-    val onScreenIntent: BroadcastReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
+    val onScreenIntent = object : BroadcastReceiver()
+    {
+        override fun onReceive(context: Context, intent: Intent)
+        {
             when (intent.action) {
                 Intent.ACTION_SCREEN_OFF -> {
                     Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
-                    gesture.startWait()
+                    gesture.lock = false
+                    startGesture()
                 }
                 Intent.ACTION_SCREEN_ON -> {
                     Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
-                    gesture.stopWait()
+                    gesture.lock = true
                 }
             }
         }
     }
 
     override fun stopService(name: Intent?): Boolean {
-        gesture.clear()
+        gesture.lock = true
         unregisterReceiver(onScreenIntent)
         return super.stopService(name)
     }
 
-    fun onGestureEvent(gestureKey:String)
+    fun onGestureEvent(gestureKey:String):Boolean
     {
         Log.d("Gesture action", gestureKey)
 
-        if (!GestureDetect.getAllEnable(this)) return
-        if (!GestureDetect.getEnable(this, gestureKey)) return
+        if (!GestureDetect.getAllEnable(this)) return false
+        if (!GestureDetect.getEnable(this, gestureKey)) return false
 
         var action:String? = GestureDetect.getAction(this, gestureKey)
 
@@ -72,27 +89,29 @@ class GestureService : Service() {
         {
             action = GestureDetect.getAction(this, "GESTURE_DEFAULT_ACTION")
         }
-        if (action == null) return
+        if (action == null) return false
 
         when(action){
             "screen.on" ->{
                 screenON()
+                return true
             }
             "phone" -> {
                 //For the dial pad
-                startNewActivity(Intent(Intent.ACTION_DIAL, null))
+                return startNewActivity(Intent(Intent.ACTION_DIAL, null))
             }
             "phone.contacts" -> {
                 //For the contacts (viewing them)
-                startNewActivity(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
+                return startNewActivity(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
             }
         }
 
         try {
             val intent = packageManager.getLaunchIntentForPackage(action)
-            if (intent == null) return
-            startNewActivity(intent)
+            if (intent == null) return false
+            return startNewActivity(intent)
         }catch (e:Exception){}
+        return false
     }
 
     fun startNewActivity(context: Context, packageName: String) {
@@ -104,14 +123,16 @@ class GestureService : Service() {
         }
         startNewActivity(intent)
     }
-    fun startNewActivity(intent: Intent)
+    fun startNewActivity(intent: Intent):Boolean
     {
         screenON()
         try {
             GestureDetect.screenUnlock(this)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
+            return true
         }catch (e:Exception){}
+        return false
     }
     private fun screenON()
     {

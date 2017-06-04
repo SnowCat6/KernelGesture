@@ -1,35 +1,50 @@
 package gesture
 
-import android.app.admin.DevicePolicyManager
 import java.io.*
 import android.content.*
 import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.util.Log
-import kotlin.concurrent.thread
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Vibrator
 import ru.vpro.kernelgesture.BuildConfig
 import android.view.Display
 import android.hardware.display.DisplayManager
+import android.os.Handler
+import android.widget.Toast
+import android.os.Looper
+
+
+
+
 
 class GestureDetect() {
-    val onGesture: Event<String> = Event()
 
-    private var bStartWait = false
     private var processSU: Process? = null
+    private var readerSU: BufferedReader? = null
+    private var writerSU: OutputStream? = null
+
+    private var _bLock = false
+    public var lock: Boolean
+        get() = _bLock
+        set(value) {
+            _bLock = value
+    }
 
     private var devices = emptyArray<Pair<String, InputHandler>>()
-    private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_TPD())
+    private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_KPD())
 
     init {
+        su()
         detectGesture()
     }
 
-    fun detectGesture(): Boolean {
+
+    fun detectGesture(): Boolean
+    {
+        if (devices.isNotEmpty()) return true
         devices = emptyArray()
-        if (su() == null) return false
 
         try {
             val lines = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
@@ -41,13 +56,6 @@ class GestureDetect() {
         }
 
         return devices.isNotEmpty()
-    }
-
-    fun clear() {
-        onGesture.clear()
-        stopWait()
-        processSU?.destroy()
-        processSU = null
     }
 
     private fun findDevicePath(handler: InputHandler, lines: List<String>): String? {
@@ -74,78 +82,67 @@ class GestureDetect() {
         return null
     }
 
-    class Event<T> {
-        private val handlers = arrayListOf<(Event<T>.(T) -> Unit)>()
-        operator fun plusAssign(handler: Event<T>.(T) -> Unit) {
-            handlers.add(handler)
+    fun waitGesture(context:Context): String?
+    {
+        su()
+        exec("kill %%")
+
+        var inputs = emptyArray<String>()
+        devices.forEach { it ->
+            it.second.setEnable(true)
+            inputs += it.first
         }
 
-        fun invoke(value: T) = Runnable {
-            for (handler in handlers) handler(value)
-        }.run()
+        while (!lock)
+        {
+            val line = getEvent(context, inputs) ?: return null
+            if (lock) return null
 
-        fun clear() = handlers.clear()
-    }
-
-    fun startWait() {
-        if (bStartWait) return;
-        bStartWait = detectGesture()
-        if (su() == null) {
-            stopWait()
-            return
-        }
-        thread {
-            for (it in devices) it.second.setEnable(true)
-            while (bStartWait && startWaitThread()) {
-            }
-            stopWait()
-        }
-    }
-
-    fun stopWait() {
-        bStartWait = false
-        try {
-            processSU?.outputStream?.write(3) // Control-C
-            processSU?.outputStream?.flush()
-        } catch (e: Exception) {
-        }
-    }
-
-    private fun startWaitThread(): Boolean {
-        while (bStartWait) {
-            val line = getEvent(null) ?: return false
-            if (!bStartWait) return false
             if (BuildConfig.DEBUG) {
                 Log.d("Read line", line)
             }
 
-            devices.forEach { (first, second) ->
+            for ((first, second) in devices)
+            {
                 val name = "/dev/input/$first: "
                 if (name in line) {
                     val ev = line.substring(name.length)
                     if (BuildConfig.DEBUG) {
-                        Log.d("Gesture detect", line)
+                        Log.d("Event detected", line)
                     }
-                    return second.onEvent(this, ev)
+                   return second.onEvent(ev) ?: continue
                 }
             }
         }
-        return false
+        return null
     }
 
-    private fun getEvent(input: String?): String? {
-        try {
-            if (input != null) {
-                if (!exec("getevent -c 1 -l /dev/input/$input | grep EV_KEY")) return null
-                return readExecLine()
-            }
-            if (!exec("getevent -c 1 -l | grep EV_KEY")) return null
-            return readExecLine()
-
-        } catch (e: Exception) {
-            Log.d("Gesture read", e.toString())
+    private fun getEvent(context:Context, inputs:Array<String>): String?
+    {
+        inputs.forEach {
+            exec("while v=$(getevent -c 2 -l /dev/input/$it) ; do echo /dev/input/$it: \$v ; done &")
         }
-        return null;
+
+        while(!lock)
+        {
+            val line = readExecLine() ?: break
+            if (!line.contains("EV_KEY")){
+//            toast(context, line)
+                continue
+            }
+            exec("kill %%")
+            return line
+        }
+        return null
+    }
+    fun toast(context:Context, value:String)
+    {
+        screenON(context)
+        vibrate(context)
+
+        Handler(Looper.getMainLooper()).post {
+            Toast.makeText(context, value, Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun getFileLine(name: String): String? {
@@ -154,96 +151,86 @@ class GestureDetect() {
     }
 
     private fun isFileExists(name: String): Boolean {
-        if (exec("test -e $name")) return suExitCode() == "0"
+        if (exec("test -e $name") && exec("echo $?")) {
+            return readExecLine() == "0"
+        }
         return false
-    }
-
-    private fun suExitCode(): String? {
-        if (exec("echo $?")) return readExecLine()
-        return null
     }
 
     private fun su(): Process? {
         try {
-//            if (processSU == null) processSU = Runtime.getRuntime().exec("sh")
-            if (processSU == null) processSU = Runtime.getRuntime().exec("su")
-            try {
-                if (processSU != null && processSU!!.exitValue() != 0) processSU = null;
-            } catch (e: Exception) {
-                return processSU
+            if (processSU == null) {
+                processSU = Runtime.getRuntime().exec("su")
+                readerSU = processSU?.inputStream?.bufferedReader()
+                writerSU = processSU?.outputStream
             }
             return processSU
         } catch (e: Exception) {
+            e.printStackTrace()
         }
-
         processSU = null
         return null
     }
 
-    private fun exec(cmd: String): Boolean {
-        if (su() == null) return false
+    private fun exec(cmd: String): Boolean
+    {
+        writerSU?.write("$cmd\n".toByteArray())
+        writerSU?.flush()
 
         if (BuildConfig.DEBUG) {
             Log.d("GestureDetect exec", "$cmd\n")
         }
-        val r = processSU?.inputStream?.available()
-        if (r != null) processSU?.inputStream?.skip(r.toLong())
-
-        processSU?.outputStream?.write("$cmd\n".toByteArray())
-        processSU?.outputStream?.flush()
-
-        if (processSU?.inputStream?.available() == 0) Thread.sleep(10)
 
         return true
     }
 
-    private fun readExecLine(): String? {
+    private fun readExecLine(): String?
+    {
         try {
-            return processSU?.inputStream?.bufferedReader()?.readLine()
+            return  readerSU?.readLine()
         }catch (e:Exception){
             e.printStackTrace()
         }
         return null
     }
 
-    private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):Boolean
+    private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):String?
     {
         if (key == null || key.isEmpty())
-            return false;
+            return null;
 
         if (convert == null){
-            onGesture.invoke(key)
-            return true
+            return key
         }
 
         for ((first, second) in convert) {
             if (key != first) continue
-            onGesture.invoke(second)
-            return true
+            return second
         }
 
-        return false
+        return null
     }
 
     interface InputHandler
     {
         fun onDetect(name:String):Boolean
-        fun onEvent(detector:GestureDetect, line:String):Boolean
+        fun onEvent(line:String):String?
         fun setEnable(enable:Boolean){}
         fun getEnable():Boolean{ return false }
     }
     /*
     MT touchscreen with gestures
      */
-    open class InputMTK: InputHandler
+    inner open class InputMTK: InputHandler
     {
         override fun onDetect(name:String):Boolean{
             return name == "mtk-tpd"
         }
-        override fun onEvent(detector:GestureDetect, line:String):Boolean{
+        override fun onEvent(line:String):String?
+        {
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] == "EV_KEY" && arg[2] == "DOWN") detector.runGesture(arg[1])
-            return true
+            if (arg[0] == "EV_KEY") runGesture(arg[1])
+            return null
         }
     }
 
@@ -252,34 +239,42 @@ class GestureDetect() {
      */
     inner open class InputKPD : InputHandler
     {
+        var HCT_GESTURE_IO:String? = null
         //  HCT version gesture for Android 5x and Android 6x
         val HCT_GESTURE_PATH = arrayOf(
                 "/sys/devices/platform/mtk-tpd",
                 "/sys/devices/bus/bus\\:touch@")
 
-        override fun setEnable(enable:Boolean){
-           HCT_GESTURE_PATH.forEach { exec("echo on > $it/tpgesture_status") }
+        override fun setEnable(enable:Boolean)
+        {
+            if (HCT_GESTURE_IO != null)
+                exec("echo on > $HCT_GESTURE_IO/tpgesture_status")
         }
 
-        override fun onDetect(name:String):Boolean
-                = name == "mtk-kpd" || name == "qpnp_pon"
+        override fun onDetect(name:String): Boolean
+        {
+            if (name != "mtk-kpd") return false
+            for (it in HCT_GESTURE_PATH) {
+                if (!isFileExists(it)) continue
+                HCT_GESTURE_IO = it
+            }
+            return true
+        }
 
-        override fun onEvent(detector:GestureDetect, line:String):Boolean
+        override fun onEvent(line:String):String?
         {
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] != "EV_KEY"|| arg[2] != "DOWN") return true
+            if (arg[0] != "EV_KEY") return null
 
             when(arg[1]){
-                "KEY_PROG3" ->  if (onEventHCT()) return true
+                "KEY_PROG3" ->  return onEventHCT()
                 "KEY_VOLUMEUP",
                 "KEY_VOLUMEDOWN" ->  return runGesture(arg[1])
             }
-            if (onEventOKK(detector, arg[1])) return true
-
-            return true
+            return onEventOKK(arg[1])
         }
         //  HCT gesture give from file
-        private fun onEventHCT():Boolean
+        private fun onEventHCT():String?
         {
             val keys = arrayOf<Pair<String,String>>(
                     Pair("UP",          "KEY_UP"),
@@ -297,20 +292,13 @@ class GestureDetect() {
                     Pair("s",           "KEY_S")
             )
 
+            if (HCT_GESTURE_IO == null) return null
             //  get gesture name
-            for (it in HCT_GESTURE_PATH) {
-                val gs = getFileLine("$it/tpgesture")
-                if (gs != null) return runGesture(gs, keys)
-            }
-            return false
-/*
-            var gs = detector.getFileLine("/sys/devices/platform/mtk-tpd/tpgesture")
-            if (gs == null) gs = detector.getFileLine("/sys/devices/bus/bus\\:touch@/tpgesture")
-
-            return detector.runGesture(gs, keys)
- */      }
+            val gs = getFileLine("$HCT_GESTURE_IO/tpgesture")
+            return runGesture(gs, keys)
+      }
         //  Oukitel K4000 device gesture
-        private fun onEventOKK(detector:GestureDetect, key:String):Boolean
+        private fun onEventOKK(key:String):String?
         {
             val keys = arrayOf<Pair<String,String>>(
                     Pair("BTN_PINKIE",  "KEY_UP"),
@@ -327,17 +315,23 @@ class GestureDetect() {
                     Pair("BTN_TOP",     "KEY_M"),
                     Pair("BTN_BASE5",   "KEY_Z")
             )
-            return detector.runGesture(key, keys)
+            return runGesture(key, keys)
         }
     }
 
     /*
-    Qualcomm touchscreen ft5x06_ts for testing
+    Qualcomm keys
      */
-    inner open class InputQCOMM_TPD : InputKPD()
+    inner open class InputQCOMM_KPD : InputHandler
     {
         override fun onDetect(name:String):Boolean
-                = false && name == "ft5x06_ts"
+                = name == "qpnp_pon"
+
+        override fun onEvent(line: String): String? {
+            val arg = line.replace(Regex("\\s+"), " ").split(" ")
+            if (arg[0] != "EV_KEY") return null
+            return runGesture(arg[1])
+        }
     }
 
     companion object {
