@@ -27,7 +27,7 @@ class GestureService() : Service()
         thread {
             while (!gesture.lock) {
                 val ev = gesture.waitGesture(this) ?: break
-                onGestureEvent(ev)
+                if (onGestureEvent(ev)) break
             }
             bRunning = false
             gesture.lock = true
@@ -98,10 +98,12 @@ class GestureService() : Service()
             }
             "phone" -> {
                 //For the dial pad
+                screenON()
                 return startNewActivity(Intent(Intent.ACTION_DIAL, null))
             }
             "phone.contacts" -> {
                 //For the contacts (viewing them)
+                screenON()
                 return startNewActivity(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
             }
         }
@@ -126,7 +128,6 @@ class GestureService() : Service()
     }
     fun startNewActivity(intent: Intent):Boolean
     {
-        screenON()
         try {
             GestureDetect.screenUnlock(this)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)

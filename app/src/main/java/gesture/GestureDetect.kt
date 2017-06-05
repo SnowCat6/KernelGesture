@@ -155,13 +155,19 @@ class GestureDetect() {
                         Log.d("Event detected", line)
                     }
                     val gesture = second.onEvent(line) ?: break
-                    exec("kill %%")
+                    closeEvents()
                     return gesture
                 }
             }
         }
-        exec("kill %%")
+        closeEvents()
         return null
+    }
+    private fun closeEvents()
+    {
+        exec("kill %%")
+        exec("wait %%")
+        while(errorSU?.ready() as Boolean) errorSU?.readLine()
     }
     fun toast(context:Context, value:String)
     {
