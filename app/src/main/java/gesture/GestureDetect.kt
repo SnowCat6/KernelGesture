@@ -117,18 +117,22 @@ class GestureDetect() {
         while(errorSU?.ready()!!) errorSU?.readLine()
 
         inputs.forEach { (first, second) ->
-            exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo 1>&2  ; done &")
+            exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
         }
 
         while(!lock)
         {
+            var device = ""
             var lines = emptyArray<String>()
             do{
                 while(true)
                 {
                     val line = errorSU?.readLine() ?: break // readExecLine() ?: break
                     Log.d("EVENT READ", line)
-                    if (line.isEmpty()) break
+                    if (line.contains("/dev/input/")) {
+                        device = line
+                        break
+                    }
                     if (!line.contains("EV_")) continue
                     if (!line.contains("EV_KEY")) continue
                     lines += line
@@ -139,18 +143,20 @@ class GestureDetect() {
             {
                 for ((first, second) in devices)
                 {
+ /*
                     val gesture = second.onEvent(line) ?: continue
                     exec("kill %%")
                     return gesture
-/*
-                    val name = "/dev/input/$first: "
-                    if (name !in line) continue
-                    val ev = line.substring(name.length)
+*/
+                    val name = "/dev/input/$first"
+                    if (name !in device) continue
+                    val ev = line
                     if (BuildConfig.DEBUG) {
                         Log.d("Event detected", line)
                     }
-                    return second.onEvent(ev) ?: break
-*/
+                    val gesture = second.onEvent(line) ?: break
+                    exec("kill %%")
+                    return gesture
                 }
             }
         }
@@ -222,11 +228,30 @@ class GestureDetect() {
         if (key == null || key.isEmpty())
             return null;
 
-        if (convert == null){
-            return key
+        var keys:Array<Pair<String,String>>? = convert
+        if (keys == null)
+        {
+            //  Allowed standard key
+            keys = arrayOf<Pair<String,String>>(
+                    Pair("KEY_UP",      "KEY_UP"),
+                    Pair("KEY_DOWN",    "KEY_DOWN"),
+                    Pair("KEY_LEFT",    "KEY_LEFT"),
+                    Pair("KEY_RIGHT",   "KEY_RIGHT"),
+                    Pair("KEY_U",       "KEY_U"),
+                    Pair("KEY_C",       "KEY_C"),
+                    Pair("KEY_O",       "KEY_O"),
+                    Pair("KEY_W",       "KEY_W"),
+                    Pair("KEY_E",       "KEY_E"),
+                    Pair("KEY_V",       "KEY_V"),
+                    Pair("KEY_M",       "KEY_M"),
+                    Pair("KEY_Z",       "KEY_Z"),
+                    Pair("KEY_S",       "KEY_S"),
+                    Pair("KEY_VOLUMEUP",    "KEY_VOLUMEUP"),
+                    Pair("KEY_VOLUMEDOWN",  "KEY_VOLUMEDOWN")
+            )
         }
 
-        for ((first, second) in convert) {
+        for ((first, second) in keys) {
             if (key != first) continue
             return second
         }
@@ -252,7 +277,7 @@ class GestureDetect() {
         override fun onEvent(line:String):String?
         {
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
-            if (arg[0] == "EV_KEY") runGesture(arg[1])
+            if (arg[0] == "EV_KEY") return runGesture(arg[1])
             return null
         }
     }
