@@ -107,6 +107,7 @@ class GestureService() : Service()
         }
 
         try {
+            screenON()
             val intent = packageManager.getLaunchIntentForPackage(action)
             if (intent == null) return false
             return startNewActivity(intent)

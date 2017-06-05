@@ -22,6 +22,7 @@ import android.os.Looper
 class GestureDetect() {
 
     private var processSU: Process? = null
+    private var errorSU: BufferedReader? = null
     private var readerSU: BufferedReader? = null
     private var writerSU: OutputStream? = null
 
@@ -85,18 +86,12 @@ class GestureDetect() {
     fun waitGesture(context:Context): String?
     {
         su()
-        exec("kill %%")
-
-        var inputs = emptyArray<String>()
-        devices.forEach { it ->
-            it.second.setEnable(true)
-            inputs += it.first
-        }
 
         while (!lock)
         {
-            val line = getEvent(context, inputs) ?: return null
+            val line = getEvent(context, devices) ?: continue
             if (lock) return null
+            return line
 
             if (BuildConfig.DEBUG) {
                 Log.d("Read line", line)
@@ -117,22 +112,49 @@ class GestureDetect() {
         return null
     }
 
-    private fun getEvent(context:Context, inputs:Array<String>): String?
+    private fun getEvent(context:Context, inputs: Array<Pair<String, InputHandler>>): String?
     {
-        inputs.forEach {
-            exec("while v=$(getevent -c 2 -l /dev/input/$it) ; do echo /dev/input/$it: \$v ; done &")
+        while(errorSU?.ready()!!) errorSU?.readLine()
+
+        inputs.forEach { (first, second) ->
+            exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo 1>&2  ; done &")
         }
 
         while(!lock)
         {
-            val line = readExecLine() ?: break
-            if (!line.contains("EV_KEY")){
-//            toast(context, line)
-                continue
+            var lines = emptyArray<String>()
+            do{
+                while(true)
+                {
+                    val line = errorSU?.readLine() ?: break // readExecLine() ?: break
+                    Log.d("EVENT READ", line)
+                    if (line.isEmpty()) break
+                    if (!line.contains("EV_")) continue
+                    if (!line.contains("EV_KEY")) continue
+                    lines += line
+                }
+            }while(!lock && lines.isEmpty())
+
+            for(line in lines)
+            {
+                for ((first, second) in devices)
+                {
+                    val gesture = second.onEvent(line) ?: continue
+                    exec("kill %%")
+                    return gesture
+/*
+                    val name = "/dev/input/$first: "
+                    if (name !in line) continue
+                    val ev = line.substring(name.length)
+                    if (BuildConfig.DEBUG) {
+                        Log.d("Event detected", line)
+                    }
+                    return second.onEvent(ev) ?: break
+*/
+                }
             }
-            exec("kill %%")
-            return line
         }
+        exec("kill %%")
         return null
     }
     fun toast(context:Context, value:String)
@@ -162,6 +184,7 @@ class GestureDetect() {
             if (processSU == null) {
                 processSU = Runtime.getRuntime().exec("su")
                 readerSU = processSU?.inputStream?.bufferedReader()
+                errorSU = processSU?.errorStream?.bufferedReader()
                 writerSU = processSU?.outputStream
             }
             return processSU
