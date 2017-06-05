@@ -102,7 +102,7 @@ class GestureDetect() {
 
         inputs.forEach { (first, second) ->
             exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
-            exec("while (getevent -c 2 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
+//            exec("while (getevent -c 2 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
         }
 
         while(!lock)
@@ -147,7 +147,7 @@ class GestureDetect() {
     {
         exec("kill %%")
         exec("wait %%")
-        while(errorSU?.ready() as Boolean) errorSU?.readLine()
+        while(errorSU?.ready() as Boolean) readErrorLine()
     }
     fun toast(context:Context, value:String)
     {
