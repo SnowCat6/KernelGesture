@@ -188,8 +188,13 @@ class GestureDetect() {
 
     private fun exec(cmd: String): Boolean
     {
-        writerSU?.write("$cmd\n".toByteArray())
-        writerSU?.flush()
+        try {
+            writerSU?.write("$cmd\n".toByteArray())
+            writerSU?.flush()
+        }catch (e:Exception){
+            e.printStackTrace()
+            return false
+        }
 
         if (BuildConfig.DEBUG) {
             Log.d("GestureDetect exec", "$cmd\n")
