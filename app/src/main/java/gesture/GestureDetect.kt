@@ -114,7 +114,7 @@ class GestureDetect() {
 
     private fun getEvent(context:Context, inputs: Array<Pair<String, InputHandler>>): String?
     {
-        while(errorSU?.ready()!!) errorSU?.readLine()
+        while(errorSU?.ready() as Boolean) errorSU?.readLine()
 
         inputs.forEach { (first, second) ->
             exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
