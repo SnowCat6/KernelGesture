@@ -92,29 +92,13 @@ class GestureDetect() {
             val line = getEvent(context, devices) ?: continue
             if (lock) return null
             return line
-
-            if (BuildConfig.DEBUG) {
-                Log.d("Read line", line)
-            }
-
-            for ((first, second) in devices)
-            {
-                val name = "/dev/input/$first: "
-                if (name in line) {
-                    val ev = line.substring(name.length)
-                    if (BuildConfig.DEBUG) {
-                        Log.d("Event detected", line)
-                    }
-                   return second.onEvent(ev) ?: continue
-                }
-            }
         }
         return null
     }
 
     private fun getEvent(context:Context, inputs: Array<Pair<String, InputHandler>>): String?
     {
-        while(errorSU?.ready() as Boolean) errorSU?.readLine()
+        while(errorSU?.ready() as Boolean) readErrorLine()
 
         inputs.forEach { (first, second) ->
             exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
@@ -127,7 +111,7 @@ class GestureDetect() {
             do{
                 while(true)
                 {
-                    val line = errorSU?.readLine() ?: break // readExecLine() ?: break
+                    val line = readErrorLine() ?: break
                     Log.d("EVENT READ", line)
                     if (line.contains("/dev/input/")) {
                         device = line
@@ -143,11 +127,6 @@ class GestureDetect() {
             {
                 for ((first, second) in devices)
                 {
- /*
-                    val gesture = second.onEvent(line) ?: continue
-                    exec("kill %%")
-                    return gesture
-*/
                     val name = "/dev/input/$first"
                     if (name !in device) continue
                     val ev = line
@@ -223,6 +202,15 @@ class GestureDetect() {
     {
         try {
             return  readerSU?.readLine()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+        return null
+    }
+
+    private fun readErrorLine() : String? {
+        try {
+            return  errorSU?.readLine()
         }catch (e:Exception){
             e.printStackTrace()
         }
