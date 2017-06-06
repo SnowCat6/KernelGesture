@@ -5,8 +5,6 @@ import android.content.*
 import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.util.Log
-import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Vibrator
 import ru.vpro.kernelgesture.BuildConfig
 import android.view.Display
@@ -41,11 +39,11 @@ class GestureDetect() {
 
     init {
         su()
-        detectGesture()
+        detectDevices()
     }
 
 
-    fun detectGesture(): Boolean
+    fun detectDevices(): Boolean
     {
         if (devices.isNotEmpty()) return true
         devices = emptyArray()
@@ -93,8 +91,7 @@ class GestureDetect() {
         while (!lock)
         {
             val line = getEvent(context, devices) ?: continue
-            if (lock) return null
-            return line
+            return if (lock) null else line
         }
         return null
     }
@@ -201,6 +198,7 @@ class GestureDetect() {
     {
         try {
             writerSU?.write("$cmd\n".toByteArray())
+
             writerSU?.flush()
         }catch (e:Exception){
             e.printStackTrace()

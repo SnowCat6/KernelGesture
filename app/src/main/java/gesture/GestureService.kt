@@ -18,6 +18,7 @@ import android.widget.Toast
 import android.hardware.Sensor.TYPE_PROXIMITY
 import android.hardware.SensorEvent
 import android.hardware.SensorManager
+import ru.vpro.kernelgesture.BuildConfig
 
 
 class GestureService() : Service(), SensorEventListener
@@ -133,7 +134,9 @@ class GestureService() : Service(), SensorEventListener
 
     fun onGestureEvent(gestureKey:String):Boolean
     {
-        Log.d("Gesture action", gestureKey)
+        if (BuildConfig.DEBUG) {
+            Log.d("Gesture action", gestureKey)
+        }
 
         if (!GestureDetect.getAllEnable(this)) return false
         if (!GestureDetect.getEnable(this, gestureKey)) return false
@@ -177,7 +180,7 @@ class GestureService() : Service(), SensorEventListener
         if (intent == null) {
             // Bring user to the market or let them choose an app?
             intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse("market://details?id=" + packageName)
+            intent.data = Uri.parse("market://details?id=$packageName")
         }
         startNewActivity(intent)
     }

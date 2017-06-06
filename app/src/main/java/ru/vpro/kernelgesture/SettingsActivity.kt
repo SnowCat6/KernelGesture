@@ -27,6 +27,8 @@ import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.Icon
 import android.widget.ImageView
+import android.widget.Toast
+import java.security.Permission
 
 
 /**
@@ -47,6 +49,12 @@ class SettingsActivity : AppCompatPreferenceActivity() {
         setupActionBar()
 
         startService(Intent(this, GestureService::class.java))
+/*
+            val sh = Runtime.getRuntime().exec(arrayOf("sh", "-c", "getevent -h"))
+            sh.waitFor()
+            val msg = sh.inputStream.bufferedReader().readLine()
+            Toast.makeText(this, "getevent! $msg", Toast.LENGTH_LONG).show()
+*/
     }
 
 
