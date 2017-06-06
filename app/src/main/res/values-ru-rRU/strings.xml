@@ -32,4 +32,7 @@
     <string name="ui_phone">Телефон</string>
     <string name="ui_contacts">Контакты</string>
     <string name="ui_icon">Иконка</string>
+    <string name="ui_proximity_off">Датчик не используется</string>
+    <string name="ui_proximity_on">Использовать датчик</string>
+    <string name="ui_gesture_use">Датчик приближения</string>
 </resources>

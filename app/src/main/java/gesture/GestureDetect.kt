@@ -15,10 +15,6 @@ import android.os.Handler
 import android.widget.Toast
 import android.os.Looper
 
-
-
-
-
 class GestureDetect() {
 
     private var processSU: Process? = null
@@ -27,11 +23,18 @@ class GestureDetect() {
     private var writerSU: OutputStream? = null
 
     private var _bLock = false
-    public var lock: Boolean
+    var lock: Boolean
         get() = _bLock
         set(value) {
             _bLock = value
-    }
+        }
+
+    private var _bIsNear:Boolean = false
+    var isNear: Boolean
+        get() = _bIsNear
+        set(value) {
+            _bIsNear = value
+        }
 
     private var devices = emptyArray<Pair<String, InputHandler>>()
     private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_KPD())
@@ -174,6 +177,11 @@ class GestureDetect() {
 
     private fun su(): Process?
     {
+        try{
+            val exit = processSU?.exitValue()
+            if (exit != null) processSU = null
+        }catch (e:Exception){}
+
         try {
             if (processSU == null) {
                 processSU = Runtime.getRuntime().exec("su")
@@ -227,38 +235,40 @@ class GestureDetect() {
 
     private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):String?
     {
+        //  Check device is near screen
+        if (_bIsNear) return  null
+
         if (key == null || key.isEmpty())
             return null;
 
-        var keys:Array<Pair<String,String>>? = convert
-        if (keys == null)
-        {
-            //  Allowed standard key
-            keys = arrayOf<Pair<String,String>>(
-                    Pair("KEY_UP",      "KEY_UP"),
-                    Pair("KEY_DOWN",    "KEY_DOWN"),
-                    Pair("KEY_LEFT",    "KEY_LEFT"),
-                    Pair("KEY_RIGHT",   "KEY_RIGHT"),
-                    Pair("KEY_U",       "KEY_U"),
-                    Pair("KEY_C",       "KEY_C"),
-                    Pair("KEY_O",       "KEY_O"),
-                    Pair("KEY_W",       "KEY_W"),
-                    Pair("KEY_E",       "KEY_E"),
-                    Pair("KEY_V",       "KEY_V"),
-                    Pair("KEY_M",       "KEY_M"),
-                    Pair("KEY_Z",       "KEY_Z"),
-                    Pair("KEY_S",       "KEY_S"),
-                    Pair("KEY_VOLUMEUP",    "KEY_VOLUMEUP"),
-                    Pair("KEY_VOLUMEDOWN",  "KEY_VOLUMEDOWN")
-            )
+        var gesture = key
+        if (convert != null) {
+            for ((first, second) in convert) {
+                if (key != first) continue
+                gesture = second
+                break
+            }
         }
 
-        for ((first, second) in keys) {
-            if (key != first) continue
-            return second
-        }
-
-        return null
+        //  Allowed standard key
+        val allowGestures = arrayOf(
+                "KEY_UP",
+                "KEY_DOWN",
+                "KEY_LEFT",
+                "KEY_RIGHT",
+                "KEY_U",
+                "KEY_C",
+                "KEY_O",
+                "KEY_W",
+                "KEY_E",
+                "KEY_V",
+                "KEY_M",
+                "KEY_Z",
+                "KEY_S",
+                "KEY_VOLUMEUP",
+                "KEY_VOLUMEDOWN"
+        )
+        return if (gesture in allowGestures) gesture else null
     }
 
     interface InputHandler
@@ -440,10 +450,6 @@ class GestureDetect() {
             // Vibrate for 500 milliseconds
             val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             vibrator?.vibrate(200)
-        }
-        fun playNotify(context:Context, notify: Uri)
-        {
-            RingtoneManager.getRingtone(context, notify).play();
         }
 
         fun isScreenOn(context: Context): Boolean

@@ -6,23 +6,48 @@ import android.os.IBinder
 import android.util.Log
 import android.content.Intent
 import android.content.BroadcastReceiver
+import android.hardware.Sensor
+import android.hardware.SensorEventListener
+import android.media.Ringtone
+import android.media.RingtoneManager
 import android.net.Uri
 import android.preference.PreferenceManager
 import android.provider.ContactsContract
 import kotlin.concurrent.thread
+import android.widget.Toast
+import android.hardware.Sensor.TYPE_PROXIMITY
+import android.hardware.SensorEvent
+import android.hardware.SensorManager
 
-class GestureService() : Service()
+
+class GestureService() : Service(), SensorEventListener
 {
     companion object
     {
-        val gesture = GestureDetect()
-        var bRunning = false
+        private val gesture = GestureDetect()
+        private var bRunning = false
+
+        private var ringtone:Ringtone? = null
+
+        private var mSensorManager: SensorManager? = null
+        private var mProximity: Sensor? = null
     }
+    /************************************/
+    /*
+    GESTURE DETECT
+     */
     fun startGesture()
     {
         if (bRunning) return
         bRunning = true
         gesture.lock = false
+
+        try {
+            ringtone = null
+            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+            val notify = Uri.parse(sharedPreferences.getString("GESTURE_NOTIFY", null))
+            if (notify != null) ringtone = RingtoneManager.getRingtone(this, notify)
+        }catch (e:Exception){}
 
         thread {
             while (!gesture.lock) {
@@ -33,9 +58,34 @@ class GestureService() : Service()
             gesture.lock = true
         }
     }
+    /************************************/
+    /*
+    SENSOR
+     */
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+    }
+    override fun onSensorChanged(event: SensorEvent)
+    {
+        if (event.sensor.type == Sensor.TYPE_PROXIMITY) {
+
+            if (GestureDetect.getEnable(this, "GESTURE_PROXIMITY")) {
+                gesture.isNear = event.values[0].toInt() == 0
+            }else{
+                gesture.isNear = false
+            }
+        }
+    }
+    /************************************/
+    /*
+    SERVICE
+     */
     override fun onBind(intent: Intent): IBinder? {
         // TODO: Return the communication channel to the service.
         throw UnsupportedOperationException("Not yet implemented")
+    }
+
+    override fun onCreate() {
+        super.onCreate()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
@@ -44,6 +94,10 @@ class GestureService() : Service()
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onScreenIntent, intentFilter)
         super.onStartCommand(intent, flags, startId)
+
+        mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
 
         if (!GestureDetect.isScreenOn(this)){
             startGesture()
@@ -72,6 +126,7 @@ class GestureService() : Service()
 
     override fun stopService(name: Intent?): Boolean {
         gesture.lock = true
+        mSensorManager?.unregisterListener(this)
         unregisterReceiver(onScreenIntent)
         return super.stopService(name)
     }
@@ -138,14 +193,8 @@ class GestureService() : Service()
     }
     private fun screenON()
     {
+        ringtone?.play()
         if (GestureDetect.getEnable(this, "GESTURE_VIBRATION")) GestureDetect.vibrate(this)
-
         GestureDetect.screenON(this)
-
-        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-        try {
-            val notify = Uri.parse(sharedPreferences.getString("GESTURE_NOTIFY", null))
-            if (notify != null) GestureDetect.playNotify(this, notify)
-        }catch (e:Exception){}
     }
 }

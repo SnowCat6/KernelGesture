@@ -32,6 +32,9 @@
     <string name="ui_phone">Dialer</string>
     <string name="ui_contacts">Contacts</string>
     <string name="ui_icon">Icon</string>
+    <string name="ui_proximity_off">Sensor not useed</string>
+    <string name="ui_proximity_on">Use sensor</string>
+    <string name="ui_gesture_use">Use proximity sensor</string>
 
     <!-- Strings related to Settings -->
 
