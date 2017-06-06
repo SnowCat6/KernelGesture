@@ -98,8 +98,6 @@ class GestureDetect() {
 
     private fun getEvent(context:Context, inputs: Array<Pair<String, InputHandler>>): String?
     {
-        while(errorSU?.ready() as Boolean) readErrorLine()
-
         inputs.forEach { (first, second) ->
             exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
 //            exec("while (getevent -c 2 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
@@ -109,20 +107,19 @@ class GestureDetect() {
         {
             var device = ""
             var lines = emptyArray<String>()
-            do{
-                while(true)
-                {
-                    val line = readErrorLine() ?: break
-                    Log.d("EVENT READ", line)
-                    if (line.contains("/dev/input/")) {
-                        device = line
-                        break
-                    }
-                    if (!line.contains("EV_")) continue
-                    if (!line.contains("EV_KEY")) continue
-                    lines += line
+
+            while(!lock)
+            {
+                val line = readErrorLine() ?: break
+//                Log.d("EVENT READ", line)
+                if (line.contains("/dev/input/")) {
+                    device = line
+                    break
                 }
-            }while(!lock && lines.isEmpty())
+                if (!line.contains("EV_")) continue
+                if (!line.contains("EV_KEY")) continue
+                lines += line
+            }
 
             for(line in lines)
             {
@@ -147,7 +144,11 @@ class GestureDetect() {
     {
         exec("kill %%")
         exec("wait %%")
-        while(errorSU?.ready() as Boolean) readErrorLine()
+        try {
+            while (errorSU!!.ready()) readErrorLine()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
     }
     fun toast(context:Context, value:String)
     {
@@ -171,7 +172,8 @@ class GestureDetect() {
         return false
     }
 
-    private fun su(): Process? {
+    private fun su(): Process?
+    {
         try {
             if (processSU == null) {
                 processSU = Runtime.getRuntime().exec("su")
