@@ -8,6 +8,14 @@
         android:summaryOff="@string/ui_gesture_disabled"
         />
 
+    <Preference
+        android:key="pref_ROOT"
+        android:selectable="false"
+        android:persistent="false"
+        android:title="ROOT access not exists"
+        android:summary="To work this application need ROOT access"
+        />
+
     <PreferenceCategory
         android:title="@string/ui_use_gesture"
         android:key="GESTURE_GROUP">

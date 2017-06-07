@@ -458,5 +458,16 @@ class GestureDetect() {
         fun screenUnlock(context: Context){
             // todo: add screen unlock
         }
+        fun canAppWork():Boolean
+        {
+            try {
+                val sh = Runtime.getRuntime().exec(arrayOf("su", "-c", "getevent -h"))
+                sh.waitFor()
+                return sh.exitValue() == 0
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
+            return false
+        }
     }
 }

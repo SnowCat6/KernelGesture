@@ -29,6 +29,7 @@ import android.graphics.drawable.Icon
 import android.widget.ImageView
 import android.widget.Toast
 import java.security.Permission
+import kotlin.concurrent.thread
 
 
 /**
@@ -42,8 +43,8 @@ import java.security.Permission
    * Android Design: Settings](http://developer.android.com/design/patterns/settings.html) for design guidelines and the [Settings
    * API Guide](http://developer.android.com/guide/topics/ui/settings.html) for more information on developing a Settings UI.
  */
-class SettingsActivity : AppCompatPreferenceActivity() {
-
+class SettingsActivity : AppCompatPreferenceActivity()
+{
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupActionBar()
@@ -120,7 +121,8 @@ class SettingsActivity : AppCompatPreferenceActivity() {
                 Pair("GESTURE_DEFAULT_ACTION",  "")
         )
 
-        override fun onCreate(savedInstanceState: Bundle?) {
+        override fun onCreate(savedInstanceState: Bundle?)
+        {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(R.xml.pref_gesture)
             setHasOptionsMenu(true)
@@ -143,6 +145,21 @@ class SettingsActivity : AppCompatPreferenceActivity() {
             val preferenceNotify = findPreference("GESTURE_NOTIFY")
             preferenceNotify.onPreferenceChangeListener = sBindPreferenceNotifyListenerListener
             sBindPreferenceNotifyListenerListener.onPreferenceChange(preferenceNotify, false)
+
+            thread{
+                val bRootExists = GestureDetect.canAppWork()
+                Runnable {
+                    updateRootAccess(bRootExists)
+                }.run()
+            }
+        }
+
+        private fun updateRootAccess(bRootExists:Boolean)
+        {
+            if (bRootExists) {
+                val p = findPreference("pref_ROOT")
+                preferenceScreen.removePreference(p)
+            }
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {
