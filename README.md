@@ -1,5 +1,5 @@
 # KernelGesture
-Goole Play: https://play.google.com/store/apps/details?id=ru.vpro.kernelgesture
+Goole Play: https://play.google.com/store/apps/details?id=ru.vpro.kernelgesture  
 WEB site: http://getbest.ru/kernel_gesture.htm
 
 Реакция на жесты пробуждения телефона и активизация заданных вами действий.
