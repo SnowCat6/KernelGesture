@@ -41,6 +41,9 @@ class GestureService() : Service(), SensorEventListener
     {
         // If thread ruined return back
         if (bRunning) return
+        //  Disable run thread if gestures not use
+        if (!GestureDetect.getAllEnable(this)) return
+
         bRunning = true
         gesture.lock = false
 
@@ -54,7 +57,7 @@ class GestureService() : Service(), SensorEventListener
 
         thread {
             //  If proximity sensor used, register event
-            val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY") && GestureDetect.getAllEnable(this)
+            val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
             if (bProximityEnable) {
                 mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
             }else gesture.isNear = false
