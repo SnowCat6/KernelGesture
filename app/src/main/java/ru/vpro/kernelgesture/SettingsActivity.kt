@@ -50,10 +50,14 @@ class SettingsActivity : AppCompatPreferenceActivity() {
 
         startService(Intent(this, GestureService::class.java))
 /*
+        try {
             val sh = Runtime.getRuntime().exec(arrayOf("sh", "-c", "getevent -h"))
             sh.waitFor()
             val msg = sh.inputStream.bufferedReader().readLine()
             Toast.makeText(this, "getevent! $msg", Toast.LENGTH_LONG).show()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
 */
     }
 

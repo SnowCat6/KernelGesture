@@ -39,10 +39,12 @@ class GestureService() : Service(), SensorEventListener
      */
     fun startGesture()
     {
+        // If thread ruined return back
         if (bRunning) return
         bRunning = true
         gesture.lock = false
 
+        //  Preload notify
         try {
             ringtone = null
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
@@ -51,12 +53,25 @@ class GestureService() : Service(), SensorEventListener
         }catch (e:Exception){}
 
         thread {
+            //  If proximity sensor used, register event
+            val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
+            if (bProximityEnable) {
+                mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
+            }else gesture.isNear = false
+
+            //  Wait gesture while live
             while (!gesture.lock) {
                 val ev = gesture.waitGesture(this) ?: break
                 if (onGestureEvent(ev)) break
             }
+            //  Mark thread stopped
             bRunning = false
             gesture.lock = true
+
+            //  Unregister even if this need
+            if (bProximityEnable) {
+                mSensorManager?.unregisterListener(this)
+            }
         }
     }
     /************************************/
@@ -67,13 +82,9 @@ class GestureService() : Service(), SensorEventListener
     }
     override fun onSensorChanged(event: SensorEvent)
     {
+        // If registered use proximity - change value detector
         if (event.sensor.type == Sensor.TYPE_PROXIMITY) {
-
-            if (GestureDetect.getEnable(this, "GESTURE_PROXIMITY")) {
-                gesture.isNear = event.values[0].toInt() == 0
-            }else{
-                gesture.isNear = false
-            }
+             gesture.isNear = event.values[0].toInt() == 0
         }
     }
     /************************************/
@@ -91,15 +102,18 @@ class GestureService() : Service(), SensorEventListener
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
+        super.onStartCommand(intent, flags, startId)
+
+        //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onScreenIntent, intentFilter)
-        super.onStartCommand(intent, flags, startId)
 
+        //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-        mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
 
+        //  If screen off - run thread
         if (!GestureDetect.isScreenOn(this)){
             startGesture()
         }
@@ -109,6 +123,7 @@ class GestureService() : Service(), SensorEventListener
 
     val onScreenIntent = object : BroadcastReceiver()
     {
+        //  Events for screen on and screen off
         override fun onReceive(context: Context, intent: Intent)
         {
             when (intent.action) {
@@ -125,9 +140,9 @@ class GestureService() : Service(), SensorEventListener
         }
     }
 
-    override fun stopService(name: Intent?): Boolean {
+    override fun stopService(name: Intent?): Boolean
+    {
         gesture.lock = true
-        mSensorManager?.unregisterListener(this)
         unregisterReceiver(onScreenIntent)
         return super.stopService(name)
     }
