@@ -54,7 +54,7 @@ class GestureService() : Service(), SensorEventListener
 
         thread {
             //  If proximity sensor used, register event
-            val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
+            val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY") && GestureDetect.getAllEnable(this)
             if (bProximityEnable) {
                 mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
             }else gesture.isNear = false
