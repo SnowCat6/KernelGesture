@@ -35,6 +35,8 @@
     <string name="ui_proximity_off">Sensor not useed</string>
     <string name="ui_proximity_on">Use sensor</string>
     <string name="ui_gesture_use">Use proximity sensor</string>
+    <string name="ui_root_title">ROOT access not exists</string>
+    <string name="ui_root_help">To work this application need ROOT access</string>
 
     <!-- Strings related to Settings -->
 

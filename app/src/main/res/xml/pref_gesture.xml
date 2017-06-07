@@ -12,8 +12,8 @@
         android:key="pref_ROOT"
         android:selectable="false"
         android:persistent="false"
-        android:title="ROOT access not exists"
-        android:summary="To work this application need ROOT access"
+        android:title="@string/ui_root_title"
+        android:summary="@string/ui_root_help"
         />
 
     <PreferenceCategory

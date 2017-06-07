@@ -35,4 +35,6 @@
     <string name="ui_proximity_off">Датчик не используется</string>
     <string name="ui_proximity_on">Использовать датчик</string>
     <string name="ui_gesture_use">Датчик приближения</string>
+    <string name="ui_root_title">ROOT не доступен</string>
+    <string name="ui_root_help">Для работы программы требуется ROOT доступ</string>
 </resources>
