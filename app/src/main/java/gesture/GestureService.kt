@@ -47,21 +47,22 @@ class GestureService() : Service(), SensorEventListener
         bRunning = true
         gesture.lock = false
 
-        //  Preload notify
-        try {
-            ringtone = null
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-            val notify = Uri.parse(sharedPreferences.getString("GESTURE_NOTIFY", null))
-            if (notify != null) ringtone = RingtoneManager.getRingtone(this, notify)
-        }catch (e:Exception){}
-
         thread {
+            //  Preload notify
+            try {
+                ringtone = null
+                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+                val notify = Uri.parse(sharedPreferences.getString("GESTURE_NOTIFY", null))
+                if (notify != null) ringtone = RingtoneManager.getRingtone(this, notify)
+            }catch (e:Exception){}
+
             //  If proximity sensor used, register event
             val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
             if (bProximityEnable) {
                 mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
             }else gesture.isNear = false
 
+            //  Main gesture loop
             //  Wait gesture while live
             while (!gesture.lock) {
                 val ev = gesture.waitGesture(this) ?: break
@@ -97,10 +98,6 @@ class GestureService() : Service(), SensorEventListener
     override fun onBind(intent: Intent): IBinder? {
         // TODO: Return the communication channel to the service.
         throw UnsupportedOperationException("Not yet implemented")
-    }
-
-    override fun onCreate() {
-        super.onCreate()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
