@@ -393,7 +393,14 @@ class GestureDetect() {
         }
         fun canAppWork():Boolean
         {
-            return su() != null
+            try {
+                val su = Runtime.getRuntime().exec("su")
+                su.outputStream.write("exit\n".toByteArray())
+                su.outputStream.flush()
+                su.waitFor()
+                return su.exitValue() == 0
+            }catch (e:Exception){}
+            return false
         }
 
         private fun su(): Process?
@@ -409,6 +416,7 @@ class GestureDetect() {
                     readerSU = processSU?.inputStream?.bufferedReader()
                     errorSU = processSU?.errorStream?.bufferedReader()
                     writerSU = processSU?.outputStream
+                    Thread.sleep(50)
                 }
                 return processSU
             } catch (e: Exception) {
@@ -445,8 +453,6 @@ class GestureDetect() {
             }
             return false
         }
-
-
 
         private fun readExecLine(): String?
         {

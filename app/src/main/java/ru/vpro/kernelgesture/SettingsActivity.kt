@@ -146,13 +146,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
             preferenceNotify.onPreferenceChangeListener = sBindPreferenceNotifyListenerListener
             sBindPreferenceNotifyListenerListener.onPreferenceChange(preferenceNotify, false)
 
-            updateRootAccess(true)
             thread{
                 val bRootExists = GestureDetect.canAppWork()
                 if (bRootExists) {
-
-//                        updateRootAccess(bRootExists)
-
+                    updateRootAccess(bRootExists)
                 }
             }
         }
