@@ -141,7 +141,7 @@ class GestureDetect() {
     }
     private fun closeEvents()
     {
-        exec("kill %%")
+        exec("kill %% SIGINT")
         exec("wait %%")
         try {
             while (errorSU!!.ready()) readErrorLine()
@@ -393,13 +393,7 @@ class GestureDetect() {
         }
         fun canAppWork():Boolean
         {
-            if (!exec("getevent -h")) return false
-            while(true){
-                val isReady = readerSU?.ready() ?: return false
-                if (!isReady) break
-                readExecLine()
-            }
-            return true
+            return su() != null
         }
 
         private fun su(): Process?
