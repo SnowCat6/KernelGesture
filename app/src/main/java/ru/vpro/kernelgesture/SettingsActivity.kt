@@ -148,9 +148,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             thread{
                 val bRootExists = GestureDetect.canAppWork()
-                Runnable {
-                    updateRootAccess(bRootExists)
-                }.run()
+                if (bRootExists) {
+                    Runnable {
+                        updateRootAccess(bRootExists)
+                    }.run()
+                }
             }
         }
 
