@@ -9,28 +9,22 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.preference.*
-import android.view.MenuItem
 import android.content.Intent
 import gesture.GestureDetect
 import gesture.GestureService
 import android.app.AlertDialog
 import android.content.pm.ResolveInfo
 import android.content.DialogInterface
-import android.widget.TextView
-import android.view.ViewGroup
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.BaseAdapter
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
-import android.graphics.Color
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.Icon
-import android.widget.ImageView
-import android.widget.Toast
-import java.security.Permission
+import android.util.Log
+import android.view.*
+import android.widget.*
+import com.google.android.gms.ads.AdListener
 import kotlin.concurrent.thread
 
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.InterstitialAd
 
 /**
  * A [PreferenceActivity] that presents a set of application settings. On
@@ -45,11 +39,24 @@ import kotlin.concurrent.thread
  */
 class SettingsActivity : AppCompatPreferenceActivity()
 {
+    private var mInterstitialAd: InterstitialAd? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupActionBar()
 
         startService(Intent(this, GestureService::class.java))
+
+        mInterstitialAd = InterstitialAd(this);
+        mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548";
+        mInterstitialAd?.loadAd(AdRequest.Builder().build())
+
+        mInterstitialAd?.adListener = object : AdListener() {
+            override fun onAdClosed() {
+                // Load the next interstitial.
+                mInterstitialAd?.loadAd(AdRequest.Builder().build())
+            }
+        }
 /*
         try {
             val sh = Runtime.getRuntime().exec(arrayOf("sh", "-c", "getevent -h"))
@@ -67,7 +74,29 @@ class SettingsActivity : AppCompatPreferenceActivity()
      * Set up the [android.app.ActionBar], if the API is available.
      */
     private fun setupActionBar() {
-//        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+//        supportActionBar.setDisplayHomeAsUpEnabled(true)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu): Boolean
+    {
+        menuInflater.inflate(R.menu.menu, menu);
+        return super.onCreateOptionsMenu(menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean
+    {
+        when(item?.itemId)
+        {
+            R.id.menu_adv ->
+            {
+                if (mInterstitialAd?.isLoaded != null && mInterstitialAd!!.isLoaded) {
+                    mInterstitialAd?.show();
+                } else {
+                    Log.d("TAG", "The interstitial wasn't loaded yet.");
+                }
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     /**
@@ -81,7 +110,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
      * {@inheritDoc}
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    override fun onBuildHeaders(target: List<PreferenceActivity.Header>) {
+    override fun onBuildHeaders(target: List<Header>) {
 //        loadHeadersFromResource(R.xml.pref_headers, target)
         fragmentManager.beginTransaction().replace(android.R.id.content, GesturePreferenceFragment()).commit()
     }
