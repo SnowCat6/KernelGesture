@@ -12,9 +12,7 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.widget.Toast
 import android.os.Looper
-import android.text.format.Time
 import java.util.*
-import java.util.concurrent.TimeUnit
 
 class GestureDetect() {
 
@@ -30,12 +28,13 @@ class GestureDetect() {
     var isNear: Boolean
         get() {
             val timeDiff = GregorianCalendar.getInstance().timeInMillis - timeNearChange
-            Log.d("TIme sensor diff", timeDiff.toString())
             return _bIsNear || timeDiff < 1*1000
         }
         set(value) {
-            _bIsNear = value
-            timeNearChange = GregorianCalendar.getInstance().timeInMillis
+            if (_bIsNear != value) {
+                _bIsNear = value
+                timeNearChange = GregorianCalendar.getInstance().timeInMillis
+            }
         }
 
     private var devices = emptyArray<Pair<String, InputHandler>>()
@@ -74,7 +73,7 @@ class GestureDetect() {
                     for (ev in a) {
                         if (ev.length > 5 && ev.substring(0, 5) == "event")
                         {
-                            devices += Pair(ev, handler)
+                            devices += Pair("/dev/input/$ev", handler)
                             bThisEntry = false
                             break
                         }
@@ -104,45 +103,32 @@ class GestureDetect() {
         return null
     }
 
-    private fun getEvent(context:Context, inputs: Array<Pair<String, InputHandler>>): String?
+    private fun getEvent(context:Context, devices: Array<Pair<String, InputHandler>>): String?
     {
-        inputs.forEach { (first, second) ->
-            exec("while (getevent -c 4 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
-//            exec("while (getevent -c 2 -l /dev/input/$first 1>&2)  ; do echo /dev/input/$first >&2  ; done &")
+        devices.forEach { (first, second) ->
+            exec("while v=$(getevent -c 4 -l $first)  ; do echo $first\\\\n\"\$v\">&2 ; done &")
         }
 
+        var device = ""
         while(!lock)
         {
-            var device = ""
-            var lines = emptyArray<String>()
-
-            while(!lock)
-            {
-                val line = readErrorLine() ?: break
-//                Log.d("EVENT READ", line)
-                if (line.contains("/dev/input/")) {
-                    device = line
-                    break
-                }
-                if (!line.contains("EV_")) continue
-                if (!line.contains("EV_KEY")) continue
-                lines += line
+            val line = readErrorLine() ?: break
+            if (line.contains("/dev/input/")) {
+                device = line
+                continue
             }
+            if (!line.contains("EV_")) continue
 
-            for(line in lines)
+            for ((first, second) in devices)
             {
-                for ((first, second) in devices)
-                {
-                    val name = "/dev/input/$first"
-                    if (name !in device) continue
-                    val ev = line
-                    if (BuildConfig.DEBUG) {
-                        Log.d("Event detected", line)
-                    }
-                    val gesture = second.onEvent(line) ?: break
-                    closeEvents()
-                    return gesture
+                if (first != device) continue
+
+                if (BuildConfig.DEBUG) {
+                    Log.d("Event detected", line)
                 }
+                val gesture = second.onEvent(line) ?: break
+                closeEvents()
+                return gesture
             }
         }
         closeEvents()
