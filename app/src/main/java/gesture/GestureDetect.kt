@@ -405,6 +405,7 @@ class GestureDetect() {
             return false
         }
 
+        private var isCheckROOT = false
         private fun su(): Process?
         {
             try{
@@ -413,7 +414,11 @@ class GestureDetect() {
             }catch (e:Exception){}
 
             try {
-                if (processSU == null) {
+                if (processSU == null)
+                {
+                    if (isCheckROOT) return null
+                    isCheckROOT = true
+
                     processSU = Runtime.getRuntime().exec("su")
                     readerSU = processSU?.inputStream?.bufferedReader()
                     errorSU = processSU?.errorStream?.bufferedReader()
@@ -423,11 +428,13 @@ class GestureDetect() {
                     if (id == null || id == false){
                         processSU = null
                     }
+                    isCheckROOT = false
                 }
                 return processSU
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+            isCheckROOT = false
             processSU = null
             return null
         }

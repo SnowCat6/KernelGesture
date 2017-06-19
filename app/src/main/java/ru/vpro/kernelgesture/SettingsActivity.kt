@@ -17,6 +17,7 @@ import android.content.pm.ResolveInfo
 import android.content.DialogInterface
 import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
+import android.os.Handler
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -25,6 +26,9 @@ import kotlin.concurrent.thread
 
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
+import android.os.Looper.getMainLooper
+
+
 
 /**
  * A [PreferenceActivity] that presents a set of application settings. On
@@ -150,6 +154,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 Pair("GESTURE_DEFAULT_ACTION",  "")
         )
 
+        override fun onResume() {
+            super.onResume()
+            thisFragment = this
+        }
+
         override fun onCreate(savedInstanceState: Bundle?)
         {
             super.onCreate(savedInstanceState)
@@ -175,11 +184,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
             preferenceNotify.onPreferenceChangeListener = sBindPreferenceNotifyListenerListener
             sBindPreferenceNotifyListenerListener.onPreferenceChange(preferenceNotify, false)
 
+            thisFragment = this
+
             thread{
-                val bRootExists = GestureDetect.canAppWork()
-                if (bRootExists) {
-                    updateRootAccess(bRootExists)
-                }
+                val bRoot = GestureDetect.canAppWork()
+                Runnable {
+                    updateRootAccess(bRoot)
+                }.run()
             }
         }
 
@@ -187,7 +198,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             if (bRootExists) {
                 val p = findPreference("pref_ROOT")
-                preferenceScreen.removePreference(p)
+                preferenceScreen?.removePreference(p)
+            }else{
+                val p = findPreference("GESTURE_ENABLE") as SwitchPreference
+                p.isChecked = false
             }
         }
 
@@ -202,6 +216,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     }
 
     companion object {
+        var thisFragment:GesturePreferenceFragment? = null
         /**
          * A preference value change listener that updates the preference's summary
          * to reflect its new value.
@@ -226,6 +241,24 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val preferenceEnable = preference.getPreferenceManager().findPreference("GESTURE_GROUP")
             GestureDetect.setAllEnable(preference.context, value as Boolean)
             preferenceEnable.isEnabled = value
+            if (value == true)
+            {
+                val mainHandler = Handler(preference.context.getMainLooper())
+                thread{
+                    val bRoot = GestureDetect.canAppWork()
+                    mainHandler.post {
+                        if (bRoot){
+                            val p = preference.preferenceManager.findPreference("pref_ROOT")
+                            if (p != null) {
+                                thisFragment?.preferenceScreen?.removePreference(p)
+                            }
+                        }else {
+                            val p = preference as SwitchPreference
+                            p.isChecked = false
+                        }
+                    }
+                }
+            }
 
             true
         }
