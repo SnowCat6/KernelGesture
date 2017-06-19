@@ -187,10 +187,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
             thisFragment = this
 
             thread{
+                val mainHandler = Handler(getMainLooper())
                 val bRoot = GestureDetect.canAppWork()
-                Runnable {
+                mainHandler.post {
                     updateRootAccess(bRoot)
-                }.run()
+                }
             }
         }
 
@@ -227,10 +228,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             if (action == null){
                 preference.summary = preference.context.getString(R.string.ui_no_action)
-                preference.setIcon(actionIcon(preference.context, ""))
+                preference.icon = actionIcon(preference.context, "")
             }else{
                 preference.summary = actionName(preference.context, action)
-                preference.setIcon(actionIcon(preference.context, action))
+                preference.icon = actionIcon(preference.context, action)
             }
 
             true
