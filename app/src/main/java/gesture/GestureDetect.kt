@@ -138,7 +138,6 @@ class GestureDetect() {
     private fun closeEvents()
     {
         exec("kill -s SIGINT %%")
-        exec("wait %%")
         try {
             while (errorSU!!.ready()) readErrorLine()
         }catch (e:Exception){
