@@ -199,7 +199,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             if (bRootExists) {
                 val p = findPreference("pref_ROOT")
-                preferenceScreen?.removePreference(p)
+                if (p != null) {
+                    preferenceScreen?.removePreference(p)
+                }
             }else{
                 val p = findPreference("GESTURE_ENABLE") as SwitchPreference
                 p.isChecked = false

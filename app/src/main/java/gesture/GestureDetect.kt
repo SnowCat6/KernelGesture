@@ -13,6 +13,7 @@ import android.os.Handler
 import android.widget.Toast
 import android.os.Looper
 import java.util.*
+import java.util.concurrent.Semaphore
 
 class GestureDetect() {
 
@@ -321,6 +322,7 @@ class GestureDetect() {
         private var errorSU: BufferedReader? = null
         private var readerSU: BufferedReader? = null
         private var writerSU: OutputStream? = null
+        val lockSU = Semaphore(1)
 
         fun getAllEnable(context: Context): Boolean
         {
@@ -389,18 +391,8 @@ class GestureDetect() {
         fun canAppWork():Boolean
         {
             return su() != null
-
-            try {
-                val su = Runtime.getRuntime().exec("su")
-                su.outputStream.write("exit\n".toByteArray())
-                su.outputStream.flush()
-                su.waitFor()
-                return su.exitValue() == 0
-            }catch (e:Exception){}
-            return false
         }
 
-        private var isCheckROOT = false
         private fun su(): Process?
         {
             try{
@@ -408,30 +400,26 @@ class GestureDetect() {
                 if (exit != null) processSU = null
             }catch (e:Exception){}
 
-            try {
-                if (processSU == null)
-                {
-                    if (isCheckROOT) return null
-                    isCheckROOT = true
-
-                    processSU = Runtime.getRuntime().exec("su")
-                    readerSU = processSU?.inputStream?.bufferedReader()
-                    errorSU = processSU?.errorStream?.bufferedReader()
-                    writerSU = processSU?.outputStream
-                    exec("id")
-                    val id = readExecLine()?.contains("root")
-                    if (id == null || id == false){
-                        processSU = null
-                    }
-                    isCheckROOT = false
-                }
+            if (processSU != null)
                 return processSU
+
+            try {
+                lockSU.acquire()
+                processSU = Runtime.getRuntime().exec("su")
+                readerSU = processSU?.inputStream?.bufferedReader()
+                errorSU = processSU?.errorStream?.bufferedReader()
+                writerSU = processSU?.outputStream
+                exec("id")
+                val id = readExecLine()?.contains("root")
+                if (id == null || id == false){
+                    processSU = null
+                }
             } catch (e: Exception) {
+                processSU = null
                 e.printStackTrace()
             }
-            isCheckROOT = false
-            processSU = null
-            return null
+            lockSU.release()
+            return processSU
         }
 
         private fun exec(cmd: String): Boolean
