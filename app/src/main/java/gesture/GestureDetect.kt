@@ -141,7 +141,7 @@ class GestureDetect() {
     }
     private fun closeEvents()
     {
-        exec("kill %% SIGINT")
+        exec("kill -s SIGINT %%")
         exec("wait %%")
         try {
             while (errorSU!!.ready()) readErrorLine()
@@ -393,6 +393,8 @@ class GestureDetect() {
         }
         fun canAppWork():Boolean
         {
+            return su() != null
+
             try {
                 val su = Runtime.getRuntime().exec("su")
                 su.outputStream.write("exit\n".toByteArray())
@@ -416,7 +418,11 @@ class GestureDetect() {
                     readerSU = processSU?.inputStream?.bufferedReader()
                     errorSU = processSU?.errorStream?.bufferedReader()
                     writerSU = processSU?.outputStream
-                    Thread.sleep(50)
+                    exec("id")
+                    val id = readExecLine()?.contains("root")
+                    if (id == null || id == false){
+                        processSU = null
+                    }
                 }
                 return processSU
             } catch (e: Exception) {
