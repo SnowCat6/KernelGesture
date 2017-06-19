@@ -252,10 +252,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                             if (p != null) {
                                 thisFragment?.preferenceScreen?.removePreference(p)
                             }
-                        }else {
-                            val p = preference as SwitchPreference
-                            p.isChecked = false
                         }
+                        val p = preference as SwitchPreference
+                        p.isChecked = bRoot
                     }
                 }
             }

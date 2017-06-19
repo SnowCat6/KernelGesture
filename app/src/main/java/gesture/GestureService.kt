@@ -183,8 +183,7 @@ class GestureService() : Service(), SensorEventListener
 
         try {
             screenON()
-            val intent = packageManager.getLaunchIntentForPackage(action)
-            if (intent == null) return false
+            val intent = packageManager.getLaunchIntentForPackage(action) ?: return false
             return startNewActivity(intent)
         }catch (e:Exception){}
         return false

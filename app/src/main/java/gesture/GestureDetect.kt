@@ -12,6 +12,9 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.widget.Toast
 import android.os.Looper
+import android.text.format.Time
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class GestureDetect() {
 
@@ -22,11 +25,17 @@ class GestureDetect() {
             _bLock = value
         }
 
+    private var timeNearChange = GregorianCalendar.getInstance().timeInMillis
     private var _bIsNear:Boolean = false
     var isNear: Boolean
-        get() = _bIsNear
+        get() {
+            val timeDiff = GregorianCalendar.getInstance().timeInMillis - timeNearChange
+            Log.d("TIme sensor diff", timeDiff.toString())
+            return _bIsNear || timeDiff < 1*1000
+        }
         set(value) {
             _bIsNear = value
+            timeNearChange = GregorianCalendar.getInstance().timeInMillis
         }
 
     private var devices = emptyArray<Pair<String, InputHandler>>()
@@ -162,7 +171,7 @@ class GestureDetect() {
     private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):String?
     {
         //  Check device is near screen
-        if (_bIsNear) return  null
+        if (isNear) return  null
 
         if (key == null || key.isEmpty())
             return null;
