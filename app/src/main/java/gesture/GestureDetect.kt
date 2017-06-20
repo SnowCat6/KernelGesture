@@ -46,6 +46,9 @@ class GestureDetect() {
         detectDevices()
     }
 
+    fun enable(boolean: Boolean){
+        for(it in devices) it.second.setEnable(boolean)
+    }
 
     fun detectDevices(): Boolean
     {
@@ -107,6 +110,7 @@ class GestureDetect() {
     private fun getEvent(context:Context, devices: Array<Pair<String, InputHandler>>): String?
     {
         devices.forEach { (first, second) ->
+            second.setEnable(true)
             exec("while v=$(getevent -c 4 -l $first)  ; do echo $first\\\\n\"\$v\">&2 ; done &")
         }
 
@@ -215,29 +219,52 @@ class GestureDetect() {
         }
     }
 
+    inner class GS(
+            public val detectFile: String,
+            public val setPowerON: String,
+            public val setPowerOFF: String,
+            public val getGesture: String
+    );
+
     /*
     MTK and QCOMM keyboard
      */
     inner open class InputKPD : InputHandler
     {
-        var HCT_GESTURE_IO:String? = null
+        var HCT_GESTURE_IO:GS? = null
         //  HCT version gesture for Android 5x and Android 6x
         val HCT_GESTURE_PATH = arrayOf(
-                "/sys/devices/platform/mtk-tpd",
-                "/sys/devices/bus/bus\\:touch@")
+                GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
+                        "on > /sys/devices/platform/mtk-tpd/tpgesture_status",
+                        "off > /sys/devices/platform/mtk-tpd/tpgesture_status",
+                        "/sys/devices/platform/mtk-tpd/tpgesture"),
+
+                GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
+                        "on > /sys/devices/bus/bus\\:touch@/tpgesture_status",
+                        "off > /sys/devices/bus/bus\\:touch@/tpgesture_status",
+                        "/sys/devices/bus/bus\\:touch@/tpgesture"),
+
+                GS("/sys/class/syna/gesenable",
+                        "1 > /sys/class/syna/gesenable",
+                        "0 > /sys/class/syna/gesenable",
+                        "")
+        )
 
         override fun setEnable(enable:Boolean)
         {
-            if (HCT_GESTURE_IO != null)
-                exec("echo on > $HCT_GESTURE_IO/tpgesture_status")
+            if (HCT_GESTURE_IO == null) return
+
+            if (enable) exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
+            else exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
         }
 
         override fun onDetect(name:String): Boolean
         {
             if (name != "mtk-kpd") return false
             for (it in HCT_GESTURE_PATH) {
-                if (!isFileExists(it)) continue
+                if (!isFileExists(it.detectFile)) continue
                 HCT_GESTURE_IO = it
+                break
             }
             return true
         }
@@ -275,9 +302,9 @@ class GestureDetect() {
 
             if (HCT_GESTURE_IO == null) return null
             //  get gesture name
-            val gs = getFileLine("$HCT_GESTURE_IO/tpgesture")
+            val gs = getFileLine(HCT_GESTURE_IO!!.getGesture)
             return runGesture(gs, keys)
-      }
+        }
         //  Oukitel K4000 device gesture
         private fun onEventOKK(key:String):String?
         {
@@ -329,6 +356,8 @@ class GestureDetect() {
         }
         fun setAllEnable(context: Context, value: Boolean) {
             setEnable(context, "GESTURE_ENABLE", value)
+            val gs = GestureDetect()
+            gs.enable(value)
         }
         fun getEnable(context: Context, key: String): Boolean {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -438,7 +467,7 @@ class GestureDetect() {
             return true
         }
         private fun getFileLine(name: String): String? {
-            if (isFileExists(name) && exec("cat $name")) return readExecLine()
+            if (exec("echo $(cat $name)")) return readExecLine()
             return null
         }
 
