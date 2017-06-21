@@ -37,6 +37,9 @@
     <string name="ui_gesture_use">Use proximity sensor</string>
     <string name="ui_root_title">ROOT access not exists</string>
     <string name="ui_root_help">To work this application need ROOT access</string>
+    <string name="ui_alert_gs_title">Gesture not detected</string>
+    <string name="ui_alert_gs_message_keys">Possibly your device not support gestures, only VOLUME KEYS</string>
+    <string name="ui_alert_gs_message_wo_keys">Possibly your device not support gestures and VOLUME KEYS</string>
 
     <!-- Strings related to Settings -->
 

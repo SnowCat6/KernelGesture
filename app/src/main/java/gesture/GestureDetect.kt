@@ -2,6 +2,7 @@ package gesture
 
 import java.io.*
 import android.content.*
+import android.graphics.Path
 import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.util.Log
@@ -288,10 +289,13 @@ class GestureDetect private constructor()
         override fun onDetect(name:String): Boolean
         {
             if (name != "mtk-kpd") return false
+            addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+
             if (HCT_GESTURE_IO == null) {
                 for (it in HCT_GESTURE_PATH) {
                     if (!SU.isFileExists(it.detectFile)) continue
                     HCT_GESTURE_IO = it
+                    addSupport(arrayOf("GESTURE"))
                     break
                 }
             }
@@ -362,7 +366,11 @@ class GestureDetect private constructor()
     private inner open class InputQCOMM_KPD : InputHandler
     {
         override fun onDetect(name:String):Boolean {
-            return name == "qpnp_pon" || name == "gpio-keys"
+            if (name != "qpnp_pon" && name != "gpio-keys")
+                return false
+
+            addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+            return true
         }
 
         override fun onEvent(line: String): String? {
@@ -475,6 +483,33 @@ class GestureDetect private constructor()
             return SU.open() != null
         }
 
+        var supported = emptyArray<String>()
+        fun getSupport():Array<String>
+        {
+            getInstance().detectDevices()
+            if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
+            {
+                while (true) {
+                    val line = SU.readExecLine() ?: break
+                    Log.d("Read line", line)
+                    if (line == "--END--") break
+
+                    val path =  line.substring(line.lastIndexOf("/")+1)
+                    when(path){
+                        "tpgesture_status" -> { addSupport("GESTURE") }
+                    }
+                }
+            }
+
+            return supported
+        }
+        private fun addSupport(value:String)
+        {
+            if (supported.contains(value)) return
+            supported += value
+        }
+        private fun addSupport(value:Array<String>)
+                = value.forEach { addSupport(it) }
         /**
          * SuperSU wrapper
          */

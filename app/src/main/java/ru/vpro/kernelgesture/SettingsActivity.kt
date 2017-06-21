@@ -61,16 +61,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 mInterstitialAd?.loadAd(AdRequest.Builder().build())
             }
         }
-/*
-        try {
-            val sh = Runtime.getRuntime().exec(arrayOf("sh", "-c", "getevent -h"))
-            sh.waitFor()
-            val msg = sh.inputStream.bufferedReader().readLine()
-            Toast.makeText(this, "getevent! $msg", Toast.LENGTH_LONG).show()
-        }catch (e:Exception){
-            e.printStackTrace()
-        }
-*/
     }
 
 
@@ -191,6 +181,20 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 val bRoot = GestureDetect.canAppWork()
                 mainHandler.post {
                     updateRootAccess(bRoot)
+                }
+                val support = GestureDetect.getSupport()
+                if (!support.contains("GESTURE"))
+                {
+                    mainHandler.post {
+                        val dlgAlert = AlertDialog.Builder(activity)
+                        dlgAlert.setTitle(getString(R.string.ui_alert_gs_title))
+                        if (support.contains("KEYS")) {
+                            dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_keys))
+                        }else{
+                            dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_wo_keys))
+                        }
+                        dlgAlert.create().show()
+                    }
                 }
             }
         }

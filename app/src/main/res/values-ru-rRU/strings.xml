@@ -37,4 +37,7 @@
     <string name="ui_gesture_use">Датчик приближения</string>
     <string name="ui_root_title">ROOT не доступен</string>
     <string name="ui_root_help">Для работы программы требуется ROOT доступ</string>
+    <string name="ui_alert_gs_title">Жесты не найдены</string>
+    <string name="ui_alert_gs_message_keys">Возможно ваше устройство не поддерживает жесты, только КЛАВИШИ ГРОМКОСТИ</string>
+    <string name="ui_alert_gs_message_wo_keys">Возможно ваше устройство не поддерживает жесты и КЛАВИШИ ГРОМКОСТИ</string>
 </resources>
