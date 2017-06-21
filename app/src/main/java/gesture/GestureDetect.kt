@@ -373,6 +373,7 @@ class GestureDetect private constructor()
 
     }
 
+    //  Unknown FT5x06_ts gesture solution
     private inner open class InputFT5x06_ts : InputHandler
     {
         override fun onDetect(name: String): Boolean {
@@ -381,7 +382,9 @@ class GestureDetect private constructor()
         }
 
         override fun onEvent(line: String): String? {
-            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+            val arg = line.replace(Regex("\\s+"), " ").split(" ")
+            if (arg[0] != "EV_KEY") return null
+            return runGesture(arg[1])
         }
 
         override fun setEnable(enable: Boolean) {
