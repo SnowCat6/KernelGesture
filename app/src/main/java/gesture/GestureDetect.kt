@@ -42,7 +42,7 @@ class GestureDetect private constructor()
         }
 
     private var devices = emptyArray<Pair<String, InputHandler>>()
-    private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_KPD())
+    private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_KPD(), InputFT5x06_ts())
 
     init {
         detectDevices()
@@ -104,42 +104,51 @@ class GestureDetect private constructor()
     fun waitGesture(context:Context): String?
     {
         if (SU.open() == null) return null
-
-        while (!lock)
-        {
-            val line = getEvent(context, devices) ?: continue
-            return if (lock) null else line
-        }
-        return null
+        return getEvent(context)
     }
 
     private var bGetEvents = false
-    private fun getEvent(context:Context, devices: Array<Pair<String, InputHandler>>): String?
+    private fun getEvent(context:Context): String?
     {
         bGetEvents = true
+        var device = ""
 
         //  Flush old output
         try {
-            while (SU.errorSU!!.ready()) SU.readErrorLine()
+            while (SU.errorSU?.ready() == true) SU.readErrorLine()
         }catch (e:Exception){
             e.printStackTrace()
         }
 
-        devices.forEach { (first, second) ->
-            second.setEnable(true)
-            SU.exec("while v=$(getevent -c 4 -l $first)  ; do echo $first\\\\n\"\$v\">&2 ; done &")
+        //  For each device
+        devices.forEach { (inputName, device) ->
+            //  Power on gesture if available, many drivers not set this value if screen off
+            device.setEnable(true)
+            //  Run input event detector
+            SU.exec("while v=$(getevent -c 4 -l $inputName)  ; do echo $inputName\\\\n\"\$v\">&2 ; done &")
         }
 
-        var device = ""
         while(!lock)
         {
+            //  Read line from input
             val line = SU.readErrorLine() ?: break
+
+            //  Stop if gesture need stop run
+            if (lock) break
+
+            //  Detect current input device
             if (line.contains("/dev/input/")) {
                 device = line
                 continue
             }
+
+            //  Check only key events
             if (!line.contains("EV_")) continue
 
+            //  Check device is near screen
+            if (isNear) continue
+
+            //  Find device for event accept
             for ((first, second) in devices)
             {
                 if (first != device) continue
@@ -147,13 +156,18 @@ class GestureDetect private constructor()
                 if (BuildConfig.DEBUG) {
                     Log.d("Event detected", line)
                 }
+                //  Get gesture
                 val gesture = second.onEvent(line) ?: break
+                //  Check gesture enable
                 if (!getEnable(context, gesture)) break
+                //  Close cmd events
                 closeEvents()
+                //  Return result
                 return gesture
             }
         }
         closeEvents()
+        //  Error reading, no continue
         return null
     }
     private fun closeEvents()
@@ -175,9 +189,6 @@ class GestureDetect private constructor()
 
     private fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):String?
     {
-        //  Check device is near screen
-        if (isNear) return  null
-
         if (key == null || key.isEmpty())
             return null;
 
@@ -360,6 +371,26 @@ class GestureDetect private constructor()
             return runGesture(arg[1])
         }
 
+    }
+
+    private inner open class InputFT5x06_ts : InputHandler
+    {
+        override fun onDetect(name: String): Boolean {
+            if (name != "ft5x06_ts") return false
+            return true
+        }
+
+        override fun onEvent(line: String): String? {
+            TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        }
+
+        override fun setEnable(enable: Boolean) {
+            if (enable) {
+                SU.exec("echo 1 > sys/class/gesture/gesture_ft5x06/enable")
+            }else{
+                SU.exec("echo 0 > sys/class/gesture/gesture_ft5x06/enable")
+            }
+        }
     }
 
     companion object
