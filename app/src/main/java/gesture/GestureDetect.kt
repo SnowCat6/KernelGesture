@@ -12,6 +12,7 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.widget.Toast
 import android.os.Looper
+import android.widget.ArrayAdapter
 import java.util.*
 import java.util.concurrent.Semaphore
 
@@ -41,6 +42,7 @@ class GestureDetect private constructor()
             }
         }
 
+    private var supported = emptyArray<String>()
     private var devices = emptyArray<Pair<String, InputHandler>>()
     private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_KPD(), InputFT5x06_ts())
 
@@ -67,6 +69,7 @@ class GestureDetect private constructor()
                 findDevicePath(it, lines) ?: return@forEach
             }
         } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         return devices.isNotEmpty()
@@ -81,12 +84,10 @@ class GestureDetect private constructor()
                 if (ix >= 0) {
                     val a = line.substring(ix + 9).split(" ")
                     for (ev in a) {
-                        if (ev.length > 5 && ev.substring(0, 5) == "event")
-                        {
-                            devices += Pair("/dev/input/$ev", handler)
-                            bThisEntry = false
-                            break
-                        }
+                        if (ev.length < 5 || !ev.contains("event")) continue
+                        devices += Pair("/dev/input/$ev", handler)
+                        bThisEntry = false
+                        break
                     }
                     continue
                 }
@@ -177,6 +178,34 @@ class GestureDetect private constructor()
 
         SU.exec("kill -s SIGINT %%")
     }
+    private fun addSupport(value:String)
+    {
+        if (supported.contains(value)) return
+        supported += value
+    }
+    private fun addSupport(value:Array<String>)
+            = value.forEach { addSupport(it) }
+
+    fun getSupport():Array<String>
+    {
+/*
+        if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
+        {
+            while (true) {
+                val line = SU.readExecLine() ?: break
+                Log.d("Read line", line)
+                if (line == "--END--") break
+
+                val path =  line.substring(line.lastIndexOf("/")+1)
+                when(path){
+//                        "tpgesture_status" -> { addSupport("GESTURE") }
+                }
+            }
+        }
+ */
+        return supported
+    }
+
     private fun toast(context:Context, value:String)
     {
         screenON(context)
@@ -401,6 +430,7 @@ class GestureDetect private constructor()
                 SU.exec("echo 0 > sys/class/gesture/gesture_ft5x06/enable")
             }
         }
+
     }
 
     companion object
@@ -482,33 +512,6 @@ class GestureDetect private constructor()
             return SU.open() != null
         }
 
-        var supported = emptyArray<String>()
-        fun getSupport(context:Context):Array<String>
-        {
-            getInstance().detectDevices()
-            if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
-            {
-                while (true) {
-                    val line = SU.readExecLine() ?: break
-                    Log.d("Read line", line)
-                    if (line == "--END--") break
-
-                    val path =  line.substring(line.lastIndexOf("/")+1)
-                    when(path){
-                        "tpgesture_status" -> { addSupport("GESTURE") }
-                    }
-                }
-            }
-
-            return supported
-        }
-        private fun addSupport(value:String)
-        {
-            if (supported.contains(value)) return
-            supported += value
-        }
-        private fun addSupport(value:Array<String>)
-                = value.forEach { addSupport(it) }
         /**
          * SuperSU wrapper
          */
