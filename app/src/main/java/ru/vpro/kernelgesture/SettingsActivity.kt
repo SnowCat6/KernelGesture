@@ -182,21 +182,28 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 mainHandler.post {
                     updateRootAccess(bRoot)
                 }
-                val support = GestureDetect.getSupport()
-                if (!support.contains("GESTURE"))
-                {
+                if (bRoot) {
+                    val support = GestureDetect.getSupport()
                     mainHandler.post {
-                        val dlgAlert = AlertDialog.Builder(activity)
-                        dlgAlert.setTitle(getString(R.string.ui_alert_gs_title))
-                        if (support.contains("KEYS")) {
-                            dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_keys))
-                        }else{
-                            dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_wo_keys))
-                        }
-                        dlgAlert.create().show()
+                        updateGesturesDetect(support)
                     }
                 }
             }
+        }
+        private fun updateGesturesDetect(support:Array<String>)
+        {
+            if (support.contains("GESTURE")) return
+
+            val dlgAlert = AlertDialog.Builder(activity)
+            dlgAlert.setTitle(getString(R.string.ui_alert_gs_title))
+
+            if (support.contains("KEYS")) {
+                dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_keys))
+            } else {
+                dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_wo_keys))
+            }
+
+            dlgAlert.create().show()
         }
 
         private fun updateRootAccess(bRootExists:Boolean)
