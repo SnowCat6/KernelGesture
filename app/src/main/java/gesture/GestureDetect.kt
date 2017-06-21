@@ -47,6 +47,9 @@ class GestureDetect private constructor()
     init {
         detectDevices()
     }
+    fun close(){
+        SU.close()
+    }
 
 
     fun enable(boolean: Boolean){
@@ -273,10 +276,12 @@ class GestureDetect private constructor()
         override fun onDetect(name:String): Boolean
         {
             if (name != "mtk-kpd") return false
-            for (it in HCT_GESTURE_PATH) {
-                if (!SU.isFileExists(it.detectFile)) continue
-                HCT_GESTURE_IO = it
-                break
+            if (HCT_GESTURE_IO == null) {
+                for (it in HCT_GESTURE_PATH) {
+                    if (!SU.isFileExists(it.detectFile)) continue
+                    HCT_GESTURE_IO = it
+                    break
+                }
             }
             return true
         }
@@ -344,14 +349,16 @@ class GestureDetect private constructor()
      */
     private inner open class InputQCOMM_KPD : InputHandler
     {
-        override fun onDetect(name:String):Boolean
-                = name == "qpnp_pon" || name == "gpio-keys"
+        override fun onDetect(name:String):Boolean {
+            return name == "qpnp_pon" || name == "gpio-keys"
+        }
 
         override fun onEvent(line: String): String? {
             val arg = line.replace(Regex("\\s+"), " ").split(" ")
             if (arg[0] != "EV_KEY") return null
             return runGesture(arg[1])
         }
+
     }
 
     companion object
@@ -436,7 +443,7 @@ class GestureDetect private constructor()
         /**
          * SuperSU wrapper
          */
-        private object SU
+        object SU
         {
             var processSU: Process? = null
             var errorSU: BufferedReader? = null
@@ -475,6 +482,7 @@ class GestureDetect private constructor()
 
             fun exec(cmd: String): Boolean
             {
+                SU.open()
                 try {
                     writerSU?.write("$cmd\n".toByteArray())
                     writerSU?.flush()
@@ -508,8 +516,8 @@ class GestureDetect private constructor()
             }
 
             fun isFileExists(name: String): Boolean {
-                if (exec("test -e $name") && exec("echo $?")) {
-                    return readExecLine() == "0"
+                if (exec("[ -f $name ] && echo 1 || echo 0")) {
+                    return readExecLine() == "1"
                 }
                 return false
             }
