@@ -25,7 +25,7 @@ class GestureService() : Service(), SensorEventListener
 {
     companion object
     {
-        private val gesture = GestureDetect()
+        private val gesture = GestureDetect.getInstance()
         private var bRunning = false
 
         private var ringtone:Ringtone? = null

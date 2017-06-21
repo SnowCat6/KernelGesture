@@ -241,9 +241,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         private val sBindPreferenceEnableListener = Preference.OnPreferenceChangeListener { preference, value ->
 
+            value as Boolean
+
             val preferenceEnable = preference.getPreferenceManager().findPreference("GESTURE_GROUP")
-            GestureDetect.setAllEnable(preference.context, value as Boolean)
             preferenceEnable.isEnabled = value
+
+            GestureDetect.setAllEnable(preference.context, value)
+
             if (value == true)
             {
                 val mainHandler = Handler(preference.context.getMainLooper())

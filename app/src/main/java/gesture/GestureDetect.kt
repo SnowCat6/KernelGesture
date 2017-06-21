@@ -15,13 +15,16 @@ import android.os.Looper
 import java.util.*
 import java.util.concurrent.Semaphore
 
-class GestureDetect() {
-
+class GestureDetect private constructor()
+{
     private var _bLock = false
     var lock: Boolean
         get() = _bLock
         set(value) {
             _bLock = value
+            if (_bLock){
+                closeEvents()
+            }
         }
 
     private var timeNearChange = GregorianCalendar.getInstance().timeInMillis
@@ -42,15 +45,15 @@ class GestureDetect() {
     private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_KPD())
 
     init {
-        su()
         detectDevices()
     }
+
 
     fun enable(boolean: Boolean){
         for(it in devices) it.second.setEnable(boolean)
     }
 
-    fun detectDevices(): Boolean
+    private fun detectDevices(): Boolean
     {
         if (devices.isNotEmpty()) return true
         devices = emptyArray()
@@ -97,7 +100,7 @@ class GestureDetect() {
 
     fun waitGesture(context:Context): String?
     {
-        su()
+        if (SU.open() == null) return null
 
         while (!lock)
         {
@@ -107,17 +110,27 @@ class GestureDetect() {
         return null
     }
 
+    private var bGetEvents = false
     private fun getEvent(context:Context, devices: Array<Pair<String, InputHandler>>): String?
     {
+        bGetEvents = true
+
+        //  Flush old output
+        try {
+            while (SU.errorSU!!.ready()) SU.readErrorLine()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+
         devices.forEach { (first, second) ->
             second.setEnable(true)
-            exec("while v=$(getevent -c 4 -l $first)  ; do echo $first\\\\n\"\$v\">&2 ; done &")
+            SU.exec("while v=$(getevent -c 4 -l $first)  ; do echo $first\\\\n\"\$v\">&2 ; done &")
         }
 
         var device = ""
         while(!lock)
         {
-            val line = readErrorLine() ?: break
+            val line = SU.readErrorLine() ?: break
             if (line.contains("/dev/input/")) {
                 device = line
                 continue
@@ -141,14 +154,12 @@ class GestureDetect() {
     }
     private fun closeEvents()
     {
-        exec("kill -s SIGINT %%")
-        try {
-            while (errorSU!!.ready()) readErrorLine()
-        }catch (e:Exception){
-            e.printStackTrace()
-        }
+        if (!bGetEvents) return
+        bGetEvents = false
+
+        SU.exec("kill -s SIGINT %%")
     }
-    fun toast(context:Context, value:String)
+    private fun toast(context:Context, value:String)
     {
         screenON(context)
         vibrate(context)
@@ -196,7 +207,7 @@ class GestureDetect() {
         return if (gesture in allowGestures) gesture else null
     }
 
-    interface InputHandler
+    private interface InputHandler
     {
         fun onDetect(name:String):Boolean
         fun onEvent(line:String):String?
@@ -206,7 +217,7 @@ class GestureDetect() {
     /*
     MT touchscreen with gestures
      */
-    inner open class InputMTK: InputHandler
+    private inner open class InputMTK: InputHandler
     {
         override fun onDetect(name:String):Boolean{
             return name == "mtk-tpd"
@@ -219,7 +230,7 @@ class GestureDetect() {
         }
     }
 
-    inner class GS(
+    private inner class GS(
             public val detectFile: String,
             public val setPowerON: String,
             public val setPowerOFF: String,
@@ -229,21 +240,22 @@ class GestureDetect() {
     /*
     MTK and QCOMM keyboard
      */
-    inner open class InputKPD : InputHandler
+    private inner open class InputKPD : InputHandler
     {
         var HCT_GESTURE_IO:GS? = null
         //  HCT version gesture for Android 5x and Android 6x
         val HCT_GESTURE_PATH = arrayOf(
+                //  Android 5.x HCT gestures
                 GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
                         "on > /sys/devices/platform/mtk-tpd/tpgesture_status",
                         "off > /sys/devices/platform/mtk-tpd/tpgesture_status",
                         "/sys/devices/platform/mtk-tpd/tpgesture"),
-
+                // Android 6.x HCT gestures
                 GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
                         "on > /sys/devices/bus/bus\\:touch@/tpgesture_status",
                         "off > /sys/devices/bus/bus\\:touch@/tpgesture_status",
                         "/sys/devices/bus/bus\\:touch@/tpgesture"),
-
+                //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
                 GS("/sys/class/syna/gesenable",
                         "1 > /sys/class/syna/gesenable",
                         "0 > /sys/class/syna/gesenable",
@@ -254,15 +266,15 @@ class GestureDetect() {
         {
             if (HCT_GESTURE_IO == null) return
 
-            if (enable) exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
-            else exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
+            if (enable) SU.exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
+            else SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
         }
 
         override fun onDetect(name:String): Boolean
         {
             if (name != "mtk-kpd") return false
             for (it in HCT_GESTURE_PATH) {
-                if (!isFileExists(it.detectFile)) continue
+                if (!SU.isFileExists(it.detectFile)) continue
                 HCT_GESTURE_IO = it
                 break
             }
@@ -302,7 +314,7 @@ class GestureDetect() {
 
             if (HCT_GESTURE_IO == null) return null
             //  get gesture name
-            val gs = getFileLine(HCT_GESTURE_IO!!.getGesture)
+            val gs = SU.getFileLine(HCT_GESTURE_IO!!.getGesture)
             return runGesture(gs, keys)
         }
         //  Oukitel K4000 device gesture
@@ -330,7 +342,7 @@ class GestureDetect() {
     /*
     Qualcomm keys
      */
-    inner open class InputQCOMM_KPD : InputHandler
+    private inner open class InputQCOMM_KPD : InputHandler
     {
         override fun onDetect(name:String):Boolean
                 = name == "qpnp_pon" || name == "gpio-keys"
@@ -344,11 +356,9 @@ class GestureDetect() {
 
     companion object
     {
-        private var processSU: Process? = null
-        private var errorSU: BufferedReader? = null
-        private var readerSU: BufferedReader? = null
-        private var writerSU: OutputStream? = null
-        val lockSU = Semaphore(1)
+        private val gs = GestureDetect()
+
+        fun getInstance():GestureDetect = gs
 
         fun getAllEnable(context: Context): Boolean
         {
@@ -356,7 +366,6 @@ class GestureDetect() {
         }
         fun setAllEnable(context: Context, value: Boolean) {
             setEnable(context, "GESTURE_ENABLE", value)
-            val gs = GestureDetect()
             gs.enable(value)
         }
         fun getEnable(context: Context, key: String): Boolean {
@@ -408,7 +417,7 @@ class GestureDetect() {
         fun vibrate(context:Context){
             // Vibrate for 500 milliseconds
             val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            vibrator?.vibrate(200)
+            vibrator.vibrate(200)
         }
 
         fun isScreenOn(context: Context): Boolean
@@ -421,83 +430,108 @@ class GestureDetect() {
         }
         fun canAppWork():Boolean
         {
-            return su() != null
+            return SU.open() != null
         }
 
-        private fun su(): Process?
+        /**
+         * SuperSU wrapper
+         */
+        private object SU
         {
-            try{
-                val exit = processSU?.exitValue()
-                if (exit != null) processSU = null
-            }catch (e:Exception){}
+            var processSU: Process? = null
+            var errorSU: BufferedReader? = null
+            var readerSU: BufferedReader? = null
+            var writerSU: OutputStream? = null
+            val lockSU = Semaphore(1)
 
-            if (processSU != null)
-                return processSU
+            fun open(): Process?
+            {
+                try{
+                    val exit = processSU?.exitValue()
+                    if (exit != null) close()
+                }catch (e:Exception){}
 
-            try {
+                if (processSU != null)
+                    return processSU
+
                 lockSU.acquire()
-                processSU = Runtime.getRuntime().exec("su")
-                readerSU = processSU?.inputStream?.bufferedReader()
-                errorSU = processSU?.errorStream?.bufferedReader()
-                writerSU = processSU?.outputStream
-                exec("id")
-                val id = readExecLine()?.contains("root")
-                if (id == null || id == false){
-                    processSU = null
-                }
-            } catch (e: Exception) {
-                processSU = null
-                e.printStackTrace()
-            }
-            lockSU.release()
-            return processSU
-        }
+                try {
+                    processSU = Runtime.getRuntime().exec("su")
+                    readerSU = processSU?.inputStream?.bufferedReader()
+                    errorSU = processSU?.errorStream?.bufferedReader()
+                    writerSU = processSU?.outputStream
 
-        private fun exec(cmd: String): Boolean
-        {
-            try {
-                writerSU?.write("$cmd\n".toByteArray())
-                writerSU?.flush()
-            }catch (e:Exception){
-                e.printStackTrace()
+                    exec("id")
+                    val id = readExecLine()?.contains("root")
+                    if (id == null || id == false) close()
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                   close()
+                }
+                lockSU.release()
+                return processSU
+            }
+
+            fun exec(cmd: String): Boolean
+            {
+                try {
+                    writerSU?.write("$cmd\n".toByteArray())
+                    writerSU?.flush()
+                }catch (e:Exception){
+                    e.printStackTrace()
+                    return false
+                }
+
+                if (BuildConfig.DEBUG) {
+                    Log.d("GestureDetect exec", "$cmd\n")
+                }
+
+                return true
+            }
+            fun close(){
+                if (processSU == null) return
+                try {
+                    processSU?.destroy()
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+                processSU = null
+                writerSU = null
+                readerSU = null
+                errorSU = null
+            }
+
+            fun getFileLine(name: String): String? {
+                if (exec("echo $(cat $name)")) return readExecLine()
+                return null
+            }
+
+            fun isFileExists(name: String): Boolean {
+                if (exec("test -e $name") && exec("echo $?")) {
+                    return readExecLine() == "0"
+                }
                 return false
             }
 
-            if (BuildConfig.DEBUG) {
-                Log.d("GestureDetect exec", "$cmd\n")
+            fun readExecLine(): String?
+            {
+                try {
+                    return  readerSU?.readLine()
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+                return null
             }
 
-            return true
-        }
-        private fun getFileLine(name: String): String? {
-            if (exec("echo $(cat $name)")) return readExecLine()
-            return null
-        }
-
-        private fun isFileExists(name: String): Boolean {
-            if (exec("test -e $name") && exec("echo $?")) {
-                return readExecLine() == "0"
+            fun readErrorLine() : String? {
+                try {
+                    return  errorSU?.readLine()
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+                return null
             }
-            return false
-        }
-
-        private fun readExecLine(): String?
-        {
-            try {
-                return  readerSU?.readLine()
-            }catch (e:Exception){
-                e.printStackTrace()
-            }
-            return null
-        }
-
-        private fun readErrorLine() : String? {
-            try {
-                return  errorSU?.readLine()
-            }catch (e:Exception){
-                e.printStackTrace()
-            }
-            return null
         }
     }
 }
