@@ -155,9 +155,6 @@ class GestureService() : Service(), SensorEventListener
             Log.d("Gesture action", gestureKey)
         }
 
-        if (!GestureDetect.getAllEnable(this)) return false
-        if (!GestureDetect.getEnable(this, gestureKey)) return false
-
         var action:String? = GestureDetect.getAction(this, gestureKey)
 
         if (action == null && GestureDetect.getEnable(this, "GESTURE_DEFAULT_ACTION"))
