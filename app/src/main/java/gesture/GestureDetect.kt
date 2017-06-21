@@ -148,6 +148,7 @@ class GestureDetect private constructor()
                     Log.d("Event detected", line)
                 }
                 val gesture = second.onEvent(line) ?: break
+                if (!getEnable(context, gesture)) break
                 closeEvents()
                 return gesture
             }
