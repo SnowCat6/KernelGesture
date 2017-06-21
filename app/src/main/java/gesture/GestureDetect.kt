@@ -2,7 +2,6 @@ package gesture
 
 import java.io.*
 import android.content.*
-import android.graphics.Path
 import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.util.Log
@@ -484,7 +483,7 @@ class GestureDetect private constructor()
         }
 
         var supported = emptyArray<String>()
-        fun getSupport():Array<String>
+        fun getSupport(context:Context):Array<String>
         {
             getInstance().detectDevices()
             if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))

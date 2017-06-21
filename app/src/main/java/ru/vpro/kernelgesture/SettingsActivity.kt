@@ -183,7 +183,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     updateRootAccess(bRoot)
                 }
                 if (bRoot) {
-                    val support = GestureDetect.getSupport()
+                    val support = GestureDetect.getSupport(activity)
                     mainHandler.post {
                         updateGesturesDetect(support)
                     }
