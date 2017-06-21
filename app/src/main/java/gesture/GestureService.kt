@@ -39,6 +39,7 @@ class GestureService() : Service(), SensorEventListener
      */
     fun startGesture()
     {
+        gesture.lock = false
         // If thread ruined return back
         if (bRunning) return
         //  Disable run thread if gestures not use
@@ -129,12 +130,15 @@ class GestureService() : Service(), SensorEventListener
         {
             when (intent.action) {
                 Intent.ACTION_SCREEN_OFF -> {
-                    Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
-                    gesture.lock = false
+                    if (BuildConfig.DEBUG) {
+                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
+                    }
                     startGesture()
                 }
                 Intent.ACTION_SCREEN_ON -> {
-                    Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
+                    if (BuildConfig.DEBUG) {
+                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
+                    }
                     gesture.lock = true
                 }
             }
@@ -157,8 +161,7 @@ class GestureService() : Service(), SensorEventListener
 
         var action:String? = GestureDetect.getAction(this, gestureKey)
 
-        if (action == null && GestureDetect.getEnable(this, "GESTURE_DEFAULT_ACTION"))
-        {
+        if (action == null && GestureDetect.getEnable(this, "GESTURE_DEFAULT_ACTION")){
             action = GestureDetect.getAction(this, "GESTURE_DEFAULT_ACTION")
         }
         if (action == null) return false
