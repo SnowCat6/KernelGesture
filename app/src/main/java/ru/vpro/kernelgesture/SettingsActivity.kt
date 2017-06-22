@@ -13,7 +13,6 @@ import android.content.Intent
 import gesture.GestureDetect
 import gesture.GestureService
 import android.app.AlertDialog
-import android.content.pm.ResolveInfo
 import android.content.DialogInterface
 import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
@@ -134,13 +133,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             val gestureItems:Array<GestureItem> = arrayOf(
                     GestureItem("KEY_U",       "screen.on"),
-                    GestureItem("KEY_UP",      ""),
-                    GestureItem("KEY_DOWN",    ""),
+                    GestureItem("KEY_UP",      "com.android.dialer"),
+                    GestureItem("KEY_DOWN",    "com.android.contacts"),
                     GestureItem("KEY_LEFT",    ""),
                     GestureItem("KEY_RIGHT",   ""),
                     GestureItem("KEY_O",       ""),
                     GestureItem("KEY_E",       ""),
-                    GestureItem("KEY_M",       ""),
+                    GestureItem("KEY_M",       "com.android.email"),
                     GestureItem("KEY_L",       ""),
                     GestureItem("KEY_W",       ""),
                     GestureItem("KEY_S",       ""),
@@ -217,11 +216,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }else{
                 actionBar.subtitle = getString(R.string.ui_title_no_root)
             }
-/*
-            val p = findPreference("GESTURE_ENABLE") as SwitchPreference
-            p.isChecked = bRootExists
-            p.onPreferenceChangeListener.onPreferenceChange(p, bRootExists)
-*/
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -251,6 +245,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     if (a != null) return a
 
                     action = defaultAction
+                    if (defaultAction.isNotEmpty()) enable = true
                     return defaultAction
                 }
                 set(value) {
@@ -263,6 +258,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 get() = GestureDetect.getEnable(activity, key)
                 set(value){
                     _actionName = ""
+                    _icon = null
                     GestureDetect.setEnable(activity, key, value)
                 }
 
@@ -272,7 +268,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     if (_actionName.isEmpty())
                     {
                         if (applicationInfo != null) {
-                            _actionName = UI.actionName(activity, applicationInfo)
+                            _actionName = UI.name(activity, applicationInfo)
                         }else{
                             if (action != null && action == "" && key == "GESTURE_DEFAULT_ACTION") {
                                 _actionName = getString(R.string.ui_no_action)
@@ -280,7 +276,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                                 if (action == null || (action == "" && !enable)){
                                     _actionName = getString(R.string.ui_no_action)
                                 }else {
-                                    _actionName = UI.actionName(activity, action)
+                                    _actionName = UI.name(activity, action)
                                 }
                             }
                         }
@@ -293,9 +289,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 get(){
                     if (_icon != null) return _icon
                     if (applicationInfo != null){
-                        _icon = UI.actionIcon(activity, applicationInfo)
+                        _icon = UI.icon(activity, applicationInfo)
                     }else{
-                        _icon = UI.actionIcon(activity, action)
+                        _icon = UI.icon(activity, action)
                     }
                     return _icon
                 }
@@ -448,20 +444,18 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         val onClickListener = DialogInterface.OnClickListener() { dialogInterface: DialogInterface, i: Int ->
 
-            val lw = (dialogInterface as AlertDialog).listView
-            val adapter = lw.adapter as BoxAdapter
+            val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
             val item = adapter.getItem(i)
-            val preference = adapter.getPreference()
+            val preference = adapter.getPreference() as TwoStatePreference
 
-            var value =  UI.actionAction(preference.context, item)
-            if (value == "none") value = ""
-
+            val action =  UI.action(preference.context, item)
+            if (BuildConfig.DEBUG) {
+                Log.d("Set gesture action", action)
+            }
             val gestureItem = getItemInstance(preference.key)
-            gestureItem?.action = value
-
-            val p = preference as TwoStatePreference?
-            p?.isChecked = value.isNotEmpty()
-            preference.onPreferenceChangeListener.onPreferenceChange(preference, p?.isChecked)
+            gestureItem?.action = action
+            preference.isChecked = action.isNotEmpty()
+            preference.onPreferenceChangeListener.onPreferenceChange(preference, preference.isChecked)
         }
 
         class BoxAdapter internal constructor(
@@ -471,18 +465,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
 
             fun getPreference():Preference = preference
-
-            override fun getCount(): Int {
-                return objects.size
-            }
-            override fun getItem(position: Int): Any {
-                return objects[position]
-            }
+            //  КОличество объектов
+            override fun getCount(): Int = objects.size
+            //  Объект
+            override fun getItem(position: Int): Any = objects[position]
             // id по позиции
-            override fun getItemId(position: Int): Long {
-                return position.toLong()
-            }
-
+            override fun getItemId(position: Int): Long = position.toLong()
             // пункт списка
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
             {
@@ -493,27 +481,31 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }else view = convertView
 
                 val thisItem = getItem(position)
-                (view.findViewById(R.id.title) as TextView).text = UI.actionName(preference.context, thisItem)
+                (view.findViewById(R.id.title) as TextView).text = UI.name(preference.context, thisItem)
 
-                val icon = UI.actionIcon(preference.context, thisItem)
+                val icon = UI.icon(preference.context, thisItem)
                 (view.findViewById(R.id.icon) as ImageView).setImageDrawable(icon)
 
                 return view
             }
-
-            // товар по позиции
-            internal fun getThisItem(position: Int): ResolveInfo {
-                return getItem(position) as ResolveInfo
-            }
         }
         object UI
         {
-            fun actionName(context:Context, item:Any?):String
+            fun action(context:Context, item:Any?):String
+            {
+                when(item)
+                {
+                    "none" -> return ""
+                    is ApplicationInfo -> return item.packageName
+                    is String -> return item
+                }
+                return ""
+            }
+            fun name(context:Context, item:Any?):String
             {
                 when(item){
                     is ApplicationInfo -> return context.packageManager
-                            .getApplicationLabel(item)
-                            .toString()
+                            .getApplicationLabel(item).toString()
 
                     "" ->  return context.getString(R.string.ui_default_action)
                     "none"  -> return context.getString(R.string.ui_no_action)
@@ -521,24 +513,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
                 return ""
             }
-            fun actionAction(context:Context, item:Any?):String
+            fun icon(context:Context, item:Any?): Drawable
             {
                 when(item){
-                    is ApplicationInfo -> return item.packageName
-                    is String -> return item
-                }
-                return ""
-            }
-            fun actionIcon(context:Context, item:Any?): Drawable
-            {
-                when(item){
-                    is ApplicationInfo -> {
-                        val pm = context.packageManager
-                        return pm.getApplicationIcon(item)
-                    }
-                    "screen.on" -> {
-                        return context.getDrawable(R.drawable.icon_screen_on)
-                    }
+                    is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
+                    "screen.on" -> return context.getDrawable(R.drawable.icon_screen_on)
                 }
                 return context.getDrawable(android.R.color.transparent)
             }
