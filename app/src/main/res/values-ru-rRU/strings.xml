@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="ui_no_action">Нет действия</string>
-    <string name="ui_dblclick">Тап на экране</string>
+    <string name="ui_dblclick">Двойной тап на экране</string>
     <string name="ui_swipe_up">Скольжение ВВЕРХ</string>
     <string name="ui_swipe_down">Скольжение ВНИЗ</string>
     <string name="ui_swipe_left">Скольжение ВЛЕВО</string>
@@ -21,8 +21,8 @@
     <string name="ui_vibrate">Вибрировать при разблокировке</string>
     <string name="ui_notify">Звук при разблокировке</string>
     <string name="ui_adv_settings">Дополнительные настройки</string>
-    <string name="ui_volume_up">Нажатие УВЕЛИЧЕНИЯ громкости</string>
-    <string name="ui_volume_down">Нажатие УМЕНЬШЕНИЯ громкости</string>
+    <string name="ui_volume_up">УВЕЛИЧЕНИЕ громкости</string>
+    <string name="ui_volume_down">УМЕНЬШЕНИЕ громкости</string>
     <string name="ui_vibrate_off">Без вибрации</string>
     <string name="ui_vibrate_on">Вибрация при активации</string>
     <string name="ui_sound_default">Системный звук</string>
