@@ -461,19 +461,21 @@ class GestureDetect private constructor()
         fun getAction(context: Context, key: String): String? {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
-            var action: String? = null
             try {
-                action = sharedPreferences.getString("${key}_ACTION", null)
+                return sharedPreferences.getString("${key}_ACTION", null)
             } catch (e: Exception) { }
-
-            if (action == null || action.isEmpty()) return null
-            return action
+            return null
         }
 
-        fun setAction(context: Context, key: String, value: String) {
+        fun setAction(context: Context, key: String, value: String?)
+        {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val e = sharedPreferences.edit()
-            e.putString("${key}_ACTION", value)
+            if (value == null){
+                e.remove(key)
+            }else {
+                e.putString("${key}_ACTION", value)
+            }
             e.apply()
         }
 

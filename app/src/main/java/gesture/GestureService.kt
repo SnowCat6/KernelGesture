@@ -171,16 +171,6 @@ class GestureService() : Service(), SensorEventListener
                 screenON()
                 return true
             }
-            "phone" -> {
-                //For the dial pad
-                screenON()
-                return startNewActivity(Intent(Intent.ACTION_DIAL, null))
-            }
-            "phone.contacts" -> {
-                //For the contacts (viewing them)
-                screenON()
-                return startNewActivity(Intent(Intent.ACTION_VIEW, ContactsContract.Contacts.CONTENT_URI))
-            }
         }
 
         try {
