@@ -453,8 +453,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         class AppListItem(val action:String, val name:String, val icon:Drawable)
         {
-            constructor(context:Context, action:String) : this(UI.action(context, action), UI.name(context, action), UI.icon(context, action))
-            constructor(context:Context, applicationInfo: ApplicationInfo) : this(applicationInfo.packageName, UI.name(context, applicationInfo), UI.icon(context, applicationInfo))
+            constructor(context:Context, action:String) :
+                    this(UI.action(context, action),
+                            UI.name(context, action),
+                            UI.icon(context, action))
+            constructor(context:Context, applicationInfo: ApplicationInfo) :
+                    this(UI.action(context, applicationInfo.packageName),
+                            UI.name(context, applicationInfo),
+                            UI.icon(context, applicationInfo))
         }
 
         class BoxAdapter internal constructor(
