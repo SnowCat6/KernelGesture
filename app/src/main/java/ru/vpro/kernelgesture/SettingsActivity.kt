@@ -189,7 +189,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
             if (!titles.isEmpty()){
                 val actionBar = (activity as AppCompatPreferenceActivity).supportActionBar
-                actionBar.subtitle = getString(R.string.ui_title_support) + " " + titles.joinToString(" ,")
+                actionBar.subtitle = getString(R.string.ui_title_support) + " " + titles.joinToString(", ")
             }
 
             if (titles.isEmpty())
