@@ -174,7 +174,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val preferenceNotify = findPreference("GESTURE_NOTIFY")
             preferenceNotify.onPreferenceChangeListener = sBindNotifyListener
-            preferenceNotify.onPreferenceChangeListener.onPreferenceChange(preferenceNotify, false)
+            preferenceNotify.onPreferenceChangeListener.onPreferenceChange(preferenceNotify, null)
         }
         fun updateGesturesDetect(support:Array<String>, bShowAlert:Boolean)
         {
@@ -388,7 +388,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         private val sBindNotifyListener = Preference.OnPreferenceChangeListener { preference, value ->
 
-            var notify:String? = if (value is String) value else null
+            var notify:String? = value as String?
 
             try {
                 if (notify == null) {
