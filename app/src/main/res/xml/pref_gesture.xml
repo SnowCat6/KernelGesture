@@ -96,32 +96,33 @@
 
     <PreferenceCategory
         android:title="@string/ui_adv_settings"
+        android:key="GESTURE_GROUP_ADD"
         >
         <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="GESTURE_DEFAULT_ACTION"
             android:title="@string/ui_default_action"
             />
-
-        <SwitchPreference
-            android:defaultValue="true"
-            android:key="GESTURE_PROXIMITY"
-            android:title="@string/ui_gesture_use"
-            android:summaryOff="@string/ui_proximity_off"
-            android:summaryOn="@string/ui_proximity_on"
-            />
-        <SwitchPreference
-            android:defaultValue="true"
-            android:key="GESTURE_VIBRATION"
-            android:title="@string/ui_vibrate"
-            android:summaryOff="@string/ui_vibrate_off"
-            android:summaryOn="@string/ui_vibrate_on"
-            />
-        <RingtonePreference
-            android:title="@string/ui_notify"
-            android:key="GESTURE_NOTIFY"
-            android:ringtoneType="notification"
-            />
     </PreferenceCategory>
+
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="GESTURE_PROXIMITY"
+        android:title="@string/ui_gesture_use"
+        android:summaryOff="@string/ui_proximity_off"
+        android:summaryOn="@string/ui_proximity_on"
+        />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="GESTURE_VIBRATION"
+        android:title="@string/ui_vibrate"
+        android:summaryOff="@string/ui_vibrate_off"
+        android:summaryOn="@string/ui_vibrate_on"
+        />
+    <RingtonePreference
+        android:title="@string/ui_notify"
+        android:key="GESTURE_NOTIFY"
+        android:ringtoneType="notification"
+        />
 
 </PreferenceScreen>

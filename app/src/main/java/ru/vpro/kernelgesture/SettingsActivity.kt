@@ -337,7 +337,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             value as Boolean
 
             preference.getPreferenceManager().findPreference("GESTURE_GROUP").isEnabled = value
-            preference.getPreferenceManager().findPreference("GESTURE_DEFAULT_ACTION").isEnabled = value
+            preference.getPreferenceManager().findPreference("GESTURE_GROUP_ADD").isEnabled = value
 
             GestureDetect.setAllEnable(preference.context, value)
 
