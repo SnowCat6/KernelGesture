@@ -160,18 +160,20 @@ class SettingsActivity : AppCompatPreferenceActivity()
             gestureItems.forEach {
                 val preference = findPreference(it.key) ?: return@forEach
 
-                preference.onPreferenceChangeListener = sBindPreferenceSummaryToValueListener
-                preference.onPreferenceClickListener = sBindPreferenceClickListener
+                preference.icon = it.icon
+
+                preference.onPreferenceChangeListener = sBindGestureChangeListener
+                preference.onPreferenceClickListener = sBindGestureActionListener
 
                 preference.onPreferenceChangeListener.onPreferenceChange(preference, it.enable)
             }
 
             val preferenceEnable = findPreference("GESTURE_ENABLE")
-            preferenceEnable.onPreferenceChangeListener = sBindPreferenceEnableListener
+            preferenceEnable.onPreferenceChangeListener = sBindAllEnableListener
             preferenceEnable.onPreferenceChangeListener.onPreferenceChange(preferenceEnable, GestureDetect.getAllEnable(activity))
 
             val preferenceNotify = findPreference("GESTURE_NOTIFY")
-            preferenceNotify.onPreferenceChangeListener = sBindPreferenceNotifyListenerListener
+            preferenceNotify.onPreferenceChangeListener = sBindNotifyListener
             preferenceNotify.onPreferenceChangeListener.onPreferenceChange(preferenceNotify, false)
         }
         fun updateGesturesDetect(support:Array<String>, bShowAlert:Boolean)
@@ -320,7 +322,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
          * A preference value change listener that updates the preference's summary
          * to reflect its new value.
          */
-        private val sBindPreferenceSummaryToValueListener = Preference.OnPreferenceChangeListener { preference, value ->
+        private val sBindGestureChangeListener = Preference.OnPreferenceChangeListener { preference, value ->
 
             value as Boolean
 
@@ -328,13 +330,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
             if (gestureItem != null) {
                 gestureItem.enable = value
                 preference.summary = gestureItem.actionName
-                preference.icon = gestureItem.icon
             }
 
             true
         }
 
-        private val sBindPreferenceEnableListener = Preference.OnPreferenceChangeListener { preference, value ->
+        private val sBindAllEnableListener = Preference.OnPreferenceChangeListener { preference, value ->
 
             value as Boolean
 
@@ -385,7 +386,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             true
         }
 
-        private val sBindPreferenceNotifyListenerListener = Preference.OnPreferenceChangeListener { preference, value ->
+        private val sBindNotifyListener = Preference.OnPreferenceChangeListener { preference, value ->
 
             var notify:String? = if (value is String) value else null
 
@@ -417,7 +418,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             return context.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
         }
 
-        private val sBindPreferenceClickListener = Preference.OnPreferenceClickListener { preference ->
+        private val sBindGestureActionListener = Preference.OnPreferenceClickListener { preference ->
 
             val pm =  preference.context.getPackageManager()
 
@@ -455,6 +456,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val gestureItem = getItemInstance(preference.key)
             gestureItem?.action = action
             preference.isChecked = action.isNotEmpty()
+            preference.icon = gestureItem?.icon
             preference.onPreferenceChangeListener.onPreferenceChange(preference, preference.isChecked)
         }
 
