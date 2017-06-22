@@ -451,10 +451,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
             preference.onPreferenceChangeListener.onPreferenceChange(preference, preference.isChecked)
         }
 
-
         class AppListItem(val action:String, val name:String, val icon:Drawable)
         {
-            constructor(context:Context, action:String) : this(action, UI.name(context, action), UI.icon(context, action))
+            constructor(context:Context, action:String) : this(UI.action(context, action), UI.name(context, action), UI.icon(context, action))
             constructor(context:Context, applicationInfo: ApplicationInfo) : this(applicationInfo.packageName, UI.name(context, applicationInfo), UI.icon(context, applicationInfo))
         }
 
