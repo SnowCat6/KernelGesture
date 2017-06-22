@@ -55,6 +55,7 @@ class GestureDetect private constructor()
 
 
     fun enable(boolean: Boolean){
+        if (SU.processSU == null) return
         for(it in devices) it.second.setEnable(boolean)
     }
 
@@ -509,11 +510,14 @@ class GestureDetect private constructor()
         fun screenUnlock(context: Context){
             // todo: add screen unlock
         }
-        fun canAppWork():Boolean
+        fun checkRootAccess():Boolean
         {
             return SU.open() != null
         }
-
+        fun hasRoot():Boolean
+        {
+            return SU.processSU != null
+        }
         /**
          * SuperSU wrapper
          */

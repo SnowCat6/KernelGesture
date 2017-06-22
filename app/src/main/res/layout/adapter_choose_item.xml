@@ -9,8 +9,8 @@
         android:id="@+id/icon"
         android:layout_width="@android:dimen/app_icon_size"
         android:layout_height="@android:dimen/app_icon_size"
-        app:srcCompat="@mipmap/ic_launcher_round"
-        android:contentDescription="@string/ui_icon" />
+        android:contentDescription="@string/ui_icon"
+        app:srcCompat="@drawable/icon_screen_on" />
 
     <Space
         android:layout_width="20dp"

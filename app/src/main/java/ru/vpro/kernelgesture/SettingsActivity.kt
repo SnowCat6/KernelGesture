@@ -26,7 +26,6 @@ import kotlin.concurrent.thread
 
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
-import android.os.Looper.getMainLooper
 import ru.vpro.kernelgesture.SettingsActivity.GesturePreferenceFragment.Companion.getItemInstance
 
 
@@ -69,6 +68,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
      */
     private fun setupActionBar() {
 //        supportActionBar.setDisplayHomeAsUpEnabled(true)
+//        supportActionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_directions)
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean
@@ -174,49 +174,54 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val preferenceNotify = findPreference("GESTURE_NOTIFY")
             preferenceNotify.onPreferenceChangeListener = sBindPreferenceNotifyListenerListener
             preferenceNotify.onPreferenceChangeListener.onPreferenceChange(preferenceNotify, false)
-
-            thread{
-                val mainHandler = Handler(getMainLooper())
-                val bRoot = GestureDetect.canAppWork()
-                mainHandler.post {
-                    updateRootAccess(bRoot)
-                }
-
-                if (bRoot) {
-                    val support = GestureDetect.getInstance().getSupport()
-                    mainHandler.post {
-                        updateGesturesDetect(support)
-                    }
-                }
-            }
         }
-        private fun updateGesturesDetect(support:Array<String>)
+        fun updateGesturesDetect(support:Array<String>, bShowAlert:Boolean)
         {
-            if (support.contains("GESTURE")) return
+            var titles = emptyArray<String>()
+            var alertMessage:String? = null
+
+            if (support.contains("GESTURE")){
+                titles += getString(R.string.ui_title_gestures)
+            }
+            if (support.contains("KEYS")){
+                titles += getString(R.string.ui_title_keys)
+            }
+            if (!titles.isEmpty()){
+                val actionBar = (activity as AppCompatPreferenceActivity).supportActionBar
+                actionBar.subtitle = getString(R.string.ui_title_support) + " " + titles.joinToString(" ,")
+            }
+
+            if (titles.isEmpty())
+                alertMessage = getString(R.string.ui_alert_gs_message_wo_keys)
+            else
+                if (!support.contains("GESTURE"))
+                    alertMessage = getString(R.string.ui_alert_gs_message_keys)
+
+            if (alertMessage == null || !bShowAlert) return
 
             val dlgAlert = AlertDialog.Builder(activity)
             dlgAlert.setTitle(getString(R.string.ui_alert_gs_title))
-
-            if (support.contains("KEYS")) {
-                dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_keys))
-            } else {
-                dlgAlert.setMessage(getString(R.string.ui_alert_gs_message_wo_keys))
-            }
-
+            dlgAlert.setMessage(alertMessage)
             dlgAlert.create().show()
         }
 
-        private fun updateRootAccess(bRootExists:Boolean)
+        fun updateRootAccess(bRootExists:Boolean)
         {
+            val actionBar = (activity as AppCompatPreferenceActivity).supportActionBar
             if (bRootExists) {
                 val p = findPreference("pref_ROOT")
                 if (p != null) {
                     preferenceScreen?.removePreference(p)
                 }
+                actionBar.subtitle = ""
             }else{
-                val p = findPreference("GESTURE_ENABLE") as SwitchPreference
-                p.isChecked = false
+                actionBar.subtitle = getString(R.string.ui_title_no_root)
             }
+/*
+            val p = findPreference("GESTURE_ENABLE") as SwitchPreference
+            p.isChecked = bRootExists
+            p.onPreferenceChangeListener.onPreferenceChange(p, bRootExists)
+*/
         }
 
         override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -314,6 +319,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
     companion object {
         var thisFragment:GesturePreferenceFragment? = null
+        var thisSupport:Array<String>? = null
         /**
          * A preference value change listener that updates the preference's summary
          * to reflect its new value.
@@ -339,22 +345,43 @@ class SettingsActivity : AppCompatPreferenceActivity()
             preference.getPreferenceManager().findPreference("GESTURE_GROUP").isEnabled = value
             preference.getPreferenceManager().findPreference("GESTURE_GROUP_ADD").isEnabled = value
 
-            GestureDetect.setAllEnable(preference.context, value)
+            val mainHandler = Handler(preference.context.getMainLooper())
 
-            if (value == true)
+            val bHasRoot = GestureDetect.hasRoot()
+            if (value == true && !bHasRoot)
             {
-                val mainHandler = Handler(preference.context.getMainLooper())
+                thisFragment?.updateRootAccess(bHasRoot)
                 thread{
-                    val bRoot = GestureDetect.canAppWork()
+                    val bRoot = GestureDetect.checkRootAccess()
+
+                    GestureDetect.setAllEnable(preference.context, bRoot)
+
                     mainHandler.post {
-                        if (bRoot){
-                            val p = preference.preferenceManager.findPreference("pref_ROOT")
-                            if (p != null) {
-                                thisFragment?.preferenceScreen?.removePreference(p)
+                        thisFragment?.updateRootAccess(bRoot)
+                        (preference as TwoStatePreference).isChecked = bRoot
+                    }
+
+                    if (bRoot) {
+                        thisSupport = GestureDetect.getInstance().getSupport()
+                        mainHandler.post {
+                            thisFragment?.updateGesturesDetect(thisSupport!!, !bHasRoot)
+                        }
+                    }
+                }
+            }else{
+                GestureDetect.setAllEnable(preference.context, value)
+
+                thisFragment?.updateRootAccess(bHasRoot)
+                if (bHasRoot){
+                    if (thisSupport != null) {
+                        thisFragment?.updateGesturesDetect(thisSupport!!, false)
+                    }else{
+                        thread{
+                            thisSupport = GestureDetect.getInstance().getSupport()
+                            mainHandler.post {
+                                thisFragment?.updateGesturesDetect(thisSupport!!, false)
                             }
                         }
-                        val p = preference as SwitchPreference
-                        p.isChecked = bRoot
                     }
                 }
             }

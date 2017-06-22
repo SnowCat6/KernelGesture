@@ -40,4 +40,8 @@
     <string name="ui_alert_gs_title">Жесты не найдены</string>
     <string name="ui_alert_gs_message_keys">Возможно ваше устройство не поддерживает жесты, только КЛАВИШИ ГРОМКОСТИ</string>
     <string name="ui_alert_gs_message_wo_keys">Возможно ваше устройство не поддерживает жесты и КЛАВИШИ ГРОМКОСТИ</string>
+    <string name="ui_title_support">"Поддержка: "</string>
+    <string name="ui_title_gestures">жестоы</string>
+    <string name="ui_title_keys">клавиши</string>
+    <string name="ui_title_no_root">Нет ROOT доступа</string>
 </resources>
