@@ -339,10 +339,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             value as Boolean
 
-            preference.getPreferenceManager().findPreference("GESTURE_GROUP").isEnabled = value
-            preference.getPreferenceManager().findPreference("GESTURE_GROUP_ADD").isEnabled = value
+            preference.preferenceManager.findPreference("GESTURE_GROUP").isEnabled = value
+            preference.preferenceManager.findPreference("GESTURE_GROUP_ADD").isEnabled = value
 
-            val mainHandler = Handler(preference.context.getMainLooper())
+            val mainHandler = Handler(preference.context.mainLooper)
 
             val bHasRoot = GestureDetect.hasRoot()
             if (value == true && !bHasRoot)
@@ -420,21 +420,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         private val sBindGestureActionListener = Preference.OnPreferenceClickListener { preference ->
 
-            val pm =  preference.context.getPackageManager()
-
-            val mainIntent = Intent(Intent.ACTION_MAIN, null)
-            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-            val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
-
-            var items:List<Any> = emptyList()
-            items += "none"
-            items += "screen.on"
-            pkgAppsList.forEach { items += it.activityInfo.applicationInfo }
-
             val builder = AlertDialog.Builder(preference.context)
             builder.setTitle(preference.context.getString(R.string.iu_choose_action))
 
-            val adapter = BoxAdapter(preference, items)
+            val adapter = BoxAdapter(preference)
             builder.setAdapter(adapter, onClickListener)
 
             val alert = builder.create()
@@ -447,6 +436,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
             val item = adapter.getItem(i)
+            if (item == "wait") return@OnClickListener
+
             val preference = adapter.getPreference() as TwoStatePreference
 
             val action =  UI.action(preference.context, item)
@@ -460,14 +451,44 @@ class SettingsActivity : AppCompatPreferenceActivity()
             preference.onPreferenceChangeListener.onPreferenceChange(preference, preference.isChecked)
         }
 
-        class BoxAdapter internal constructor(
-                internal val preference: Preference,
-                internal val objects: List<Any>) : BaseAdapter()
+
+        class AppListItem(val action:String, val name:String, val icon:Drawable)
         {
-            val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            constructor(context:Context, action:String) : this(action, UI.name(context, action), UI.icon(context, action))
+            constructor(context:Context, applicationInfo: ApplicationInfo) : this(applicationInfo.packageName, UI.name(context, applicationInfo), UI.icon(context, applicationInfo))
+        }
+
+        class BoxAdapter internal constructor(
+                internal val preference: Preference) : BaseAdapter()
+        {
+            internal var objects = listOf<Any>("wait")
+            internal val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+
+            init{
+
+                thread{
+                    val pm =  preference.context.packageManager
+
+                    val mainIntent = Intent(Intent.ACTION_MAIN, null)
+                    mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+                    val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
+
+                    var items:List<Any> = emptyList()
+                    items += AppListItem(preference.context, "none")
+                    items += AppListItem(preference.context, "screen.on")
+                    pkgAppsList.forEach {
+                        items += AppListItem(preference.context, it.activityInfo.applicationInfo)
+                    }
+
+                    Handler(preference.context.mainLooper).post {
+                        objects = items
+                        notifyDataSetChanged()
+                    }
+                }
+            }
 
             fun getPreference():Preference = preference
-            //  КОличество объектов
+            //  Количество объектов
             override fun getCount(): Int = objects.size
             //  Объект
             override fun getItem(position: Int): Any = objects[position]
@@ -498,6 +519,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 when(item)
                 {
                     "none" -> return ""
+                    is AppListItem -> return item.action
                     is ApplicationInfo -> return item.packageName
                     is String -> return item
                 }
@@ -506,11 +528,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
             fun name(context:Context, item:Any?):String
             {
                 when(item){
+                    is AppListItem -> return item.name
                     is ApplicationInfo -> return context.packageManager
                             .getApplicationLabel(item).toString()
 
                     "" ->  return context.getString(R.string.ui_default_action)
                     "none"  -> return context.getString(R.string.ui_no_action)
+                    "wait" -> return context.getString(R.string.ui_wait_app)
                     "screen.on" -> return context.getString(R.string.ui_screen_on)
                 }
                 return ""
@@ -518,6 +542,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             fun icon(context:Context, item:Any?): Drawable
             {
                 when(item){
+                    is AppListItem -> return item.icon
                     is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
                     "screen.on" -> return context.getDrawable(R.drawable.icon_screen_on)
                 }
