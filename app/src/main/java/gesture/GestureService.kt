@@ -18,7 +18,9 @@ import android.widget.Toast
 import android.hardware.Sensor.TYPE_PROXIMITY
 import android.hardware.SensorEvent
 import android.hardware.SensorManager
+import android.os.Process.THREAD_PRIORITY_MORE_FAVORABLE
 import ru.vpro.kernelgesture.BuildConfig
+import java.lang.Thread.MAX_PRIORITY
 
 
 class GestureService() : Service(), SensorEventListener
@@ -78,7 +80,7 @@ class GestureService() : Service(), SensorEventListener
             if (bProximityEnable) {
                 mSensorManager?.unregisterListener(this)
             }
-        }
+        }.priority = MAX_PRIORITY
     }
     /************************************/
     /*
