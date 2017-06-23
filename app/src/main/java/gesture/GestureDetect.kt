@@ -265,7 +265,7 @@ class GestureDetect private constructor()
     private inner open class InputMTK: InputHandler
     {
         override fun onDetect(name:String):Boolean{
-            return name == "mtk-tpd"
+            return name.toLowerCase() == "mtk-tpd"
         }
         override fun onEvent(line:String):String?
         {
@@ -317,7 +317,7 @@ class GestureDetect private constructor()
 
         override fun onDetect(name:String): Boolean
         {
-            if (name != "mtk-kpd") return false
+            if (name.toLowerCase() != "mtk-kpd") return false
             addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
 
             if (HCT_GESTURE_IO == null) {
@@ -395,7 +395,7 @@ class GestureDetect private constructor()
     private inner open class InputQCOMM_KPD : InputHandler
     {
         override fun onDetect(name:String):Boolean {
-            if (name != "qpnp_pon" && name != "gpio-keys")
+            if (name.toLowerCase() != "qpnp_pon" && name.toLowerCase() != "gpio-keys")
                 return false
 
             addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
@@ -407,14 +407,13 @@ class GestureDetect private constructor()
             if (arg[0] != "EV_KEY") return null
             return runGesture(arg[1])
         }
-
     }
 
     //  Unknown FT5x06_ts gesture solution
     private inner open class InputFT5x06_ts : InputHandler
     {
         override fun onDetect(name: String): Boolean {
-            if (name != "ft5x06_ts") return false
+            if (name.toLowerCase() != "ft5x06_ts") return false
             return true
         }
 
