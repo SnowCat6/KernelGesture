@@ -61,7 +61,6 @@ class GestureDetect private constructor()
 
     private fun detectDevices(): Boolean
     {
-        if (devices.isNotEmpty()) return true
         devices = emptyArray()
 
         try {
@@ -189,6 +188,7 @@ class GestureDetect private constructor()
 
     fun getSupport():Array<String>
     {
+        detectDevices()
 /*
         if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
         {

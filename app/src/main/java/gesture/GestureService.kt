@@ -45,7 +45,10 @@ class GestureService() : Service(), SensorEventListener
         // If thread ruined return back
         if (bRunning) return
         //  Disable run thread if gestures not use
-        if (!GestureDetect.getAllEnable(this)) return
+        if (!GestureDetect.getAllEnable(this)){
+            gesture.close()
+            return
+        }
 
         bRunning = true
         gesture.lock = false

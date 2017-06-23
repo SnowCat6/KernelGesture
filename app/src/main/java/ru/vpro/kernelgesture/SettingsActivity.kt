@@ -338,6 +338,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
         private val sBindAllEnableListener = Preference.OnPreferenceChangeListener { preference, value ->
 
             value as Boolean
+            preference as TwoStatePreference
 
             preference.preferenceManager.findPreference("GESTURE_GROUP").isEnabled = value
             preference.preferenceManager.findPreference("GESTURE_GROUP_ADD").isEnabled = value
@@ -355,7 +356,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     mainHandler.post {
                         thisFragment?.updateRootAccess(bRoot)
-                        (preference as TwoStatePreference).isChecked = bRoot
+                        preference.isChecked = bRoot
+                        preference.onPreferenceChangeListener.onPreferenceChange(preference, bRoot)
                     }
 
                     if (bRoot) {
