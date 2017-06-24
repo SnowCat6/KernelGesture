@@ -567,7 +567,11 @@ class GestureDetect private constructor()
     {
         private val gs = GestureDetect()
 
-        fun getInstance():GestureDetect = gs
+        fun getInstance(context:Context):GestureDetect {
+            if (gs.inputDevices.isEmpty() && gs.sensorDevices.isEmpty())
+                gs.detectDevices(context)
+            return gs
+        }
 
         fun getAllEnable(context: Context): Boolean
         {

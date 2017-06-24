@@ -27,7 +27,6 @@ class GestureService() : Service(), SensorEventListener
 {
     companion object
     {
-        private val gesture = GestureDetect.getInstance()
         private var bRunning = false
 
         private var ringtone:Ringtone? = null
@@ -41,6 +40,7 @@ class GestureService() : Service(), SensorEventListener
      */
     fun startGesture()
     {
+        val gesture = GestureDetect.getInstance(this)
         gesture.lock = false
         // If thread ruined return back
         if (bRunning) return
@@ -95,6 +95,7 @@ class GestureService() : Service(), SensorEventListener
     {
         // If registered use proximity - change value detector
         if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
+        val gesture = GestureDetect.getInstance(this)
         gesture.isNear = event.values[0].toInt() == 0
     }
     /************************************/
@@ -143,6 +144,7 @@ class GestureService() : Service(), SensorEventListener
                     if (BuildConfig.DEBUG) {
                         Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
                     }
+                    val gesture = GestureDetect.getInstance(context)
                     gesture.lock = true
                 }
             }
@@ -151,6 +153,8 @@ class GestureService() : Service(), SensorEventListener
 
     override fun stopService(name: Intent?): Boolean
     {
+        val gesture = GestureDetect.getInstance(this)
+
         gesture.lock = true
         gesture.close()
         unregisterReceiver(onScreenIntent)

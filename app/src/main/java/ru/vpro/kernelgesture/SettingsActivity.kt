@@ -193,7 +193,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
             if (!titles.isEmpty()){
                 val actionBar = (activity as AppCompatPreferenceActivity).supportActionBar
-                actionBar.subtitle = getString(R.string.ui_title_support) + " " + titles.joinToString(", ")
+                actionBar.subtitle = titles.joinToString(", ")
             }
 
             if (titles.isEmpty())
@@ -365,7 +365,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
 
                     if (bRoot) {
-                        thisSupport = GestureDetect.getInstance().getSupport(preference.context)
+                        thisSupport = GestureDetect.getInstance(preference.context).getSupport(preference.context)
                         mainHandler.post {
                             thisFragment?.updateGesturesDetect(thisSupport!!, !bHasRoot)
                         }
@@ -380,7 +380,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         thisFragment?.updateGesturesDetect(thisSupport!!, false)
                     }else{
                         thread{
-                            thisSupport = GestureDetect.getInstance().getSupport(preference.context)
+                            thisSupport = GestureDetect.getInstance(preference.context).getSupport(preference.context)
                             mainHandler.post {
                                 thisFragment?.updateGesturesDetect(thisSupport!!, false)
                             }
