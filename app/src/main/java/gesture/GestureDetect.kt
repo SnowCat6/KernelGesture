@@ -49,7 +49,7 @@ class GestureDetect private constructor()
 
     private var inputDevices = emptyArray<Pair<String, InputHandler>>()
     private val inputHandlers = arrayOf(
-            InputMTK(), InputKPD(),
+            InputMTK_TPD(), InputMTK_KPD(),
             InputQCOMM_KPD(), InputFT5x06_ts(),
             InputSunXi_KPD()
     )
@@ -297,7 +297,7 @@ class GestureDetect private constructor()
     /*
     MT touchscreen with gestures
      */
-    private inner open class InputMTK: InputHandler
+    private inner open class InputMTK_TPD : InputHandler
     {
         override fun onDetect(name:String):Boolean{
             return name.toLowerCase() == "mtk-tpd"
@@ -311,16 +311,16 @@ class GestureDetect private constructor()
     }
 
     private inner class GS(
-            public val detectFile: String,
-            public val setPowerON: String,
-            public val setPowerOFF: String,
-            public val getGesture: String
+            val detectFile: String,
+            val setPowerON: String,
+            val setPowerOFF: String,
+            val getGesture: String
     );
 
     /*
     MTK and QCOMM keyboard
      */
-    private inner open class InputKPD : InputHandler
+    private inner open class InputMTK_KPD : InputHandler
     {
         var HCT_GESTURE_IO:GS? = null
         //  HCT version gesture for Android 5x and Android 6x
