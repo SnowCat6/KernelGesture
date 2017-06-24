@@ -212,7 +212,8 @@ class GestureDetect private constructor()
     {
         if (!getEnable(context, value)) return false
         sensorEventGesture = value
-        SU.exec("echo SENSOR_EVENT>&2")
+        //  Many execute for flush process buffer
+        for(ix in 0..4){ SU.exec("echo SENSOR_EVENT>&2") }
         return true
     }
 
