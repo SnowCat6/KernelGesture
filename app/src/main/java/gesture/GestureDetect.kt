@@ -527,10 +527,9 @@ class GestureDetect private constructor()
         }
 
         override fun onStart() {
-            if (!getEnable(context!!, "KEY_PROXIMITY")){
-                onStop()
+            if (!getEnable(context!!, "KEY_PROXIMITY"))
                 return
-            }
+
             bRegisterEvent = true
             mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
         }
