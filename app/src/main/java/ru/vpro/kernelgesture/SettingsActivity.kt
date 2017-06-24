@@ -189,7 +189,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 titles += getString(R.string.ui_title_keys)
             }
             if (support.contains("PROXIMITY")){
-                titles += "proximity"
+                titles += getString(R.string.ui_title_gesture)
             }
             if (!titles.isEmpty()){
                 val actionBar = (activity as AppCompatPreferenceActivity).supportActionBar
@@ -365,7 +365,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
 
                     if (bRoot) {
-                        thisSupport = GestureDetect.getInstance().getSupport()
+                        thisSupport = GestureDetect.getInstance().getSupport(preference.context)
                         mainHandler.post {
                             thisFragment?.updateGesturesDetect(thisSupport!!, !bHasRoot)
                         }
@@ -380,7 +380,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         thisFragment?.updateGesturesDetect(thisSupport!!, false)
                     }else{
                         thread{
-                            thisSupport = GestureDetect.getInstance().getSupport()
+                            thisSupport = GestureDetect.getInstance().getSupport(preference.context)
                             mainHandler.post {
                                 thisFragment?.updateGesturesDetect(thisSupport!!, false)
                             }

@@ -46,6 +46,7 @@
     <string name="ui_title_no_root">No ROOT access</string>
     <string name="ui_wait_app">Reading app list</string>
     <string name="ui_proximity_gesture">Proximity gesture</string>
+    <string name="ui_title_gesture">proximity</string>
 
     <!-- Strings related to Settings -->
 

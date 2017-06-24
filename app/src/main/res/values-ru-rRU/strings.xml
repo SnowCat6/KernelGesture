@@ -45,4 +45,6 @@
     <string name="ui_title_keys">клавиши</string>
     <string name="ui_title_no_root">Нет ROOT доступа</string>
     <string name="ui_wait_app">Чтение списка программ</string>
+    <string name="ui_proximity_gesture">Жест датчика приближения</string>
+    <string name="ui_title_gesture">приближение</string>
 </resources>

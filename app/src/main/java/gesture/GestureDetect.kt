@@ -46,30 +46,37 @@ class GestureDetect private constructor()
         }
 
     private var supported = emptyArray<String>()
-    private var devices = emptyArray<Pair<String, InputHandler>>()
+
+    private var inputDevices = emptyArray<Pair<String, InputHandler>>()
     private val inputHandlers = arrayOf(
             InputMTK(), InputKPD(),
             InputQCOMM_KPD(), InputFT5x06_ts(),
             InputSunXi_KPD()
     )
-//    private var sensorHandlers = arrayOf()
 
-    init {
-        detectDevices()
-    }
+    private var sensorDevices = emptyArray<SensorHandler>()
+    private val sensorHandlers = arrayOf(
+            ProximitySensor()
+    )
+
     fun close(){
+        closeEvents()
         SU.close()
     }
 
-
-    fun enable(boolean: Boolean){
+    fun enable(powerOn: Boolean)
+    {
         if (SU.processSU == null) return
-        for(it in devices) it.second.setEnable(boolean)
+
+        inputDevices.forEach{ it.second.setEnable(powerOn) }
+        sensorDevices.forEach { if (powerOn) it.onStart() else it.onStop() }
     }
 
-    private fun detectDevices(): Boolean
+    private fun detectDevices(context:Context)
     {
-        devices = emptyArray()
+        closeEvents()
+        inputDevices = emptyArray()
+        sensorDevices = emptyArray()
 
         try {
             val lines = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
@@ -80,7 +87,9 @@ class GestureDetect private constructor()
             e.printStackTrace()
         }
 
-        return devices.isNotEmpty()
+        sensorHandlers.forEach {
+            if (it.onDetect(context)) sensorDevices += it
+        }
     }
 
     private fun findDevicePath(handler: InputHandler, lines: List<String>): String? {
@@ -93,7 +102,7 @@ class GestureDetect private constructor()
                     val a = line.substring(ix + 9).split(" ")
                     for (ev in a) {
                         if (ev.length < 5 || !ev.contains("event")) continue
-                        devices += Pair("/dev/input/$ev", handler)
+                        inputDevices += Pair("/dev/input/$ev", handler)
                         bThisEntry = false
                         break
                     }
@@ -113,6 +122,7 @@ class GestureDetect private constructor()
     fun waitGesture(context:Context): String?
     {
         if (SU.open() == null) return null
+        detectDevices(context)
         return getEvent(context)
     }
 
@@ -131,12 +141,10 @@ class GestureDetect private constructor()
             e.printStackTrace()
         }
 
-        val px = ProximitySensor()
-        px.onDetect(context)
-        px.onStart()
+        sensorDevices.forEach { it.onStart() }
 
         //  For each device
-        devices.forEach { (inputName, device) ->
+        inputDevices.forEach { (inputName, device) ->
             //  Power on gesture if available, many drivers not set this value if screen off
             device.setEnable(true)
             //  Run input event detector
@@ -166,7 +174,7 @@ class GestureDetect private constructor()
             if (isNear) continue
 
             //  Find device for event accept
-            for ((first, second) in devices)
+            for ((first, second) in inputDevices)
             {
                 if (first != device) continue
 
@@ -179,14 +187,12 @@ class GestureDetect private constructor()
                 if (!getEnable(context, gesture)) break
                 //  Close cmd events
                 closeEvents()
-                px.onStop()
                 //  Return result
                 return gesture
             }
         }
 
         closeEvents()
-        px.onStop()
         //  Error reading, no continue or sensorEvent handled
         return sensorEventGesture
     }
@@ -196,6 +202,7 @@ class GestureDetect private constructor()
         bGetEvents = false
 
         SU.exec("kill -s SIGINT %%")
+        sensorDevices.forEach { it.onStop() }
     }
     private fun sensorEvent(context:Context, value:String):Boolean
     {
@@ -213,9 +220,9 @@ class GestureDetect private constructor()
     private fun addSupport(value:Array<String>)
             = value.forEach { addSupport(it) }
 
-    fun getSupport():Array<String>
+    fun getSupport(context:Context):Array<String>
     {
-        detectDevices()
+        detectDevices(context)
 /*
         if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
         {
@@ -319,15 +326,15 @@ class GestureDetect private constructor()
         //  HCT version gesture for Android 5x and Android 6x
         val HCT_GESTURE_PATH = arrayOf(
                 //  Android 5.x HCT gestures
-                GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
-                        "on > /sys/devices/platform/mtk-tpd/tpgesture_status",
-                        "off > /sys/devices/platform/mtk-tpd/tpgesture_status",
-                        "/sys/devices/platform/mtk-tpd/tpgesture"),
+                GS("/sys/inputDevices/platform/mtk-tpd/tpgesture_status",
+                        "on > /sys/inputDevices/platform/mtk-tpd/tpgesture_status",
+                        "off > /sys/inputDevices/platform/mtk-tpd/tpgesture_status",
+                        "/sys/inputDevices/platform/mtk-tpd/tpgesture"),
                 // Android 6.x HCT gestures
-                GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
-                        "on > /sys/devices/bus/bus\\:touch@/tpgesture_status",
-                        "off > /sys/devices/bus/bus\\:touch@/tpgesture_status",
-                        "/sys/devices/bus/bus\\:touch@/tpgesture"),
+                GS("/sys/inputDevices/bus/bus\\:touch@/tpgesture_status",
+                        "on > /sys/inputDevices/bus/bus\\:touch@/tpgesture_status",
+                        "off > /sys/inputDevices/bus/bus\\:touch@/tpgesture_status",
+                        "/sys/inputDevices/bus/bus\\:touch@/tpgesture"),
                 //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
                 GS("/sys/class/syna/gesenable",
                         "1 > /sys/class/syna/gesenable",
@@ -483,16 +490,17 @@ class GestureDetect private constructor()
 
     }
 
-    interface sensorHandler{
+    interface SensorHandler {
         fun onDetect(context:Context):Boolean
         fun onStart()
         fun onStop()
     }
-    private inner open class ProximitySensor : sensorHandler, SensorEventListener
+    private inner open class ProximitySensor : SensorHandler, SensorEventListener
     {
         private var mSensorManager: SensorManager? = null
         private var mProximity: Sensor? = null
         private var context:Context? = null
+        private var bRegisterEvent = false
 
         var bNearSensor = false
 
@@ -514,10 +522,16 @@ class GestureDetect private constructor()
         }
 
         override fun onStart() {
+            if (!getEnable(context!!, "KEY_PROXIMITY")){
+                onStop()
+                return
+            }
+            bRegisterEvent = true
             mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
         }
 
         override fun onStop() {
+            if (!bRegisterEvent) return
             mSensorManager?.unregisterListener(this, mProximity)
         }
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
