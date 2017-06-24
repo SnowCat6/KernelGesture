@@ -38,8 +38,8 @@
     <string name="ui_root_title">ROOT access not exists</string>
     <string name="ui_root_help">To work this application need ROOT access</string>
     <string name="ui_alert_gs_title">Gesture not detected</string>
-    <string name="ui_alert_gs_message_keys">Possibly your device not support gestures, only VOLUME KEYS</string>
-    <string name="ui_alert_gs_message_wo_keys">Possibly your device not support gestures and VOLUME KEYS</string>
+    <string name="ui_alert_gs_message_keys">Possibly your device not support gestures, only:</string>
+    <string name="ui_alert_gs_message_wo_keys">Possibly your device not support gestures</string>
     <string name="ui_title_support">Support:</string>
     <string name="ui_title_gestures">gestures</string>
     <string name="ui_title_keys">keys</string>

@@ -196,11 +196,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 actionBar.subtitle = getString(R.string.ui_title_support) + " " + titles.joinToString(", ")
             }
 
-            if (!support.contains("KEYS") && !support.contains("GESTURE"))
+            if (titles.isEmpty())
                 alertMessage = getString(R.string.ui_alert_gs_message_wo_keys)
             else
                 if (!support.contains("GESTURE"))
-                    alertMessage = getString(R.string.ui_alert_gs_message_keys)
+                    alertMessage = getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
 
             if (alertMessage == null || !bShowAlert) return
 
