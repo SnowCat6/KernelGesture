@@ -67,9 +67,7 @@ class GestureDetect private constructor()
     fun enable(powerOn: Boolean)
     {
         if (SU.processSU == null) return
-
         inputDevices.forEach{ it.second.setEnable(powerOn) }
-        sensorDevices.forEach { if (powerOn) it.onStart() else it.onStop() }
     }
 
     private fun detectDevices(context:Context)
@@ -122,24 +120,20 @@ class GestureDetect private constructor()
     fun waitGesture(context:Context): String?
     {
         if (SU.open() == null) return null
-        detectDevices(context)
         return getEvent(context)
     }
 
     private var bGetEvents = false
     private var sensorEventGesture:String? = null
+    private var queryIx = 0
     private fun getEvent(context:Context): String?
     {
-        bGetEvents = true
         var device = ""
-        sensorEventGesture = null
+        var bQueryFound = false
 
-        //  Flush old output
-        try {
-            while (SU.errorSU?.ready() == true) SU.readErrorLine()
-        }catch (e:Exception){
-            e.printStackTrace()
-        }
+        ++queryIx
+        bGetEvents = true
+        sensorEventGesture = null
 
         sensorDevices.forEach { it.onStart() }
 
@@ -151,6 +145,7 @@ class GestureDetect private constructor()
             SU.exec("while v=$(getevent -c 4 -l $inputName)  ; do echo $inputName\\\\n\"\$v\">&2 ; done &")
         }
 
+        SU.exec("echo query$queryIx>&2")
         while(!lock)
         {
             //  Read line from input
@@ -159,7 +154,16 @@ class GestureDetect private constructor()
             //  Stop if gesture need stop run
             if (lock) break
 
-            if (line == "SENSOR_EVENT") break
+            //  Check query number for prevent old events output
+            if (!bQueryFound){
+                bQueryFound = line == "query$queryIx"
+                continue
+            }
+
+            if (line == "SENSOR_EVENT"){
+                if (sensorEventGesture == null) continue
+                break
+            }
 
             //  Detect current input device
             if (line.contains("/dev/input/")) {
