@@ -81,7 +81,7 @@ class GestureDetect private constructor()
         try {
             val lines = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
             inputHandlers.forEach {
-                findDevicePath(it, lines) ?: return@forEach
+                findDevicePath(it, lines)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -326,15 +326,15 @@ class GestureDetect private constructor()
         //  HCT version gesture for Android 5x and Android 6x
         val HCT_GESTURE_PATH = arrayOf(
                 //  Android 5.x HCT gestures
-                GS("/sys/inputDevices/platform/mtk-tpd/tpgesture_status",
-                        "on > /sys/inputDevices/platform/mtk-tpd/tpgesture_status",
-                        "off > /sys/inputDevices/platform/mtk-tpd/tpgesture_status",
-                        "/sys/inputDevices/platform/mtk-tpd/tpgesture"),
+                GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
+                        "on > /sys/devices/platform/mtk-tpd/tpgesture_status",
+                        "off > /sys/devices/platform/mtk-tpd/tpgesture_status",
+                        "/sys/devices/platform/mtk-tpd/tpgesture"),
                 // Android 6.x HCT gestures
-                GS("/sys/inputDevices/bus/bus\\:touch@/tpgesture_status",
-                        "on > /sys/inputDevices/bus/bus\\:touch@/tpgesture_status",
-                        "off > /sys/inputDevices/bus/bus\\:touch@/tpgesture_status",
-                        "/sys/inputDevices/bus/bus\\:touch@/tpgesture"),
+                GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
+                        "on > /sys/devices/bus/bus\\:touch@/tpgesture_status",
+                        "off > /sys/devices/bus/bus\\:touch@/tpgesture_status",
+                        "/sys/devices/bus/bus\\:touch@/tpgesture"),
                 //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
                 GS("/sys/class/syna/gesenable",
                         "1 > /sys/class/syna/gesenable",
@@ -517,7 +517,7 @@ class GestureDetect private constructor()
             if (mProximity == null) return false
 
             this.context = context
-            addSupport(arrayOf("PROXIMITY"))
+            addSupport(arrayOf("PROXIMITY", "KEY_PROXIMITY"))
             return true
         }
 
