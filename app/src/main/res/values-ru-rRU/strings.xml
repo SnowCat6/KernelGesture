@@ -47,4 +47,7 @@
     <string name="ui_wait_app">Чтение списка программ</string>
     <string name="ui_proximity_gesture">Жест датчика приближения</string>
     <string name="ui_title_gesture">приближение</string>
+    <string name="ui_unlock_screen">Блокировка экрана</string>
+    <string name="ui_unlock_screen_off">Не разблокировать экран</string>
+    <string name="ui_unlock_screen_on">Автоматически разблокировать эеран</string>
 </resources>

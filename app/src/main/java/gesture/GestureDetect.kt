@@ -18,6 +18,11 @@ import android.widget.Toast
 import android.os.Looper
 import java.util.*
 import java.util.concurrent.Semaphore
+import android.app.KeyguardManager.KeyguardLock
+import android.content.Context.KEYGUARD_SERVICE
+import android.app.KeyguardManager
+
+
 
 class GestureDetect private constructor()
 {
@@ -214,6 +219,7 @@ class GestureDetect private constructor()
         sensorEventGesture = value
         //  Many execute for flush process buffer
         for(ix in 0..4){ SU.exec("echo SENSOR_EVENT>&2") }
+//        vibrate(context)
         return true
     }
 
@@ -657,9 +663,10 @@ class GestureDetect private constructor()
             val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
             return dm.displays.any { it.state != Display.STATE_OFF }
         }
-        fun screenUnlock(context: Context){
-            // todo: add screen unlock
-        }
+        /*
+        <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
+         */
+
         fun checkRootAccess():Boolean
         {
             return SU.open() != null

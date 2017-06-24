@@ -1,5 +1,6 @@
 package gesture
 
+import android.app.KeyguardManager
 import android.app.Service
 import android.content.*
 import android.os.IBinder
@@ -33,6 +34,8 @@ class GestureService() : Service(), SensorEventListener
 
         private var mSensorManager: SensorManager? = null
         private var mProximity: Sensor? = null
+
+        var keyguardLock: KeyguardManager.KeyguardLock? = null
     }
     /************************************/
     /*
@@ -120,6 +123,9 @@ class GestureService() : Service(), SensorEventListener
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
 
+        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
+
         //  If screen off - run thread
         if (!GestureDetect.isScreenOn(this)){
             startGesture()
@@ -138,6 +144,7 @@ class GestureService() : Service(), SensorEventListener
                     if (BuildConfig.DEBUG) {
                         Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
                     }
+                    keyguardLock?.reenableKeyguard()
                     startGesture()
                 }
                 Intent.ACTION_SCREEN_ON -> {
@@ -163,16 +170,16 @@ class GestureService() : Service(), SensorEventListener
 
     fun onGestureEvent(gestureKey:String):Boolean
     {
+        var action:String? = GestureDetect.getAction(this, gestureKey)
+
+        if ((action == null || action.isEmpty()) && GestureDetect.getEnable(this, "GESTURE_DEFAULT_ACTION")){
+            action = GestureDetect.getAction(this, "GESTURE_DEFAULT_ACTION")
+        }
+        if (action == null || action.isEmpty()) return false
+
         if (BuildConfig.DEBUG) {
             Log.d("Gesture action", gestureKey)
         }
-
-        var action:String? = GestureDetect.getAction(this, gestureKey)
-
-        if (action == null && GestureDetect.getEnable(this, "GESTURE_DEFAULT_ACTION")){
-            action = GestureDetect.getAction(this, "GESTURE_DEFAULT_ACTION")
-        }
-        if (action == null) return false
 
         when(action){
             "screen.on" ->{
@@ -201,12 +208,15 @@ class GestureService() : Service(), SensorEventListener
     fun startNewActivity(intent: Intent):Boolean
     {
         try {
-            GestureDetect.screenUnlock(this)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
-            return true
-        }catch (e:Exception){}
-        return false
+        }catch (e:Exception){
+            return false
+        }
+        if (GestureDetect.getEnable(this, "GESTURE_UNLOCK_SCREEN")) {
+            keyguardLock?.disableKeyguard()
+        }
+        return true
     }
     private fun screenON()
     {

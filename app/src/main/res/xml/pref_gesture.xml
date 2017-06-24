@@ -124,6 +124,13 @@
         android:summaryOff="@string/ui_vibrate_off"
         android:summaryOn="@string/ui_vibrate_on"
         />
+    <SwitchPreference
+        android:defaultValue="true"
+        android:key="GESTURE_UNLOCK_SCREEN"
+        android:title="@string/ui_unlock_screen"
+        android:summaryOff="@string/ui_unlock_screen_off"
+        android:summaryOn="@string/ui_unlock_screen_on"
+        />
     <RingtonePreference
         android:title="@string/ui_notify"
         android:key="GESTURE_NOTIFY"
