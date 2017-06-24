@@ -94,9 +94,8 @@ class GestureService() : Service(), SensorEventListener
     override fun onSensorChanged(event: SensorEvent)
     {
         // If registered use proximity - change value detector
-        if (event.sensor.type == Sensor.TYPE_PROXIMITY) {
-             gesture.isNear = event.values[0].toInt() == 0
-        }
+        if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
+        gesture.isNear = event.values[0].toInt() == 0
     }
     /************************************/
     /*

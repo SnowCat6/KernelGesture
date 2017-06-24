@@ -92,6 +92,11 @@
             android:key="KEY_VOLUMEDOWN"
             android:title="@string/ui_volume_down"
             />
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="false"
+            android:key="KEY_PROXIMITY"
+            android:title="@string/ui_proximity_gesture"
+            />
     </PreferenceCategory>
 
     <PreferenceCategory

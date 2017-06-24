@@ -2,6 +2,10 @@ package gesture
 
 import java.io.*
 import android.content.*
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.PowerManager
 import android.preference.PreferenceManager
 import android.util.Log
@@ -12,7 +16,6 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.widget.Toast
 import android.os.Looper
-import android.widget.ArrayAdapter
 import java.util.*
 import java.util.concurrent.Semaphore
 
@@ -44,7 +47,12 @@ class GestureDetect private constructor()
 
     private var supported = emptyArray<String>()
     private var devices = emptyArray<Pair<String, InputHandler>>()
-    private val inputHandlers = arrayOf(InputMTK(), InputKPD(), InputQCOMM_KPD(), InputFT5x06_ts())
+    private val inputHandlers = arrayOf(
+            InputMTK(), InputKPD(),
+            InputQCOMM_KPD(), InputFT5x06_ts(),
+            InputSunXi_KPD()
+    )
+//    private var sensorHandlers = arrayOf()
 
     init {
         detectDevices()
@@ -109,10 +117,12 @@ class GestureDetect private constructor()
     }
 
     private var bGetEvents = false
+    private var sensorEventGesture:String? = null
     private fun getEvent(context:Context): String?
     {
         bGetEvents = true
         var device = ""
+        sensorEventGesture = null
 
         //  Flush old output
         try {
@@ -120,6 +130,10 @@ class GestureDetect private constructor()
         }catch (e:Exception){
             e.printStackTrace()
         }
+
+        val px = ProximitySensor()
+        px.onDetect(context)
+        px.onStart()
 
         //  For each device
         devices.forEach { (inputName, device) ->
@@ -136,6 +150,8 @@ class GestureDetect private constructor()
 
             //  Stop if gesture need stop run
             if (lock) break
+
+            if (line == "SENSOR_EVENT") break
 
             //  Detect current input device
             if (line.contains("/dev/input/")) {
@@ -163,13 +179,16 @@ class GestureDetect private constructor()
                 if (!getEnable(context, gesture)) break
                 //  Close cmd events
                 closeEvents()
+                px.onStop()
                 //  Return result
                 return gesture
             }
         }
+
         closeEvents()
-        //  Error reading, no continue
-        return null
+        px.onStop()
+        //  Error reading, no continue or sensorEvent handled
+        return sensorEventGesture
     }
     private fun closeEvents()
     {
@@ -178,6 +197,14 @@ class GestureDetect private constructor()
 
         SU.exec("kill -s SIGINT %%")
     }
+    private fun sensorEvent(context:Context, value:String):Boolean
+    {
+        if (!getEnable(context, value)) return false
+        sensorEventGesture = value
+        SU.exec("echo SENSOR_EVENT>&2")
+        return true
+    }
+
     private fun addSupport(value:String)
     {
         if (supported.contains(value)) return
@@ -247,7 +274,8 @@ class GestureDetect private constructor()
                 "KEY_Z",
                 "KEY_S",
                 "KEY_VOLUMEUP",
-                "KEY_VOLUMEDOWN"
+                "KEY_VOLUMEDOWN",
+                "KEY_PROXIMITY"
         )
         return if (gesture in allowGestures) gesture else null
     }
@@ -395,8 +423,8 @@ class GestureDetect private constructor()
     private inner open class InputQCOMM_KPD : InputHandler
     {
         override fun onDetect(name:String):Boolean {
-            if (name.toLowerCase() != "qpnp_pon" && name.toLowerCase() != "gpio-keys")
-                return false
+            if (!arrayOf("qpnp_pon",  "gpio-keys")
+                    .contains(name.toLowerCase())) return false
 
             addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
             return true
@@ -408,7 +436,29 @@ class GestureDetect private constructor()
             return runGesture(arg[1])
         }
     }
+    /*
+    SunXI tablet
+     */
+    private inner open class InputSunXi_KPD : InputHandler
+    {
+        override fun onDetect(name:String):Boolean {
+            if (!arrayOf("sun4i-keyboard")
+                    .contains(name.toLowerCase())) return false
 
+            addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+            return true
+        }
+
+        override fun onEvent(line: String): String? {
+            val arg = line.replace(Regex("\\s+"), " ").split(" ")
+            if (arg[0] != "EV_KEY") return null
+
+            val keys = arrayOf(
+                    Pair("KEY_MENU",     "KEY_VOLUMEUP"),
+                    Pair("KEY_SEARCH",   "KEY_VOLUMEDOWN"))
+            return runGesture(arg[1], keys)
+        }
+    }
     //  Unknown FT5x06_ts gesture solution
     private inner open class InputFT5x06_ts : InputHandler
     {
@@ -431,6 +481,72 @@ class GestureDetect private constructor()
             }
         }
 
+    }
+
+    interface sensorHandler{
+        fun onDetect(context:Context):Boolean
+        fun onStart()
+        fun onStop()
+    }
+    private inner open class ProximitySensor : sensorHandler, SensorEventListener
+    {
+        private var mSensorManager: SensorManager? = null
+        private var mProximity: Sensor? = null
+        private var context:Context? = null
+
+        var bNearSensor = false
+
+        var longTimeFar = GregorianCalendar.getInstance().timeInMillis
+        var nearTimeNear = GregorianCalendar.getInstance().timeInMillis
+        var bLongTrigger = false
+
+        val sensor1wait = 2*1000
+        val sensor2wait = 800
+
+        override fun onDetect(context:Context): Boolean {
+            mSensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+            mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+            if (mProximity == null) return false
+
+            this.context = context
+            addSupport(arrayOf("PROXIMITY"))
+            return true
+        }
+
+        override fun onStart() {
+            mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
+        }
+
+        override fun onStop() {
+            mSensorManager?.unregisterListener(this, mProximity)
+        }
+        override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
+        }
+        override fun onSensorChanged(event: SensorEvent)
+        {
+            // If registered use proximity - change value detector
+            if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
+
+            val bNearSensorNow = event.values[0].toInt() == 0
+            if (bNearSensor ==bNearSensorNow) return
+            bNearSensor = bNearSensorNow
+
+            Log.d("Near", bNearSensorNow.toString())
+
+            if (bNearSensor){
+                nearTimeNear = GregorianCalendar.getInstance().timeInMillis
+                bLongTrigger = (GregorianCalendar.getInstance().timeInMillis - longTimeFar) > sensor1wait
+            }else{
+                longTimeFar = GregorianCalendar.getInstance().timeInMillis
+                if (!bLongTrigger) return
+
+                val bNearTrigger = (GregorianCalendar.getInstance().timeInMillis - nearTimeNear) < sensor2wait
+                Log.d("Near pulse time", (GregorianCalendar.getInstance().timeInMillis - nearTimeNear).toString())
+                if (!bNearTrigger) return
+
+                sensorEvent(context!!, "KEY_PROXIMITY")
+            }
+        }
     }
 
     companion object

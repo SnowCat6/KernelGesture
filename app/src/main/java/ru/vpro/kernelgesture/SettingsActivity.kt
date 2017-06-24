@@ -147,6 +147,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     GestureItem("KEY_Z",       ""),
                     GestureItem("KEY_VOLUMEUP",            ""),
                     GestureItem("KEY_VOLUMEDOWN",          ""),
+                    GestureItem("KEY_PROXIMITY",          ""),
                     GestureItem("GESTURE_DEFAULT_ACTION",  "")
             )
 
@@ -187,12 +188,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
             if (support.contains("KEYS")){
                 titles += getString(R.string.ui_title_keys)
             }
+            if (support.contains("PROXIMITY")){
+                titles += "proximity"
+            }
             if (!titles.isEmpty()){
                 val actionBar = (activity as AppCompatPreferenceActivity).supportActionBar
                 actionBar.subtitle = getString(R.string.ui_title_support) + " " + titles.joinToString(", ")
             }
 
-            if (titles.isEmpty())
+            if (!support.contains("KEYS") && !support.contains("GESTURE"))
                 alertMessage = getString(R.string.ui_alert_gs_message_wo_keys)
             else
                 if (!support.contains("GESTURE"))
