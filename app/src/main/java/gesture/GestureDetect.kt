@@ -532,6 +532,7 @@ class GestureDetect private constructor()
 
         override fun onStop() {
             if (!bRegisterEvent) return
+            bRegisterEvent = false
             mSensorManager?.unregisterListener(this, mProximity)
         }
         override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
