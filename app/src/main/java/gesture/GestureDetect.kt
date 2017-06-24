@@ -492,7 +492,6 @@ class GestureDetect private constructor()
                 SU.exec("echo 0 > sys/class/gesture/gesture_ft5x06/enable")
             }
         }
-
     }
 
     interface SensorHandler {
@@ -516,7 +515,8 @@ class GestureDetect private constructor()
         val sensor1wait = 2*1000
         val sensor2wait = 800
 
-        override fun onDetect(context:Context): Boolean {
+        override fun onDetect(context:Context): Boolean
+        {
             mSensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
             mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
             if (mProximity == null) return false
@@ -548,22 +548,34 @@ class GestureDetect private constructor()
             if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
 
             val bNearSensorNow = event.values[0].toInt() == 0
+            //  Filter sensor state
             if (bNearSensor ==bNearSensorNow) return
             bNearSensor = bNearSensorNow
 
-            Log.d("Near", bNearSensorNow.toString())
+            if (BuildConfig.DEBUG) {
+                Log.d("Near", bNearSensorNow.toString())
+            }
 
             if (bNearSensor){
+                //  Start near timer
                 nearTimeNear = GregorianCalendar.getInstance().timeInMillis
+                //  Check pre event timeout
                 bLongTrigger = (GregorianCalendar.getInstance().timeInMillis - longTimeFar) > sensor1wait
             }else{
+                //  Start far timer
                 longTimeFar = GregorianCalendar.getInstance().timeInMillis
+                //  If pre event timer not true do not fire event
                 if (!bLongTrigger) return
 
+                if (BuildConfig.DEBUG) {
+                    Log.d("Near pulse time", (GregorianCalendar.getInstance().timeInMillis - nearTimeNear).toString())
+                }
+
+                //  Check pulse time of near event
                 val bNearTrigger = (GregorianCalendar.getInstance().timeInMillis - nearTimeNear) < sensor2wait
-                Log.d("Near pulse time", (GregorianCalendar.getInstance().timeInMillis - nearTimeNear).toString())
                 if (!bNearTrigger) return
 
+                //  Fire event
                 sensorEvent(context!!, "KEY_PROXIMITY")
             }
         }
@@ -653,7 +665,7 @@ class GestureDetect private constructor()
         {
             return SU.open() != null
         }
-        fun hasRoot():Boolean
+        fun hasRootProcess():Boolean
         {
             return SU.processSU != null
         }

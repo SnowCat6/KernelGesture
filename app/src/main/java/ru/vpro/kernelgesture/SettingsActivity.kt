@@ -349,7 +349,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val mainHandler = Handler(preference.context.mainLooper)
 
-            val bHasRoot = GestureDetect.hasRoot()
+            val bHasRoot = GestureDetect.hasRootProcess()
             if (value == true && !bHasRoot)
             {
                 thisFragment?.updateRootAccess(bHasRoot)
