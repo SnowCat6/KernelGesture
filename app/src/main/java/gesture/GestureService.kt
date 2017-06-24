@@ -13,13 +13,9 @@ import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.preference.PreferenceManager
-import android.provider.ContactsContract
 import kotlin.concurrent.thread
-import android.widget.Toast
-import android.hardware.Sensor.TYPE_PROXIMITY
 import android.hardware.SensorEvent
 import android.hardware.SensorManager
-import android.os.Process.THREAD_PRIORITY_MORE_FAVORABLE
 import ru.vpro.kernelgesture.BuildConfig
 import java.lang.Thread.MAX_PRIORITY
 
@@ -207,14 +203,14 @@ class GestureService() : Service(), SensorEventListener
     }
     fun startNewActivity(intent: Intent):Boolean
     {
+        if (GestureDetect.getEnable(this, "GESTURE_UNLOCK_SCREEN")) {
+            keyguardLock?.disableKeyguard()
+        }
         try {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
         }catch (e:Exception){
             return false
-        }
-        if (GestureDetect.getEnable(this, "GESTURE_UNLOCK_SCREEN")) {
-            keyguardLock?.disableKeyguard()
         }
         return true
     }
