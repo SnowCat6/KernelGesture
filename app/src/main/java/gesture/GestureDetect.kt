@@ -513,7 +513,7 @@ class GestureDetect private constructor()
         var bLongTrigger = false
 
         val sensor1wait = 2*1000
-        val sensor2wait = 800
+        val sensor2wait = 1*1000
 
         override fun onDetect(context:Context): Boolean
         {
