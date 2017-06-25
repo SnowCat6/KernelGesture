@@ -53,6 +53,10 @@ class GestureAction
         }
     }
 
+    /**
+     * Common speech class
+     */
+
     interface ActionItemSpeech:ActionItem, TextToSpeech.OnInitListener
     {
         companion object{
@@ -98,13 +102,21 @@ class GestureAction
             values = emptyArray()
         }
     }
+
+    /**
+     * Time speech action
+     */
     class ActionSpeechTime():ActionItemSpeech
     {
         override fun action(): String
                 = "speech.time"
 
         override fun name(context: Context): String
-                = "Speech time"
+                = context.getString(R.string.ui_speech_time)
+
+        override fun icon(context: Context): Drawable {
+            return context.getDrawable(R.drawable.icon_speech_time)
+        }
 
         override fun run(context: Context): Boolean {
             val date = GregorianCalendar.getInstance().time

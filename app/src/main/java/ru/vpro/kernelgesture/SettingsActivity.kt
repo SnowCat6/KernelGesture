@@ -148,7 +148,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     GestureItem("KEY_Z",       ""),
                     GestureItem("KEY_VOLUMEUP",            ""),
                     GestureItem("KEY_VOLUMEDOWN",          ""),
-                    GestureItem("KEY_PROXIMITY",          ""),
+                    GestureItem("KEY_PROXIMITY",          "speech.time"),
                     GestureItem("GESTURE_DEFAULT_ACTION",  "")
             )
 

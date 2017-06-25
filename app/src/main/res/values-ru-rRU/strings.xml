@@ -50,4 +50,5 @@
     <string name="ui_unlock_screen">Блокировка экрана</string>
     <string name="ui_unlock_screen_off">Не разблокировать экран</string>
     <string name="ui_unlock_screen_on">Автоматически разблокировать эеран</string>
+    <string name="ui_speech_time">Сказать время</string>
 </resources>
