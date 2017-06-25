@@ -9,8 +9,8 @@ android {
         applicationId "ru.vpro.kernelgesture"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 45
-        versionName "1.0.44 (alpha)"
+        versionCode 46
+        versionName "1.0.45 (alpha)"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
