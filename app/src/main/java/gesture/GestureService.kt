@@ -236,8 +236,10 @@ class GestureService() : Service(), SensorEventListener
             vibrate(context)
             GestureDetect.screenON(context)
         }
-        fun playNotify(context: Context){
-            Companion.ringtone?.play()
+        fun playNotify(context: Context):Boolean{
+            if (ringtone == null) return false
+            ringtone?.play()
+            return false
         }
         fun vibrate(context: Context){
             if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))

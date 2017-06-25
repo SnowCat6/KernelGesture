@@ -5,10 +5,7 @@ import android.graphics.drawable.Drawable
 import ru.vpro.kernelgesture.R
 import android.speech.tts.TextToSpeech
 import android.util.Log
-import java.text.DateFormat
 import java.text.MessageFormat
-import java.text.SimpleDateFormat
-import java.text.SimpleDateFormat.*
 import java.util.*
 
 
@@ -71,11 +68,11 @@ class GestureAction
         fun doSpeech(context: Context, value:String):Boolean
         {
             init(context)
-            GestureService.UI.playNotify(context)
+            val bNotify = GestureService.UI.playNotify(context)
             GestureService.UI.vibrate(context)
 
             if (isInit){
-                Thread.sleep(200)
+                if (bNotify) Thread.sleep(500)
                 doIntSpeak(value)
             }else {
                 values += value
@@ -105,10 +102,15 @@ class GestureAction
             }
             values = emptyArray()
         }
-        fun doIntSpeak(value:String){
+        fun doIntSpeak(value:String)
+        {
             if (tts == null) return
+
             tts?.language = Locale.getDefault()
             tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null)
+            while (tts?.isSpeaking == true){
+                Thread.sleep(100)
+            }
         }
     }
 
