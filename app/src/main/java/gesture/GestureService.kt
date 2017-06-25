@@ -122,6 +122,8 @@ class GestureService() : Service(), SensorEventListener
         val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
 
+        GestureAction.init(this)
+
         //  If screen off - run thread
         if (!GestureDetect.isScreenOn(this)){
             startGesture()
@@ -245,12 +247,14 @@ class GestureService() : Service(), SensorEventListener
         }
         fun screenON(context: Context)
         {
-            Companion.ringtone?.play()
-
+            playNotify()
             if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))
                 GestureDetect.vibrate(context)
 
             GestureDetect.screenON(context)
+        }
+        fun playNotify(){
+            Companion.ringtone?.play()
         }
     }
 }
