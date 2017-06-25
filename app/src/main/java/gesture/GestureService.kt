@@ -241,6 +241,14 @@ class GestureService() : Service(), SensorEventListener
             ringtone?.play()
             return false
         }
+        fun playNotifyToEnd(context: Context):Boolean{
+            if (ringtone == null) return false
+            ringtone?.play()
+            while(ringtone?.isPlaying == true){
+                Thread.sleep(100)
+            }
+            return false
+        }
         fun vibrate(context: Context){
             if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))
                 GestureDetect.vibrate(context)

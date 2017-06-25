@@ -68,11 +68,11 @@ class GestureAction
         fun doSpeech(context: Context, value:String):Boolean
         {
             init(context)
-            val bNotify = GestureService.UI.playNotify(context)
             GestureService.UI.vibrate(context)
+            GestureService.UI.playNotifyToEnd(context)
+            Thread.sleep(200)
 
             if (isInit){
-                if (bNotify) Thread.sleep(500)
                 doIntSpeak(value)
             }else {
                 values += value
