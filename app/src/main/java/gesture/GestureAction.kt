@@ -7,32 +7,40 @@ import android.speech.tts.TextToSpeech
 import android.util.Log
 import java.text.MessageFormat
 import java.util.*
+import android.content.Intent
+
+
 
 
 class GestureAction
 {
-    interface ActionItem
-    {
-        fun init(context: Context){}
-        fun action():String
-        fun isAction(context: Context, action: String): Boolean = action == action()
-        fun name(context: Context): String
-        fun icon(context: Context): Drawable =  context.getDrawable(android.R.color.transparent)
-        fun run(context: Context): Boolean
-    }
 
     companion object
     {
-        private val allActions = arrayOf<ActionItem>(ActionScreenOn(), ActionSpeechTime())
+        private val allActions = arrayOf(
+                ActionScreenOn(),
+                ActionSpeechTime(),
+                GoogleNow())
 
         fun init(context: Context)
-            = allActions.forEach { it.init(context) }
+                = allActions.forEach { it.init(context) }
 
         fun getAction(context:Context, action:String):ActionItem?
                 = allActions.firstOrNull { it.isAction(context, action)  }
 
         fun getActions():Array<ActionItem> = allActions
     }
+
+    interface ActionItem
+    {
+        fun init(context: Context){}
+        fun action():String
+        fun isAction(context: Context, action: String): Boolean = action == action()
+        fun name(context: Context): String = action()
+        fun icon(context: Context): Drawable =  context.getDrawable(android.R.color.transparent)
+        fun run(context: Context): Boolean
+    }
+
 
     /**
      * Screen ON
@@ -125,15 +133,32 @@ class GestureAction
         override fun name(context: Context): String
                 = context.getString(R.string.ui_speech_time)
 
-        override fun icon(context: Context): Drawable {
-            return context.getDrawable(R.drawable.icon_speech_time)
-        }
+        override fun icon(context: Context): Drawable
+                = context.getDrawable(R.drawable.icon_speech_time)
 
         override fun run(context: Context): Boolean
         {
             val result = MessageFormat.format("{0,time,short}", Date())
             Log.d("Time is", result)
             return doSpeech(context, result)
+        }
+    }
+
+    class GoogleNow():ActionItem{
+        override fun action(): String = "google.ok"
+
+        override fun name(context: Context): String
+                = context.getString(R.string.ui_ok_google)
+
+        override fun icon(context: Context): Drawable
+                = context.getDrawable(R.drawable.icon_ok_google)
+
+        override fun run(context: Context): Boolean
+        {
+            GestureService.UI.screenON(context)
+            GestureService.UI.screenUnlock(context)
+            val googleNowIntent = Intent("android.intent.action.VOICE_ASSIST")
+            return GestureService.UI.startNewActivity(context, googleNowIntent)
         }
     }
 }

@@ -51,6 +51,7 @@
     <string name="ui_unlock_screen_off">Do not unlock after action</string>
     <string name="ui_unlock_screen_on">Auto unlock screen after action</string>
     <string name="ui_speech_time">Speech time</string>
+    <string name="ui_ok_google">OK Google</string>
 
     <!-- Strings related to Settings -->
 
