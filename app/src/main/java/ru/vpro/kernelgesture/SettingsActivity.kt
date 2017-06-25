@@ -487,8 +487,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     var items:List<Any> = emptyList()
                     items += AppListItem(preference.context, "none")
-                    GestureAction.getActions().forEach { items += AppListItem(preference.context, it) }
-//                    items += AppListItem(preference.context, "screen.on")
+
+                    GestureAction.init(preference.context)
+                    GestureAction.getActions()
+                            .filter { it.action()!="" }
+                            .forEach { items += AppListItem(preference.context, it) }
+
                     pkgAppsList.forEach {
                         items += AppListItem(preference.context, it.activityInfo.applicationInfo)
                     }
@@ -534,7 +538,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     "none" -> return ""
                     is AppListItem -> return item.action
                     is ApplicationInfo -> return item.packageName
-                    is  GestureAction.ActionItem -> return item.action()
+                    is GestureAction.ActionItem -> return item.action()
                     is String -> return item
                 }
                 return ""

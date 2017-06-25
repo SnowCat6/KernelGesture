@@ -8,8 +8,12 @@ import android.util.Log
 import java.text.MessageFormat
 import java.util.*
 import android.content.Intent
-
-
+import android.content.pm.ActivityInfo
+import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
+import android.net.Uri
+import ru.vpro.kernelgesture.SettingsActivity
 
 
 class GestureAction
@@ -20,7 +24,9 @@ class GestureAction
         private val allActions = arrayOf(
                 ActionScreenOn(),
                 ActionSpeechTime(),
-                GoogleNow())
+                GoogleNow()
+//                WebBrowser()  // Double browser view, may be later make this
+        )
 
         fun init(context: Context)
                 = allActions.forEach { it.init(context) }
@@ -28,7 +34,8 @@ class GestureAction
         fun getAction(context:Context, action:String):ActionItem?
                 = allActions.firstOrNull { it.isAction(context, action)  }
 
-        fun getActions():Array<ActionItem> = allActions
+        fun getActions(): Array<ActionItem>
+                = allActions
     }
 
     interface ActionItem
@@ -125,7 +132,7 @@ class GestureAction
     /**
      * Time speech action
      */
-    class ActionSpeechTime():ActionItemSpeech
+    class ActionSpeechTime:ActionItemSpeech
     {
         override fun action(): String
                 = "speech.time"
@@ -144,7 +151,10 @@ class GestureAction
         }
     }
 
-    class GoogleNow():ActionItem{
+    /**
+     * Action OK Google
+     */
+    class GoogleNow:ActionItem{
         override fun action(): String = "google.ok"
 
         override fun name(context: Context): String
@@ -159,6 +169,51 @@ class GestureAction
             GestureService.UI.screenUnlock(context)
             val googleNowIntent = Intent("android.intent.action.VOICE_ASSIST")
             return GestureService.UI.startNewActivity(context, googleNowIntent)
+        }
+    }
+    /**
+     * Action common class
+     */
+    interface ActionApp:ActionItem
+    {
+        var applicationInfo: ApplicationInfo?
+
+        override fun action(): String
+                = applicationInfo?.packageName ?: ""
+
+        override fun name(context: Context): String {
+            return context.packageManager.getApplicationLabel(applicationInfo).toString()
+        }
+
+        override fun icon(context: Context): Drawable {
+            if (applicationInfo == null) return super.icon(context)
+            return context.packageManager.getApplicationIcon(applicationInfo)
+        }
+
+        override fun run(context: Context): Boolean
+        {
+            if (applicationInfo == null) return false
+
+            GestureService.UI.screenON(context)
+            GestureService.UI.screenUnlock(context)
+
+            return GestureService.UI.startNewActivity(context, applicationInfo!!.packageName)
+        }
+    }
+    /**
+     * Action default browser
+     */
+    class WebBrowser:ActionApp
+    {
+        override var applicationInfo:ApplicationInfo? = null
+
+        override fun init(context: Context)
+        {
+            val browserIntent = Intent("android.intent.action.VIEW", Uri.parse("http://"))
+            val resolveInfo = context.packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
+
+            // This is the default browser's packageName
+            applicationInfo = resolveInfo.activityInfo.applicationInfo
         }
     }
 }

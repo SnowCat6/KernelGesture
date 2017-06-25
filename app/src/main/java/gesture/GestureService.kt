@@ -204,7 +204,7 @@ class GestureService() : Service(), SensorEventListener
 
     object UI
     {
-        fun startNewActivity(context: Context, packageName: String)
+        fun startNewActivity(context: Context, packageName: String):Boolean
         {
             var intent = context.packageManager.getLaunchIntentForPackage(packageName)
             if (intent == null) {
@@ -212,7 +212,7 @@ class GestureService() : Service(), SensorEventListener
                 intent = Intent(Intent.ACTION_VIEW)
                 intent.data = Uri.parse("market://details?id=$packageName")
             }
-            startNewActivity(context, intent)
+            return startNewActivity(context, intent)
         }
         fun startNewActivity(context: Context, intent: Intent):Boolean
         {
