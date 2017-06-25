@@ -25,6 +25,7 @@ import kotlin.concurrent.thread
 
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
+import gesture.GestureAction
 import ru.vpro.kernelgesture.SettingsActivity.GesturePreferenceFragment.Companion.getItemInstance
 
 
@@ -546,7 +547,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     "" ->  return context.getString(R.string.ui_default_action)
                     "none"  -> return context.getString(R.string.ui_no_action)
                     "wait" -> return context.getString(R.string.ui_wait_app)
-                    "screen.on" -> return context.getString(R.string.ui_screen_on)
+//                    "screen.on" -> return context.getString(R.string.ui_screen_on)
+                    is String -> return GestureAction.getAction(context, item)?.name(context) ?: ""
                 }
                 return ""
             }
@@ -555,7 +557,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 when(item){
                     is AppListItem -> return item.icon
                     is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
-                    "screen.on" -> return context.getDrawable(R.drawable.icon_screen_on)
+//                    "screen.on" -> return context.getDrawable(R.drawable.icon_screen_on)
+                    is String -> return GestureAction.getAction(context, item)?.icon(context) ?: context.getDrawable(android.R.color.transparent)
                 }
                 return context.getDrawable(android.R.color.transparent)
             }

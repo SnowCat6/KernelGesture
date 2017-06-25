@@ -177,47 +177,80 @@ class GestureService() : Service(), SensorEventListener
             Log.d("Gesture action", gestureKey)
         }
 
-        when(action){
+        val a = GestureAction.getAction(this, action)
+        if (a != null) return a.run(this)
+/*
+        when(action)
+        {
             "screen.on" ->{
                 screenON()
                 return true
             }
-        }
+            "player.next" -> {
 
+            }
+            "player.prev" -> {
+
+            }
+            "player.playPause" -> {
+
+            }
+            "browser" ->{
+
+            }
+            "say.time"->{
+
+            }
+            "okgoogle" ->{
+
+            }
+        }
+*/
         try {
-            screenON()
+            UI.screenON(this)
+            UI.screenUnlock(this)
             val intent = packageManager.getLaunchIntentForPackage(action) ?: return false
-            return startNewActivity(intent)
+            return UI.startNewActivity(this, intent)
         }catch (e:Exception){}
         return false
     }
 
-    fun startNewActivity(context: Context, packageName: String) {
-        var intent = context.packageManager.getLaunchIntentForPackage(packageName)
-        if (intent == null) {
-            // Bring user to the market or let them choose an app?
-            intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse("market://details?id=$packageName")
-        }
-        startNewActivity(intent)
-    }
-    fun startNewActivity(intent: Intent):Boolean
+    object UI
     {
-        if (GestureDetect.getEnable(this, "GESTURE_UNLOCK_SCREEN")) {
-            keyguardLock?.disableKeyguard()
+        fun startNewActivity(context: Context, packageName: String)
+        {
+            var intent = context.packageManager.getLaunchIntentForPackage(packageName)
+            if (intent == null) {
+                // Bring user to the market or let them choose an app?
+                intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse("market://details?id=$packageName")
+            }
+            startNewActivity(context, intent)
         }
-        try {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            startActivity(intent)
-        }catch (e:Exception){
-            return false
+        fun startNewActivity(context: Context, intent: Intent):Boolean
+        {
+            try {
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                context.startActivity(intent)
+            }catch (e:Exception){
+                return false
+            }
+            return true
         }
-        return true
-    }
-    private fun screenON()
-    {
-        ringtone?.play()
-        if (GestureDetect.getEnable(this, "GESTURE_VIBRATION")) GestureDetect.vibrate(this)
-        GestureDetect.screenON(this)
+        fun screenUnlock(context: Context)
+        {
+            if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN")) {
+                Companion.keyguardLock?.disableKeyguard()
+            }
+        }
+        fun screenON(context: Context)
+        {
+            Companion.ringtone?.play()
+
+            if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))
+                GestureDetect.vibrate(context)
+
+            GestureDetect.screenON(context)
+        }
     }
 }
