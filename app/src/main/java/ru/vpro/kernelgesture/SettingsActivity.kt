@@ -460,7 +460,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         class AppListItem(val action:String, val name:String, val icon:Drawable)
         {
-            constructor(context:Context, action:String) :
+            constructor(context:Context, action:Any) :
                     this(UI.action(context, action),
                             UI.name(context, action),
                             UI.icon(context, action))
@@ -487,7 +487,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     var items:List<Any> = emptyList()
                     items += AppListItem(preference.context, "none")
-                    items += AppListItem(preference.context, "screen.on")
+                    GestureAction.getActions().forEach { items += AppListItem(preference.context, it) }
+//                    items += AppListItem(preference.context, "screen.on")
                     pkgAppsList.forEach {
                         items += AppListItem(preference.context, it.activityInfo.applicationInfo)
                     }
@@ -533,6 +534,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     "none" -> return ""
                     is AppListItem -> return item.action
                     is ApplicationInfo -> return item.packageName
+                    is  GestureAction.ActionItem -> return item.action()
                     is String -> return item
                 }
                 return ""
@@ -547,7 +549,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     "" ->  return context.getString(R.string.ui_default_action)
                     "none"  -> return context.getString(R.string.ui_no_action)
                     "wait" -> return context.getString(R.string.ui_wait_app)
-//                    "screen.on" -> return context.getString(R.string.ui_screen_on)
+                    is  GestureAction.ActionItem -> return item.name(context)
                     is String -> return GestureAction.getAction(context, item)?.name(context) ?: ""
                 }
                 return ""
@@ -557,7 +559,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 when(item){
                     is AppListItem -> return item.icon
                     is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
-//                    "screen.on" -> return context.getDrawable(R.drawable.icon_screen_on)
+                    is  GestureAction.ActionItem -> return item.icon(context)
                     is String -> return GestureAction.getAction(context, item)?.icon(context) ?: context.getDrawable(android.R.color.transparent)
                 }
                 return context.getDrawable(android.R.color.transparent)

@@ -10,8 +10,10 @@ import ru.vpro.kernelgesture.R
 
 class GestureAction
 {
-    interface ActionItem {
-        fun isAction(context: Context, action: String): Boolean
+    interface ActionItem
+    {
+        fun action():String
+        fun isAction(context: Context, action: String): Boolean = action == action()
         fun name(context: Context): String
         fun icon(context: Context): Drawable
         fun run(context: Context): Boolean
@@ -19,15 +21,17 @@ class GestureAction
 
     companion object
     {
-        private val actions = arrayOf(ActionScreenOn())
+        private val allActions = arrayOf<ActionItem>(ActionScreenOn())
+
         fun getAction(context:Context, action:String):ActionItem?
-                = actions.firstOrNull { it.isAction(context, action)  }
+                = allActions.firstOrNull { it.isAction(context, action)  }
+
+        fun getActions():Array<ActionItem> = allActions
     }
 
     class ActionScreenOn :ActionItem
     {
-        override fun isAction(context: Context, action:String):Boolean
-                = action == "screen.on"
+        override fun action():String =  "screen.on"
 
         override fun name(context: Context): String
                 = context.getString(R.string.ui_screen_on)
