@@ -41,13 +41,16 @@ class GestureService() : Service(), SensorEventListener
     {
         val gesture = GestureDetect.getInstance(this)
         gesture.lock = false
+
         // If thread ruined return back
         if (bRunning) return
+
         //  Disable run thread if gestures not use
         if (!GestureDetect.getAllEnable(this)){
             gesture.close()
             return
         }
+        GestureAction.init(this)
 
         bRunning = true
         gesture.lock = false
@@ -182,31 +185,13 @@ class GestureService() : Service(), SensorEventListener
         val a = GestureAction.getAction(this, action)
         if (a != null) return a.run(this)
 /*
-        when(action)
-        {
             "screen.on" ->{
-                screenON()
-                return true
-            }
             "player.next" -> {
-
-            }
             "player.prev" -> {
-
-            }
             "player.playPause" -> {
-
-            }
             "browser" ->{
-
-            }
-            "say.time"->{
-
-            }
+            "speech.time"->{
             "okgoogle" ->{
-
-            }
-        }
 */
         try {
             UI.screenON(this)

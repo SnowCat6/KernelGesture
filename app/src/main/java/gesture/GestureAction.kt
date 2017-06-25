@@ -4,6 +4,9 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import ru.vpro.kernelgesture.R
 import android.speech.tts.TextToSpeech
+import android.util.Log
+import java.text.DateFormat
+import java.text.MessageFormat
 import java.text.SimpleDateFormat
 import java.text.SimpleDateFormat.*
 import java.util.*
@@ -73,7 +76,7 @@ class GestureAction
 
             if (isInit){
                 Thread.sleep(200)
-                tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null)
+                doIntSpeak(value)
             }else {
                 values += value
             }
@@ -98,9 +101,14 @@ class GestureAction
 
             isInit = true
             values.forEach {
-                tts?.speak(it, TextToSpeech.QUEUE_FLUSH, null)
+                doIntSpeak(it)
             }
             values = emptyArray()
+        }
+        fun doIntSpeak(value:String){
+            if (tts == null) return
+            tts?.language = Locale.getDefault()
+            tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null)
         }
     }
 
@@ -119,10 +127,11 @@ class GestureAction
             return context.getDrawable(R.drawable.icon_speech_time)
         }
 
-        override fun run(context: Context): Boolean {
-            val date = GregorianCalendar.getInstance().time
-            val fmt = getTimeInstance()
-            return doSpeech(context, fmt.format(date))
+        override fun run(context: Context): Boolean
+        {
+            val result = MessageFormat.format("{0,time,short}", Date())
+            Log.d("Time is", result)
+            return doSpeech(context, result)
         }
     }
 }
