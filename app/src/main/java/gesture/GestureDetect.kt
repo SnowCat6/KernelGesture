@@ -537,6 +537,7 @@ class GestureDetect private constructor()
                 return
 
             bRegisterEvent = true
+            longTimeFar = GregorianCalendar.getInstance().timeInMillis + sensor1wait
             mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
         }
 
@@ -568,7 +569,7 @@ class GestureDetect private constructor()
                 bLongTrigger = (GregorianCalendar.getInstance().timeInMillis - longTimeFar) > sensor1wait
             }else{
                 //  Start far timer
-                longTimeFar = GregorianCalendar.getInstance().timeInMillis
+                longTimeFar = Math.max(GregorianCalendar.getInstance().timeInMillis, longTimeFar)
                 //  If pre event timer not true do not fire event
                 if (!bLongTrigger) return
 
