@@ -147,7 +147,7 @@ class GestureDetect private constructor()
             //  Power on gesture if available, many drivers not set this value if screen off
             device.setEnable(true)
             //  Run input event detector
-            SU.exec("while v=$(getevent -c 2 -l $inputName)  ; do echo $inputName\\\\n\"\$v\">&2 ; done &")
+            SU.exec("while v=$(getevent -c 2 -l $inputName)  ; do echo $inputName\\\\n\"\$v\$v\">&2 ; done &")
         }
 
         SU.exec("echo query$queryIx>&2")
@@ -218,7 +218,7 @@ class GestureDetect private constructor()
         if (!getEnable(context, value)) return false
         sensorEventGesture = value
         //  Many execute for flush process buffer
-        for(ix in 0..3){ SU.exec("echo SENSOR_EVENT>&2") }
+        for(ix in 0..7){ SU.exec("echo SENSOR_EVENT>&2") }
 //        vibrate(context)
         return true
     }
