@@ -488,7 +488,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     var items:List<Any> = emptyList()
                     items += AppListItem(preference.context, "none")
 
-                    GestureAction.init(preference.context)
                     GestureAction.getActions()
                             .filter { it.action()!="" }
                             .forEach { items += AppListItem(preference.context, it) }

@@ -50,7 +50,6 @@ class GestureService() : Service(), SensorEventListener
             gesture.close()
             return
         }
-        GestureAction.init(this)
 
         bRunning = true
         gesture.lock = false
