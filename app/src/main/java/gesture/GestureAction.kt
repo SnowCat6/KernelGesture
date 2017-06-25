@@ -68,7 +68,8 @@ class GestureAction
         fun doSpeech(context: Context, value:String):Boolean
         {
             init(context)
-            GestureService.UI.playNotify()
+            GestureService.UI.playNotify(context)
+            GestureService.UI.vibrate(context)
 
             if (isInit){
                 Thread.sleep(200)
