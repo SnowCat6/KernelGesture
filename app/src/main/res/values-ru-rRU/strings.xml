@@ -55,4 +55,5 @@
     <string name="ui_web_browser">Браузер</string>
     <string name="ui_action_battery">Заряд</string>
     <string name="ui_action_speech_battery">Сказать заряд батареи</string>
+    <string name="ui_action_camera">Камера</string>
 </resources>

@@ -26,7 +26,8 @@ class GestureAction {
                 GoogleNow(),
                 ActionSpeechTime(),
                 BatterySpeech(),
-                WebBrowser()  // Double browser view, may be later make this
+                WebBrowser(),
+                CameraAction()
         )
 
         fun init(context: Context)
@@ -196,9 +197,8 @@ class GestureAction {
         override fun action(): String
                 = applicationInfo?.packageName ?: ""
 
-        override fun name(context: Context): String {
-            return context.packageManager.getApplicationLabel(applicationInfo).toString()
-        }
+        override fun name(context: Context): String
+                = context.packageManager.getApplicationLabel(applicationInfo).toString()
 
         override fun icon(context: Context): Drawable {
             if (applicationInfo == null) return super.icon(context)
@@ -222,6 +222,9 @@ class GestureAction {
     {
         override var applicationInfo:ApplicationInfo? = null
 
+        override fun action(): String
+                = if (applicationInfo?.packageName != null) "application.browser" else ""
+
         override fun init(context: Context)
         {
             val browserIntent = Intent("android.intent.action.VIEW", Uri.parse("http://"))
@@ -232,5 +235,27 @@ class GestureAction {
         }
 
         override fun name(context: Context): String = context.getString(R.string.ui_web_browser)
+    }
+    /**
+     * Action default browser
+     */
+    class CameraAction:ActionApp
+    {
+        override var applicationInfo:ApplicationInfo? = null
+
+        override fun action(): String
+                = if (applicationInfo?.packageName != null) "application.camera" else ""
+
+        override fun init(context: Context)
+        {
+            val browserIntent = Intent("android.media.action.IMAGE_CAPTURE")
+            val resolveInfo = context.packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
+
+            // This is the default browser's packageName
+            applicationInfo = resolveInfo.activityInfo.applicationInfo
+        }
+
+        override fun name(context: Context): String
+                = context.getString(R.string.ui_action_camera)
     }
 }
