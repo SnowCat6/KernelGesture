@@ -1,16 +1,18 @@
-package gesture
+package gesture.drivers.input
+
+import gesture.GestureDetect
 
 /*
 MTK and QCOMM keyboard
  */
-open class InputMTK_KPD() : InputHandler
+open class InputMTK_KPD : InputHandler
 {
     private class GS(
             val detectFile: String,
             val setPowerON: String,
             val setPowerOFF: String,
             val getGesture: String
-    );
+    )
 
     private var HCT_GESTURE_IO: GS? = null
     //  HCT version gesture for Android 5x and Android 6x

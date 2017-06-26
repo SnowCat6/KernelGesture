@@ -1,4 +1,6 @@
-package gesture
+package gesture.drivers.input
+
+import gesture.GestureDetect
 
 /*
 SunXI tablet

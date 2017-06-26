@@ -1,9 +1,11 @@
-package gesture
+package gesture.drivers.input
+
+import gesture.GestureDetect
 
 /*
 Qualcomm keys
  */
-open class InputQCOMM_KPD() : InputHandler
+open class InputQCOMM_KPD : InputHandler
 {
     override fun onDetect(name:String):Boolean {
         if (!arrayOf("qpnp_pon",  "gpio-keys")

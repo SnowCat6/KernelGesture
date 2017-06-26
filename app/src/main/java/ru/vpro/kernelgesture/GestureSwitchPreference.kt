@@ -35,9 +35,9 @@ class GestureSwitchPreference(context: Context, attrs: AttributeSet) :
             if (!callChangeListener(b)) {
                 // Listener didn't like it, change it back.
                 // CompoundButton will make sure we don't recurse.
-                checkableView.setChecked(!b)
+                checkableView.isChecked = !b
             }else {
-                setChecked(b)
+                isChecked = b
             }
 
         })

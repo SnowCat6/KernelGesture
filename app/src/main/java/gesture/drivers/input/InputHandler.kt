@@ -1,4 +1,4 @@
-package gesture
+package gesture.drivers.input
 
 interface InputHandler
 {

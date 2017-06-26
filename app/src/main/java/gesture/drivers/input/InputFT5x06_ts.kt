@@ -1,4 +1,6 @@
-package gesture
+package gesture.drivers.input
+
+import gesture.GestureDetect
 
 //  Unknown FT5x06_ts gesture solution
 open class InputFT5x06_ts : InputHandler
@@ -16,6 +18,6 @@ open class InputFT5x06_ts : InputHandler
 
     override fun setEnable(enable: Boolean)
     {
-        GestureDetect.SU.exec("echo ${if (enable)1 else 0} > sys/class/gesture/gesture_ft5x06/enable")
+        GestureDetect.SU.exec("echo ${if (enable) 1 else 0} > sys/class/gesture/gesture_ft5x06/enable")
     }
 }

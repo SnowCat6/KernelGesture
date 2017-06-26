@@ -1,7 +1,8 @@
-package gesture
+package gesture.action
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import gesture.GestureService
 import ru.vpro.kernelgesture.R
 
 /**

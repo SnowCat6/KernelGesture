@@ -12,6 +12,9 @@ import android.hardware.display.DisplayManager
 import android.os.Handler
 import android.widget.Toast
 import android.os.Looper
+import gesture.drivers.input.*
+import gesture.drivers.sensor.SensorHandler
+import gesture.drivers.sensor.SensorProximity
 import java.util.*
 import java.util.concurrent.Semaphore
 
@@ -266,6 +269,9 @@ class GestureDetect private constructor (val context:Context)
 
             return gs!!
         }
+        fun sensorEvent(event:String):Boolean {
+            return gs?.sensorEvent(event) ?: false
+        }
 
         fun getAllEnable(context: Context): Boolean
         {
@@ -456,7 +462,7 @@ class GestureDetect private constructor (val context:Context)
         fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):String?
         {
             if (key == null || key.isEmpty())
-                return null;
+                return null
 
             var gesture = key
             if (convert != null) {

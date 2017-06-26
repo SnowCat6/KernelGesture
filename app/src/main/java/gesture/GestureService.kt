@@ -20,7 +20,7 @@ import ru.vpro.kernelgesture.BuildConfig
 import java.lang.Thread.MAX_PRIORITY
 
 
-class GestureService() : Service(), SensorEventListener {
+class GestureService : Service(), SensorEventListener {
 
     companion object
     {

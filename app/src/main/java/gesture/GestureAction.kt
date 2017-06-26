@@ -1,6 +1,7 @@
 package gesture
 
 import android.content.Context
+import gesture.action.*
 
 
 class GestureAction private constructor(val context:Context)

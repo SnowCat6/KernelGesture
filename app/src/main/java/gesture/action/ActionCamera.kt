@@ -1,9 +1,8 @@
-package gesture
+package gesture.action
 
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import ru.vpro.kernelgesture.R
 
 /**
@@ -18,7 +17,7 @@ class ActionCamera : ActionApp
 
     override fun onStart(context: Context)
     {
-        init(context,Intent("android.media.action.IMAGE_CAPTURE"))
+        init(context, Intent("android.media.action.IMAGE_CAPTURE"))
     }
 
     override fun name(context: Context): String

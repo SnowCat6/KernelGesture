@@ -1,4 +1,4 @@
-package gesture
+package gesture.drivers.sensor
 
 import android.content.Context
 import android.hardware.Sensor
@@ -6,10 +6,12 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
+import gesture.GestureDetect
+import gesture.drivers.sensor.SensorHandler
 import ru.vpro.kernelgesture.BuildConfig
 import java.util.*
 
-open class SensorProximity(val context:Context) : SensorHandler, SensorEventListener
+open class SensorProximity(val context: Context) : SensorHandler, SensorEventListener
 {
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
@@ -84,7 +86,7 @@ open class SensorProximity(val context:Context) : SensorHandler, SensorEventList
             if (!bNearTrigger) return
 
             //  Fire event
-            GestureDetect.getInstance(context).sensorEvent("KEY_PROXIMITY")
+            sensorEvent("KEY_PROXIMITY")
         }
     }
 }

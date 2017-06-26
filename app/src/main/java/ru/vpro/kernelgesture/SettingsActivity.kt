@@ -25,7 +25,7 @@ import kotlin.concurrent.thread
 
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
-import gesture.ActionItem
+import gesture.action.ActionItem
 import gesture.GestureAction
 import ru.vpro.kernelgesture.SettingsActivity.GesturePreferenceFragment.Companion.getItemInstance
 
@@ -51,8 +51,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         startService(Intent(this, GestureService::class.java))
 
-        mInterstitialAd = InterstitialAd(this);
-        mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548";
+        mInterstitialAd = InterstitialAd(this)
+        mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548"
         mInterstitialAd?.loadAd(AdRequest.Builder().build())
 
         mInterstitialAd?.adListener = object : AdListener() {
@@ -74,7 +74,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean
     {
-        menuInflater.inflate(R.menu.menu, menu);
+        menuInflater.inflate(R.menu.menu, menu)
         return super.onCreateOptionsMenu(menu)
     }
 
@@ -85,9 +85,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
             R.id.menu_adv ->
             {
                 if (mInterstitialAd?.isLoaded != null && mInterstitialAd!!.isLoaded) {
-                    mInterstitialAd?.show();
+                    mInterstitialAd?.show()
                 } else {
-                    Log.d("TAG", "The interstitial wasn't loaded yet.");
+                    Log.d("TAG", "The interstitial wasn't loaded yet.")
                 }
             }
         }
@@ -440,7 +440,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             true
         }
 
-        val onClickListener = DialogInterface.OnClickListener() { dialogInterface: DialogInterface, i: Int ->
+        val onClickListener = DialogInterface.OnClickListener { dialogInterface: DialogInterface, i: Int ->
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
             val item = adapter.getItem(i) as? AppListItem ?: return@OnClickListener
