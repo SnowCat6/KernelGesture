@@ -11,9 +11,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.net.Uri
-import ru.vpro.kernelgesture.SettingsActivity
 import android.os.BatteryManager
 import android.content.Context.BATTERY_SERVICE
 
@@ -25,10 +23,10 @@ class GestureAction {
     companion object {
         private val allActions = arrayOf(
                 ActionScreenOn(),
-                ActionSpeechTime(),
                 GoogleNow(),
-                WebBrowser(),  // Double browser view, may be later make this
-                BatterySpeech()
+                ActionSpeechTime(),
+                BatterySpeech(),
+                WebBrowser()  // Double browser view, may be later make this
         )
 
         fun init(context: Context)
