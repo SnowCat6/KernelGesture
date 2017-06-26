@@ -215,6 +215,7 @@ class GestureDetect private constructor()
     }
     private fun sensorEvent(context:Context, value:String):Boolean
     {
+        if (lock) return false
         if (!getEnable(context, value)) return false
         sensorEventGesture = value
         //  Many execute for flush process buffer
