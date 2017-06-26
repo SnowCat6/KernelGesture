@@ -451,11 +451,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
             if (BuildConfig.DEBUG) {
                 Log.d("Set gesture action", action)
             }
-            val gestureItem = getItemInstance(preference.key)
-            gestureItem?.action = action
-            preference.isChecked = action.isNotEmpty()
-            preference.icon = gestureItem?.icon
-            preference.onPreferenceChangeListener.onPreferenceChange(preference, preference.isChecked)
+            val gestureItem = getItemInstance(preference.key) ?: return@OnClickListener
+
+            gestureItem.action = action
+            gestureItem.enable = action.isNotEmpty()
+            preference.isChecked = gestureItem.enable
+            preference.icon = gestureItem.icon
+            preference.onPreferenceChangeListener.onPreferenceChange(preference, gestureItem.enable)
         }
 
         class AppListItem(val action:String, val name:String, val icon:Drawable)
