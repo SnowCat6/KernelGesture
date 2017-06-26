@@ -53,4 +53,6 @@
     <string name="ui_speech_time">Сказать время</string>
     <string name="ui_ok_google">OK Google</string>
     <string name="ui_web_browser">Браузер</string>
+    <string name="ui_action_battery">Заряд</string>
+    <string name="ui_action_speech_battery">Сказать заряд батареи</string>
 </resources>

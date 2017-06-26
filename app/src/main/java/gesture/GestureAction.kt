@@ -14,37 +14,39 @@ import android.content.pm.PackageManager
 import android.content.pm.ResolveInfo
 import android.net.Uri
 import ru.vpro.kernelgesture.SettingsActivity
+import android.os.BatteryManager
+import android.content.Context.BATTERY_SERVICE
 
 
-class GestureAction
-{
 
-    companion object
-    {
+
+class GestureAction {
+
+    companion object {
         private val allActions = arrayOf(
                 ActionScreenOn(),
                 ActionSpeechTime(),
                 GoogleNow(),
-                WebBrowser()  // Double browser view, may be later make this
+                WebBrowser(),  // Double browser view, may be later make this
+                BatterySpeech()
         )
 
         fun init(context: Context)
                 = allActions.forEach { it.init(context) }
 
-        fun getAction(context:Context, action:String):ActionItem?
-                = allActions.firstOrNull { it.isAction(context, action)  }
+        fun getAction(context: Context, action: String): ActionItem?
+                = allActions.firstOrNull { it.isAction(context, action) }
 
         fun getActions(): Array<ActionItem>
                 = allActions
     }
 
-    interface ActionItem
-    {
-        fun init(context: Context){}
-        fun action():String
+    interface ActionItem {
+        fun init(context: Context) {}
+        fun action(): String
         fun isAction(context: Context, action: String): Boolean = action == action()
         fun name(context: Context): String = action()
-        fun icon(context: Context): Drawable =  context.getDrawable(android.R.color.transparent)
+        fun icon(context: Context): Drawable = context.getDrawable(android.R.color.transparent)
         fun run(context: Context): Boolean
     }
 
@@ -52,9 +54,8 @@ class GestureAction
     /**
      * Screen ON
      */
-    class ActionScreenOn :ActionItem
-    {
-        override fun action():String =  "screen.on"
+    class ActionScreenOn : ActionItem {
+        override fun action(): String = "screen.on"
 
         override fun name(context: Context): String
                 = context.getString(R.string.ui_screen_on)
@@ -72,39 +73,34 @@ class GestureAction
      * Common speech class
      */
 
-    interface ActionItemSpeech:ActionItem, TextToSpeech.OnInitListener
-    {
-        companion object{
-            var tts:TextToSpeech? = null
+    interface ActionItemSpeech : ActionItem, TextToSpeech.OnInitListener {
+        companion object {
+            var tts: TextToSpeech? = null
             var values = arrayOf<String>()
             var isInit = false
         }
 
-        fun doSpeech(context: Context, value:String):Boolean
-        {
+        fun doSpeech(context: Context, value: String): Boolean {
             init(context)
             GestureService.UI.vibrate(context)
             GestureService.UI.playNotifyToEnd(context)
 
-            if (isInit){
+            if (isInit) {
                 doIntSpeak(value)
-            }else {
+            } else {
                 values += value
             }
             return false
         }
 
-        override fun init(context: Context)
-        {
+        override fun init(context: Context) {
             if (tts == null) {
                 tts = TextToSpeech(context, this)
             }
         }
 
-        override fun onInit(status: Int)
-        {
-            if(status != TextToSpeech.SUCCESS)
-            {
+        override fun onInit(status: Int) {
+            if (status != TextToSpeech.SUCCESS) {
                 values = emptyArray()
                 tts = null
                 return
@@ -116,13 +112,13 @@ class GestureAction
             }
             values = emptyArray()
         }
-        fun doIntSpeak(value:String)
-        {
+
+        fun doIntSpeak(value: String) {
             if (tts == null) return
 
             tts?.language = Locale.getDefault()
             tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null)
-            while (tts?.isSpeaking == true){
+            while (tts?.isSpeaking == true) {
                 Thread.sleep(100)
             }
         }
@@ -131,8 +127,7 @@ class GestureAction
     /**
      * Time speech action
      */
-    class ActionSpeechTime:ActionItemSpeech
-    {
+    class ActionSpeechTime : ActionItemSpeech {
         override fun action(): String
                 = "speech.time"
 
@@ -142,11 +137,34 @@ class GestureAction
         override fun icon(context: Context): Drawable
                 = context.getDrawable(R.drawable.icon_speech_time)
 
-        override fun run(context: Context): Boolean
-        {
+        override fun run(context: Context): Boolean {
             val result = MessageFormat.format("{0,time,short}", Date())
             Log.d("Time is", result)
             return doSpeech(context, result)
+        }
+    }
+
+    /**
+     * Speech battery percent
+     */
+    class BatterySpeech : ActionItemSpeech
+    {
+        override fun action(): String
+                = "speech.battery"
+
+        override fun name(context: Context): String
+                = context.getString(R.string.ui_action_speech_battery)
+
+        override fun icon(context: Context): Drawable
+                = context.getDrawable(R.drawable.icon_speech_battery)
+
+        override fun run(context: Context): Boolean
+        {
+            val bm = context.getSystemService(BATTERY_SERVICE) as BatteryManager
+            val batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            val prefix = context.getString(R.string.ui_action_battery)
+
+            return doSpeech(context, "$prefix $batLevel%")
         }
     }
 

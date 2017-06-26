@@ -53,6 +53,8 @@
     <string name="ui_speech_time">Speech time</string>
     <string name="ui_ok_google">OK Google</string>
     <string name="ui_web_browser">Browser</string>
+    <string name="ui_action_battery">Charged</string>
+    <string name="ui_action_speech_battery">Speech battery level</string>
 
     <!-- Strings related to Settings -->
 
