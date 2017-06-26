@@ -492,7 +492,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     var items:List<Any> = emptyList()
                     items += AppListItem(preference.context, "none")
 
-                    GestureAction.getInstance(context).getActions()
+                    GestureAction(context).getActions()
                             .filter { it.action()!="" }
                             .forEach { items += AppListItem(context, it) }
 
@@ -562,9 +562,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     "" ->  return context.getString(R.string.ui_default_action)
                     "none"  -> return context.getString(R.string.ui_no_action)
                     "wait" -> return context.getString(R.string.ui_wait_app)
-                    is ActionItem -> return item.name(context)
-                    is String -> return GestureAction.getInstance(context)
-                            .getAction(item)?.name(context) ?: ""
+                    is ActionItem -> return item.name()
+                    is String -> return GestureAction(context)
+                            .getAction(item)?.name() ?: ""
                 }
                 return ""
             }
@@ -573,9 +573,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 when(item){
                     is AppListItem -> return item.icon
                     is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
-                    is ActionItem -> return item.icon(context)
-                    is String -> return GestureAction.getInstance(context)
-                            .getAction(item)?.icon(context) ?: context.getDrawable(android.R.color.transparent)
+                    is ActionItem -> return item.icon()
+                    is String -> return GestureAction(context)
+                            .getAction(item)?.icon() ?: context.getDrawable(android.R.color.transparent)
                 }
                 return context.getDrawable(android.R.color.transparent)
             }

@@ -9,12 +9,13 @@ import java.util.*
  * Common speech class
  */
 
-interface ActionSpeechItem : ActionItem, TextToSpeech.OnInitListener {
+interface ActionSpeechItem : ActionItem, TextToSpeech.OnInitListener
+{
     companion object {
         var tts: TextToSpeech? = null
     }
 
-    fun doSpeech(context: Context, value: String): Boolean
+    fun doSpeech(value: String): Boolean
     {
         GestureService.UI.vibrate(context)
         GestureService.UI.playNotifyToEnd(context)
@@ -25,7 +26,7 @@ interface ActionSpeechItem : ActionItem, TextToSpeech.OnInitListener {
         return false
     }
 
-    override fun onStart(context: Context)
+    override fun onStart()
     {
         if (tts != null) return
         tts = TextToSpeech(context, this)

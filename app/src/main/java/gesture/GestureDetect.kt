@@ -260,7 +260,6 @@ class GestureDetect private constructor (val context:Context)
     companion object
     {
         private var gs:GestureDetect? = null
-        private var ac:GestureAction? = null
 
         fun getInstance(context:Context):GestureDetect
         {

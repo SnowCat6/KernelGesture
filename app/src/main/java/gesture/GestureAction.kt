@@ -4,40 +4,26 @@ import android.content.Context
 import gesture.action.*
 
 
-class GestureAction private constructor(val context:Context)
+class GestureAction(val context:Context)
 {
-    companion object
-    {
-        var ga:GestureAction? = null
-        fun getInstance(context:Context):GestureAction
-        {
-            if (ga == null) {
-                ga = GestureAction(context)
-            }
-            return ga!!
-        }
-    }
     private val allActions = arrayOf(
-            ActionScreenOn(),
-            ActionGoogleNow(),
-            ActionSpeechTime(),
-            ActionSpeechBattery(),
-            ActionWebBrowser(),
-            ActionCamera()
+            ActionScreenOn(context),
+            ActionGoogleNow(context),
+            ActionSpeechTime(context),
+            ActionSpeechBattery(context),
+            ActionWebBrowser(context),
+            ActionCamera(context)
     )
 
-    init{
-        onStart()
-    }
-
     fun onStart() {
-       allActions.forEach { it.onStart(context) }
+       allActions.forEach { it.onStart() }
     }
     fun onStop(){
+        allActions.forEach { it.onStop() }
     }
 
     fun getAction(action: String): ActionItem?
-            = allActions.firstOrNull { it.isAction(context, action) }
+            = allActions.firstOrNull { it.isAction(action) }
 
     fun getActions(): Array<ActionItem>
             = allActions

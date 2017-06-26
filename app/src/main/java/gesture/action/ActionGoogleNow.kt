@@ -10,16 +10,16 @@ import ru.vpro.kernelgesture.R
 /**
  * Action OK Google
  */
-class ActionGoogleNow : ActionItem {
+class ActionGoogleNow(override val context: Context) : ActionItem {
     override fun action(): String = "google.ok"
 
-    override fun name(context: Context): String
+    override fun name(): String
             = context.getString(R.string.ui_ok_google)
 
-    override fun icon(context: Context): Drawable
+    override fun icon(): Drawable
             = context.getDrawable(R.drawable.icon_ok_google)
 
-    override fun run(context: Context): Boolean
+    override fun run(): Boolean
     {
         GestureService.UI.screenON(context)
         GestureService.UI.screenUnlock(context)

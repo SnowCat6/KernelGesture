@@ -8,16 +8,16 @@ import ru.vpro.kernelgesture.R
 /**
  * Screen ON
  */
-class ActionScreenOn : ActionItem {
+class ActionScreenOn(override val context: Context) : ActionItem {
     override fun action(): String = "screen.on"
 
-    override fun name(context: Context): String
+    override fun name(): String
             = context.getString(R.string.ui_screen_on)
 
-    override fun icon(context: Context): Drawable
+    override fun icon(): Drawable
             = context.getDrawable(R.drawable.icon_screen_on)
 
-    override fun run(context: Context): Boolean {
+    override fun run(): Boolean {
         GestureService.UI.screenON(context)
         return true
     }

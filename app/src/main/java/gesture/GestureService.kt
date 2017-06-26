@@ -33,7 +33,6 @@ class GestureService : Service(), SensorEventListener {
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
 
-    private var ga:GestureAction? = null //GestureAction.getInstance(this)
     private var gesture:GestureDetect? = null// GestureDetect.getInstance(this)
 
     /************************************/
@@ -52,10 +51,10 @@ class GestureService : Service(), SensorEventListener {
         bRunning = true
 
         thread {
-            ga = GestureAction.getInstance(this)
+            val ga = GestureAction(this)
             gesture = GestureDetect.getInstance(this)
 
-            ga?.onStart()
+            ga.onStart()
             gesture?.lock = false
 
             //  Preload notify
@@ -77,7 +76,7 @@ class GestureService : Service(), SensorEventListener {
             //  Wait gesture while live
             while (gesture?.lock != true) {
                 val ev = gesture?.waitGesture() ?: break
-                if (onGestureEvent(ev)) break
+                if (onGestureEvent(ga, ev)) break
             }
             //  Mark thread stopped
             bRunning = false
@@ -87,9 +86,8 @@ class GestureService : Service(), SensorEventListener {
             if (bProximityEnable) {
                 mSensorManager?.unregisterListener(this)
             }
+            ga.onStop()
         }.priority = MAX_PRIORITY
-
-        ga?.onStop()
     }
     /************************************/
     /*
@@ -168,7 +166,7 @@ class GestureService : Service(), SensorEventListener {
         return super.stopService(name)
     }
 
-    fun onGestureEvent(gestureKey:String):Boolean
+    fun onGestureEvent(ga:GestureAction, gestureKey:String):Boolean
     {
         var action:String? = GestureDetect.getAction(this, gestureKey)
 
@@ -181,8 +179,8 @@ class GestureService : Service(), SensorEventListener {
             Log.d("Gesture action", gestureKey)
         }
 
-        val a = ga?.getAction(action)
-        if (a != null) return a.run(this)
+        val a = ga.getAction(action)
+        if (a != null) return a.run()
 /*
             "screen.on"
             "player.next"

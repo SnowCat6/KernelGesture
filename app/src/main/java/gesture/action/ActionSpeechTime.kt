@@ -10,19 +10,19 @@ import java.util.*
 /**
  * Time speech action
  */
-class ActionSpeechTime : ActionSpeechItem {
+class ActionSpeechTime(override val context: Context) : ActionSpeechItem {
     override fun action(): String
             = "speech.time"
 
-    override fun name(context: Context): String
+    override fun name(): String
             = context.getString(R.string.ui_speech_time)
 
-    override fun icon(context: Context): Drawable
+    override fun icon(): Drawable
             = context.getDrawable(R.drawable.icon_speech_time)
 
-    override fun run(context: Context): Boolean {
+    override fun run(): Boolean {
         val result = MessageFormat.format("{0,time,short}", Date())
         Log.d("Time is", result)
-        return doSpeech(context, result)
+        return doSpeech(result)
     }
 }

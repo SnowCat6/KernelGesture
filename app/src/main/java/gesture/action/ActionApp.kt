@@ -15,9 +15,9 @@ interface ActionApp : ActionItem
 {
     var applicationInfo: ApplicationInfo?
 
-    fun init(context: Context, intent: Intent){
+    fun onCreate(intent: Intent)
+    {
         val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-
         // This is the default browser's packageName
         applicationInfo = resolveInfo.activityInfo.applicationInfo
     }
@@ -25,15 +25,15 @@ interface ActionApp : ActionItem
     override fun action(): String
             = applicationInfo?.packageName ?: ""
 
-    override fun name(context: Context): String
+    override fun name(): String
             = context.packageManager.getApplicationLabel(applicationInfo).toString()
 
-    override fun icon(context: Context): Drawable {
-        if (applicationInfo == null) return super.icon(context)
+    override fun icon(): Drawable {
+        if (applicationInfo == null) return super.icon()
         return context.packageManager.getApplicationIcon(applicationInfo)
     }
 
-    override fun run(context: Context): Boolean
+    override fun run(): Boolean
     {
         if (applicationInfo == null) return false
 
