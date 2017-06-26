@@ -24,8 +24,8 @@ class GestureAction
         private val allActions = arrayOf(
                 ActionScreenOn(),
                 ActionSpeechTime(),
-                GoogleNow()
-//                WebBrowser()  // Double browser view, may be later make this
+                GoogleNow(),
+                WebBrowser()  // Double browser view, may be later make this
         )
 
         fun init(context: Context)
@@ -85,7 +85,6 @@ class GestureAction
             init(context)
             GestureService.UI.vibrate(context)
             GestureService.UI.playNotifyToEnd(context)
-            Thread.sleep(200)
 
             if (isInit){
                 doIntSpeak(value)
@@ -215,5 +214,7 @@ class GestureAction
             // This is the default browser's packageName
             applicationInfo = resolveInfo.activityInfo.applicationInfo
         }
+
+        override fun name(context: Context): String = context.getString(R.string.ui_web_browser)
     }
 }

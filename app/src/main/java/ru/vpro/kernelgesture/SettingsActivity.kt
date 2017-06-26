@@ -442,10 +442,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
         val onClickListener = DialogInterface.OnClickListener() { dialogInterface: DialogInterface, i: Int ->
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
-            val item = adapter.getItem(i)
-            if (item == "wait") return@OnClickListener
+            val item = adapter.getItem(i) as? AppListItem ?: return@OnClickListener
+            //            if (item == "wait") return@OnClickListener
 
-            val preference = adapter.getPreference() as TwoStatePreference
+            val preference = adapter.preference as TwoStatePreference
 
             val action =  UI.action(preference.context, item)
             if (BuildConfig.DEBUG) {
@@ -475,6 +475,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             internal var objects = listOf<Any>("wait")
             internal val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            internal val context = preference.context
 
             init{
 
@@ -490,20 +491,21 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     GestureAction.getActions()
                             .filter { it.action()!="" }
-                            .forEach { items += AppListItem(preference.context, it) }
+                            .forEach { items += AppListItem(context, it) }
+
+                    items += "-"
 
                     pkgAppsList.forEach {
-                        items += AppListItem(preference.context, it.activityInfo.applicationInfo)
+                        items += AppListItem(context, it.activityInfo.applicationInfo)
                     }
 
-                    Handler(preference.context.mainLooper).post {
+                    Handler(context.mainLooper).post {
                         objects = items
                         notifyDataSetChanged()
                     }
                 }
             }
 
-            fun getPreference():Preference = preference
             //  Количество объектов
             override fun getCount(): Int = objects.size
             //  Объект
@@ -513,16 +515,21 @@ class SettingsActivity : AppCompatPreferenceActivity()
             // пункт списка
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
             {
+                val thisItem = getItem(position)
+                if (thisItem is String && thisItem == "-") {
+                    if (convertView != null && convertView.findViewById(R.id.splitter) != null)
+                        return convertView
+                    return lInflater.inflate(R.layout.adapter_splitter, parent, false)
+                }
                 // используем созданные, но не используемые view
                 val view: View
-                if (convertView == null) {
-                    view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
+                if (convertView == null || convertView.findViewById(R.id.splitter) != null) {
+                   view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
                 }else view = convertView
 
-                val thisItem = getItem(position)
                 (view.findViewById(R.id.title) as TextView).text = UI.name(preference.context, thisItem)
 
-                val icon = UI.icon(preference.context, thisItem)
+                val icon = UI.icon(context, thisItem)
                 (view.findViewById(R.id.icon) as ImageView).setImageDrawable(icon)
 
                 return view

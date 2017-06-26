@@ -52,4 +52,5 @@
     <string name="ui_unlock_screen_on">Автоматически разблокировать экран</string>
     <string name="ui_speech_time">Сказать время</string>
     <string name="ui_ok_google">OK Google</string>
+    <string name="ui_web_browser">Браузер</string>
 </resources>
