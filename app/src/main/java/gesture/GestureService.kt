@@ -52,7 +52,8 @@ class GestureService : Service(), SensorEventListener {
 
         thread {
             val ga = GestureAction(this)
-            gesture = GestureDetect.getInstance(this)
+            if (gesture == null)
+                gesture = GestureDetect(this)
 
             ga.onStart()
             gesture?.lock = false
@@ -99,8 +100,7 @@ class GestureService : Service(), SensorEventListener {
     {
         // If registered use proximity - change value detector
         if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
-        val gesture = GestureDetect.getInstance(this)
-        gesture.isNear = event.values[0].toInt() == 0
+        gesture?.isNear = event.values[0].toInt() == 0
     }
     /************************************/
     /*
@@ -162,6 +162,7 @@ class GestureService : Service(), SensorEventListener {
     {
         gesture?.lock = true
         gesture?.close()
+
         unregisterReceiver(onScreenIntent)
         return super.stopService(name)
     }

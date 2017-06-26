@@ -19,7 +19,7 @@ import java.util.*
 import java.util.concurrent.Semaphore
 
 
-class GestureDetect private constructor (val context:Context)
+class GestureDetect (val context:Context)
 {
     /**
      * Input devices
@@ -34,7 +34,7 @@ class GestureDetect private constructor (val context:Context)
      * Sensor devices
      */
     private val sensorHandlers = arrayOf(
-            SensorProximity(context)
+            SensorProximity(this)
     )
 
     /**
@@ -75,7 +75,6 @@ class GestureDetect private constructor (val context:Context)
      * CODE
      */
     init{
-        gs = this
         detectDevices()
     }
 
@@ -132,7 +131,7 @@ class GestureDetect private constructor (val context:Context)
             if (ix < 0) continue
 
             val n = line.substring(ix + 5).trim('"')
-            bThisEntry = handler.onDetect(n)
+            bThisEntry = handler.onDetect(this, n)
         }
         return null
     }
@@ -208,7 +207,7 @@ class GestureDetect private constructor (val context:Context)
                     Log.d("Event detected", line)
                 }
                 //  Get gesture
-                val gesture = second.onEvent(line) ?: break
+                val gesture = second.onEvent(this, line) ?: break
                 //  Check gesture enable
                 if (!getEnable(context, gesture)) break
                 //  Close cmd events
@@ -246,6 +245,8 @@ class GestureDetect private constructor (val context:Context)
         if (supported.contains(value)) return
         supported += value
     }
+    fun addSupport(value:Array<String>)
+            = value.forEach { addSupport(it) }
 
     private fun toast(value:String)
     {
@@ -259,26 +260,15 @@ class GestureDetect private constructor (val context:Context)
 
     companion object
     {
-        private var gs:GestureDetect? = null
-
-        fun getInstance(context:Context):GestureDetect
-        {
-            if (gs == null)
-                GestureDetect(context)
-
-            return gs!!
-        }
-        fun sensorEvent(event:String):Boolean {
-            return gs?.sensorEvent(event) ?: false
-        }
-
         fun getAllEnable(context: Context): Boolean
         {
             return getEnable(context, "GESTURE_ENABLE")
         }
         fun setAllEnable(context: Context, value: Boolean) {
             setEnable(context, "GESTURE_ENABLE", value)
-            gs?.enable(value)
+
+            val gs = GestureDetect(context)
+            gs.enable(value)
         }
         fun getEnable(context: Context, key: String): Boolean {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
@@ -497,12 +487,9 @@ class GestureDetect private constructor (val context:Context)
 
     object SUPPORT
     {
-        fun add(value:Array<String>)
-                = value.forEach { gs?.addSupport(it) }
-
         fun get(context:Context):Array<String>
         {
-            val gs = getInstance(context)
+            val gs = GestureDetect(context)
 /*
         if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
         {

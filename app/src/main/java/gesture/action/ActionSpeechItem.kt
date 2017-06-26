@@ -1,6 +1,5 @@
 package gesture.action
 
-import android.content.Context
 import android.speech.tts.TextToSpeech
 import gesture.GestureService
 import java.util.*
@@ -21,7 +20,7 @@ interface ActionSpeechItem : ActionItem, TextToSpeech.OnInitListener
         GestureService.UI.playNotifyToEnd(context)
 
         tts?.language = Locale.getDefault()
-        tts?.speak(value, TextToSpeech.QUEUE_ADD, null)
+        tts?.speak(value, TextToSpeech.QUEUE_ADD, null, "")
 
         return false
     }
@@ -40,6 +39,6 @@ interface ActionSpeechItem : ActionItem, TextToSpeech.OnInitListener
         }
 
         tts?.language = Locale.getDefault()
-        tts?.speak("", TextToSpeech.QUEUE_FLUSH, null)
+        tts?.speak("", TextToSpeech.QUEUE_FLUSH, null, "")
     }
 }

@@ -7,11 +7,10 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
 import gesture.GestureDetect
-import gesture.drivers.sensor.SensorHandler
 import ru.vpro.kernelgesture.BuildConfig
 import java.util.*
 
-open class SensorProximity(val context: Context) : SensorHandler, SensorEventListener
+open class SensorProximity(override val gesture: GestureDetect) : SensorHandler, SensorEventListener
 {
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
@@ -28,16 +27,17 @@ open class SensorProximity(val context: Context) : SensorHandler, SensorEventLis
 
     override fun onDetect(): Boolean
     {
-        mSensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mSensorManager = gesture.context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         if (mProximity == null) return false
 
-        GestureDetect.SUPPORT.add(arrayOf("PROXIMITY", "KEY_PROXIMITY"))
+        gesture.addSupport(arrayOf("PROXIMITY", "KEY_PROXIMITY"))
         return true
     }
 
-    override fun onStart() {
-        if (!GestureDetect.getEnable(context, "KEY_PROXIMITY"))
+    override fun onStart()
+    {
+        if (!GestureDetect.getEnable(gesture.context, "KEY_PROXIMITY"))
             return
 
         bRegisterEvent = true

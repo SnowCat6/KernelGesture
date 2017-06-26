@@ -1,12 +1,10 @@
 package gesture.action
 
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import gesture.GestureService
-import gesture.action.ActionItem
 
 /**
  * Action common class

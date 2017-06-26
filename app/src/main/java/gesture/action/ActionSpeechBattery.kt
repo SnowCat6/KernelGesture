@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Context.BATTERY_SERVICE
 import android.graphics.drawable.Drawable
 import android.os.BatteryManager
-import gesture.action.ActionSpeechItem
 import ru.vpro.kernelgesture.R
 
 /**

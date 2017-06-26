@@ -7,15 +7,15 @@ SunXI tablet
  */
 open class InputSunXi_KPD : InputHandler
 {
-    override fun onDetect(name:String):Boolean {
+    override fun onDetect(gesture:GestureDetect, name:String):Boolean {
         if (!arrayOf("sun4i-keyboard")
                 .contains(name.toLowerCase())) return false
 
-        GestureDetect.SUPPORT.add(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+        gesture.addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
         return true
     }
 
-    override fun onEvent(line: String): String? {
+    override fun onEvent(gesture:GestureDetect, line: String): String? {
         val arg = line.replace(Regex("\\s+"), " ").split(" ")
         if (arg[0] != "EV_KEY") return null
 

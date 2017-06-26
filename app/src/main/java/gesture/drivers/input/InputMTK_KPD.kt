@@ -42,23 +42,23 @@ open class InputMTK_KPD : InputHandler
         else GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
     }
 
-    override fun onDetect(name:String): Boolean
+    override fun onDetect(gesture:GestureDetect, name:String): Boolean
     {
         if (name.toLowerCase() != "mtk-kpd") return false
-        GestureDetect.SUPPORT.add(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+        gesture.addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
 
         if (HCT_GESTURE_IO == null) {
             for (it in HCT_GESTURE_PATH) {
                 if (!GestureDetect.SU.isFileExists(it.detectFile)) continue
                 HCT_GESTURE_IO = it
-                GestureDetect.SUPPORT.add(arrayOf("GESTURE"))
+                gesture.addSupport(arrayOf("GESTURE"))
                 break
             }
         }
         return true
     }
 
-    override fun onEvent(line:String):String?
+    override fun onEvent(gesture:GestureDetect, line:String):String?
     {
         val arg = line.replace(Regex("\\s+"), " ").split(" ")
         if (arg[0] != "EV_KEY") return null
@@ -73,7 +73,7 @@ open class InputMTK_KPD : InputHandler
     //  HCT gesture give from file
     private fun onEventHCT():String?
     {
-        val keys = arrayOf<Pair<String,String>>(
+        val keys = arrayOf(
                 Pair("UP",          "KEY_UP"),
                 Pair("DOWN",        "KEY_DOWN"),
                 Pair("LEFT",        "KEY_LEFT"),
@@ -97,7 +97,7 @@ open class InputMTK_KPD : InputHandler
     //  Oukitel K4000 device gesture
     private fun onEventOKK(key:String):String?
     {
-        val keys = arrayOf<Pair<String,String>>(
+        val keys = arrayOf(
                 Pair("BTN_PINKIE",  "KEY_UP"),
                 Pair("BTN_BASE",    "KEY_DOWN"),
                 Pair("BTN_BASE2",   "KEY_LEFT"),

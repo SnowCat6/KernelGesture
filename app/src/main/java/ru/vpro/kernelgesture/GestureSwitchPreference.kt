@@ -1,18 +1,12 @@
 package ru.vpro.kernelgesture
 
 import android.content.Context
-import android.preference.Preference
 import android.preference.SwitchPreference
 import android.util.AttributeSet
 import android.widget.Switch
 import android.view.View
-import android.widget.Checkable
 import android.widget.CompoundButton
 
-
-/**
- * Created by Костя on 30.05.2017.
- */
 class GestureSwitchPreference(context: Context, attrs: AttributeSet) :
         SwitchPreference(context, attrs)
 {
