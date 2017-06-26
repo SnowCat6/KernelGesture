@@ -16,6 +16,6 @@ open class InputFT5x06_ts : InputHandler
 
     override fun setEnable(enable: Boolean)
     {
-        GestureDetect.Companion.SU.exec("echo ${if (enable)1 else 0} > sys/class/gesture/gesture_ft5x06/enable")
+        GestureDetect.SU.exec("echo ${if (enable)1 else 0} > sys/class/gesture/gesture_ft5x06/enable")
     }
 }

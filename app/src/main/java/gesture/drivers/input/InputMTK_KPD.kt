@@ -36,8 +36,8 @@ open class InputMTK_KPD() : InputHandler
     {
         if (HCT_GESTURE_IO == null) return
 
-        if (enable) GestureDetect.Companion.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
-        else GestureDetect.Companion.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
+        if (enable) GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
+        else GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
     }
 
     override fun onDetect(name:String): Boolean
@@ -47,7 +47,7 @@ open class InputMTK_KPD() : InputHandler
 
         if (HCT_GESTURE_IO == null) {
             for (it in HCT_GESTURE_PATH) {
-                if (!GestureDetect.Companion.SU.isFileExists(it.detectFile)) continue
+                if (!GestureDetect.SU.isFileExists(it.detectFile)) continue
                 HCT_GESTURE_IO = it
                 GestureDetect.SUPPORT.add(arrayOf("GESTURE"))
                 break
@@ -89,7 +89,7 @@ open class InputMTK_KPD() : InputHandler
 
         if (HCT_GESTURE_IO == null) return null
         //  get gesture name
-        val gs = GestureDetect.Companion.SU.getFileLine(HCT_GESTURE_IO!!.getGesture)
+        val gs = GestureDetect.SU.getFileLine(HCT_GESTURE_IO!!.getGesture)
         return GestureDetect.GS.runGesture(gs, keys)
     }
     //  Oukitel K4000 device gesture

@@ -72,6 +72,7 @@ class GestureDetect private constructor (val context:Context)
      * CODE
      */
     init{
+        gs = this
         detectDevices()
     }
 
@@ -261,7 +262,7 @@ class GestureDetect private constructor (val context:Context)
         fun getInstance(context:Context):GestureDetect
         {
             if (gs == null)
-                gs = GestureDetect(context)
+                GestureDetect(context)
 
             return gs!!
         }
@@ -345,109 +346,111 @@ class GestureDetect private constructor (val context:Context)
         {
             return SU.processSU != null
         }
-        /**
-         * SuperSU wrapper
-         */
-        object SU
+
+    }
+    /**
+     * SuperSU wrapper
+     */
+    object SU
+    {
+        var processSU: Process? = null
+        var errorSU: BufferedReader? = null
+        var readerSU: BufferedReader? = null
+        var writerSU: OutputStream? = null
+        val lockSU = Semaphore(1)
+
+        fun open(): Process?
         {
-            var processSU: Process? = null
-            var errorSU: BufferedReader? = null
-            var readerSU: BufferedReader? = null
-            var writerSU: OutputStream? = null
-            val lockSU = Semaphore(1)
+            try{
+                val exit = processSU?.exitValue()
+                if (exit != null) close()
+            }catch (e:Exception){}
 
-            fun open(): Process?
-            {
-                try{
-                    val exit = processSU?.exitValue()
-                    if (exit != null) close()
-                }catch (e:Exception){}
-
-                if (processSU != null)
-                    return processSU
-
-                lockSU.acquire()
-                try {
-                    processSU = Runtime.getRuntime().exec("su")
-                    readerSU = processSU?.inputStream?.bufferedReader()
-                    errorSU = processSU?.errorStream?.bufferedReader()
-                    writerSU = processSU?.outputStream
-
-                    exec("id")
-                    val id = readExecLine()?.contains("root")
-                    if (id == null || id == false) close()
-
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                   close()
-                }
-                lockSU.release()
+            if (processSU != null)
                 return processSU
+
+            lockSU.acquire()
+            try {
+                processSU = Runtime.getRuntime().exec("su")
+                readerSU = processSU?.inputStream?.bufferedReader()
+                errorSU = processSU?.errorStream?.bufferedReader()
+                writerSU = processSU?.outputStream
+
+                exec("id")
+                val id = readExecLine()?.contains("root")
+                if (id == null || id == false) close()
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                close()
             }
+            lockSU.release()
+            return processSU
+        }
 
-            fun exec(cmd: String): Boolean
-            {
-                SU.open()
-                try {
-                    writerSU?.write("$cmd\n".toByteArray())
-                    writerSU?.flush()
-                }catch (e:Exception){
-                    e.printStackTrace()
-                    return false
-                }
-
-                if (BuildConfig.DEBUG) {
-                    Log.d("GestureDetect exec", "$cmd\n")
-                }
-
-                return true
-            }
-
-            fun close(){
-                if (processSU == null) return
-                try {
-                    processSU?.destroy()
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                processSU = null
-                writerSU = null
-                readerSU = null
-                errorSU = null
-            }
-
-            fun getFileLine(name: String): String? {
-                if (exec("echo $(cat $name)")) return readExecLine()
-                return null
-            }
-
-            fun isFileExists(name: String): Boolean {
-                if (exec("[ -f $name ] && echo 1 || echo 0")) {
-                    return readExecLine() == "1"
-                }
+        fun exec(cmd: String): Boolean
+        {
+            SU.open()
+            try {
+                writerSU?.write("$cmd\n".toByteArray())
+                writerSU?.flush()
+            }catch (e:Exception){
+                e.printStackTrace()
                 return false
             }
 
-            fun readExecLine(): String?
-            {
-                try {
-                    return  readerSU?.readLine()
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                return null
+            if (BuildConfig.DEBUG) {
+                Log.d("GestureDetect exec", "$cmd\n")
             }
 
-            fun readErrorLine() : String? {
-                try {
-                    return  errorSU?.readLine()
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                return null
+            return true
+        }
+
+        fun close(){
+            if (processSU == null) return
+            try {
+                processSU?.destroy()
+            }catch (e:Exception){
+                e.printStackTrace()
             }
+            processSU = null
+            writerSU = null
+            readerSU = null
+            errorSU = null
+        }
+
+        fun getFileLine(name: String): String? {
+            if (exec("echo $(cat $name)")) return readExecLine()
+            return null
+        }
+
+        fun isFileExists(name: String): Boolean {
+            if (exec("[ -f $name ] && echo 1 || echo 0")) {
+                return readExecLine() == "1"
+            }
+            return false
+        }
+
+        fun readExecLine(): String?
+        {
+            try {
+                return  readerSU?.readLine()
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
+            return null
+        }
+
+        fun readErrorLine() : String? {
+            try {
+                return  errorSU?.readLine()
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
+            return null
         }
     }
+
     object GS
     {
         fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):String?
@@ -495,7 +498,6 @@ class GestureDetect private constructor (val context:Context)
         fun get(context:Context):Array<String>
         {
             val gs = getInstance(context)
-            gs.detectDevices()
 /*
         if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
         {
