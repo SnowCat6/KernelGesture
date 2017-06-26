@@ -184,13 +184,14 @@ class GestureService() : Service(), SensorEventListener
         val a = GestureAction.getAction(this, action)
         if (a != null) return a.run(this)
 /*
-            "screen.on" ->{
-            "player.next" -> {
-            "player.prev" -> {
-            "player.playPause" -> {
-            "browser" ->{
-            "speech.time"->{
-            "okgoogle" ->{
+            "screen.on"
+            "player.next"
+            "player.prev"
+            "player.playPause"
+            "browser"
+            "speech.time"
+            "okgoogle"
+            "phone.call.#############"
 */
         try {
             UI.screenON(this)

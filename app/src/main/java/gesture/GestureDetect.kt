@@ -143,11 +143,15 @@ class GestureDetect private constructor()
         sensorDevices.forEach { it.onStart() }
 
         //  For each device
+        var ix = 0
         inputDevices.forEach { (inputName, device) ->
             //  Power on gesture if available, many drivers not set this value if screen off
             device.setEnable(true)
             //  Run input event detector
-            SU.exec("while v=$(getevent -c 2 -l $inputName)  ; do echo $inputName\\\\n\"\$v\$v\">&2 ; done &")
+            ++ix
+            SU.exec("while v$ix=$(getevent -c 2 -l $inputName)  ; do echo $inputName\\\\n\"\$v$ix\$v$ix\">&2 ; done &")
+            ++ix
+            SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done &")
         }
 
         SU.exec("echo query$queryIx>&2")
