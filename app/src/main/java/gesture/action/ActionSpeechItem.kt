@@ -24,7 +24,7 @@ interface ActionSpeechItem : ActionItem, TextToSpeech.OnInitListener {
         return false
     }
 
-    override fun init(context: Context)
+    override fun onStart(context: Context)
     {
         if (tts != null) return
         tts = TextToSpeech(context, this)

@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 
 interface ActionItem {
-    fun init(context: Context) {}
+    fun onStart(context: Context) {}
     fun action(): String
     fun isAction(context: Context, action: String): Boolean = action == action()
     fun name(context: Context): String = action()

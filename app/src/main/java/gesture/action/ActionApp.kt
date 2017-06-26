@@ -1,8 +1,11 @@
 package gesture
 
 import android.content.Context
+import android.content.Intent
 import android.content.pm.ApplicationInfo
+import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.net.Uri
 
 /**
  * Action common class
@@ -10,6 +13,13 @@ import android.graphics.drawable.Drawable
 interface ActionApp : ActionItem
 {
     var applicationInfo: ApplicationInfo?
+
+    fun init(context: Context, intent: Intent){
+        val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+
+        // This is the default browser's packageName
+        applicationInfo = resolveInfo.activityInfo.applicationInfo
+    }
 
     override fun action(): String
             = applicationInfo?.packageName ?: ""

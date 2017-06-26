@@ -16,13 +16,9 @@ class ActionCamera : ActionApp
     override fun action(): String
             = if (applicationInfo?.packageName != null) "application.camera" else ""
 
-    override fun init(context: Context)
+    override fun onStart(context: Context)
     {
-        val browserIntent = Intent("android.media.action.IMAGE_CAPTURE")
-        val resolveInfo = context.packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
-
-        // This is the default browser's packageName
-        applicationInfo = resolveInfo.activityInfo.applicationInfo
+        init(context,Intent("android.media.action.IMAGE_CAPTURE"))
     }
 
     override fun name(context: Context): String

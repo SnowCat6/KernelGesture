@@ -17,14 +17,8 @@ class ActionWebBrowser : ActionApp
     override fun action(): String
             = if (applicationInfo?.packageName != null) "application.browser" else ""
 
-    override fun init(context: Context)
-    {
-        val browserIntent = Intent("android.intent.action.VIEW", Uri.parse("http://"))
-        val resolveInfo = context.packageManager.resolveActivity(browserIntent, PackageManager.MATCH_DEFAULT_ONLY)
-
-        // This is the default browser's packageName
-        applicationInfo = resolveInfo.activityInfo.applicationInfo
-    }
+    override fun onStart(context: Context)
+            = init(context, Intent("android.intent.action.VIEW", Uri.parse("http://")))
 
     override fun name(context: Context): String = context.getString(R.string.ui_web_browser)
 }

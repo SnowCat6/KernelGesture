@@ -25,11 +25,14 @@ class GestureAction private constructor(val context:Context)
             ActionCamera()
     )
 
+    init{
+        onStart()
+    }
+
     fun onStart() {
-       allActions.forEach { it.init(context) }
+       allActions.forEach { it.onStart(context) }
     }
     fun onStop(){
-
     }
 
     fun getAction(action: String): ActionItem?
