@@ -20,41 +20,44 @@ import ru.vpro.kernelgesture.BuildConfig
 import java.lang.Thread.MAX_PRIORITY
 
 
-class GestureService() : Service(), SensorEventListener
-{
+class GestureService() : Service(), SensorEventListener {
+
     companion object
     {
-        private var bRunning = false
-
-        private var ringtone:Ringtone? = null
-
-        private var mSensorManager: SensorManager? = null
-        private var mProximity: Sensor? = null
-
+        private var ringtone: Ringtone? = null
         var keyguardLock: KeyguardManager.KeyguardLock? = null
     }
+
+    private var bRunning = false
+
+    private var mSensorManager: SensorManager? = null
+    private var mProximity: Sensor? = null
+
+    private var ga:GestureAction? = null //GestureAction.getInstance(this)
+    private var gesture:GestureDetect? = null// GestureDetect.getInstance(this)
+
     /************************************/
     /*
     GESTURE DETECT
      */
     fun startGesture()
     {
-        val gesture = GestureDetect.getInstance(this)
-        gesture.lock = false
-
-        // If thread ruined return back
-        if (bRunning) return
-
         //  Disable run thread if gestures not use
         if (!GestureDetect.getAllEnable(this)){
-            gesture.close()
+            gesture?.close()
             return
         }
-
+        // If thread ruined return back
+        if (bRunning) return
         bRunning = true
-        gesture.lock = false
 
         thread {
+            ga = GestureAction.getInstance(this)
+            gesture = GestureDetect.getInstance(this)
+
+            ga?.onStart()
+            gesture?.lock = false
+
             //  Preload notify
             try {
                 ringtone = null
@@ -65,26 +68,28 @@ class GestureService() : Service(), SensorEventListener
 
             //  If proximity sensor used, register event
             val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
-            gesture.isNear = false
+            gesture?.isNear = false
             if (bProximityEnable) {
                 mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
             }
 
             //  Main gesture loop
             //  Wait gesture while live
-            while (!gesture.lock) {
-                val ev = gesture.waitGesture(this) ?: break
+            while (gesture?.lock != true) {
+                val ev = gesture?.waitGesture() ?: break
                 if (onGestureEvent(ev)) break
             }
             //  Mark thread stopped
             bRunning = false
-            gesture.lock = true
+            gesture?.lock = true
 
             //  Unregister even if this need
             if (bProximityEnable) {
                 mSensorManager?.unregisterListener(this)
             }
         }.priority = MAX_PRIORITY
+
+        ga?.onStop()
     }
     /************************************/
     /*
@@ -124,8 +129,6 @@ class GestureService() : Service(), SensorEventListener
         val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
 
-        GestureAction.init(this)
-
         //  If screen off - run thread
         if (!GestureDetect.isScreenOn(this)){
             startGesture()
@@ -151,8 +154,7 @@ class GestureService() : Service(), SensorEventListener
                     if (BuildConfig.DEBUG) {
                         Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
                     }
-                    val gesture = GestureDetect.getInstance(context)
-                    gesture.lock = true
+                    gesture?.lock = true
                 }
             }
         }
@@ -160,10 +162,8 @@ class GestureService() : Service(), SensorEventListener
 
     override fun stopService(name: Intent?): Boolean
     {
-        val gesture = GestureDetect.getInstance(this)
-
-        gesture.lock = true
-        gesture.close()
+        gesture?.lock = true
+        gesture?.close()
         unregisterReceiver(onScreenIntent)
         return super.stopService(name)
     }
@@ -181,7 +181,7 @@ class GestureService() : Service(), SensorEventListener
             Log.d("Gesture action", gestureKey)
         }
 
-        val a = GestureAction.getAction(this, action)
+        val a = ga?.getAction(action)
         if (a != null) return a.run(this)
 /*
             "screen.on"

@@ -25,6 +25,7 @@ import kotlin.concurrent.thread
 
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
+import gesture.ActionItem
 import gesture.GestureAction
 import ru.vpro.kernelgesture.SettingsActivity.GesturePreferenceFragment.Companion.getItemInstance
 
@@ -366,7 +367,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
 
                     if (bRoot) {
-                        thisSupport = GestureDetect.getInstance(preference.context).getSupport(preference.context)
+                        thisSupport = GestureDetect.SUPPORT.get(preference.context)
                         mainHandler.post {
                             thisFragment?.updateGesturesDetect(thisSupport!!, !bHasRoot)
                         }
@@ -381,7 +382,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         thisFragment?.updateGesturesDetect(thisSupport!!, false)
                     }else{
                         thread{
-                            thisSupport = GestureDetect.getInstance(preference.context).getSupport(preference.context)
+                            thisSupport = GestureDetect.SUPPORT.get(preference.context)
                             mainHandler.post {
                                 thisFragment?.updateGesturesDetect(thisSupport!!, false)
                             }
@@ -491,7 +492,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     var items:List<Any> = emptyList()
                     items += AppListItem(preference.context, "none")
 
-                    GestureAction.getActions()
+                    GestureAction.getInstance(context).getActions()
                             .filter { it.action()!="" }
                             .forEach { items += AppListItem(context, it) }
 
@@ -546,7 +547,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     "none" -> return ""
                     is AppListItem -> return item.action
                     is ApplicationInfo -> return item.packageName
-                    is GestureAction.ActionItem -> return item.action()
+                    is ActionItem -> return item.action()
                     is String -> return item
                 }
                 return ""
@@ -561,8 +562,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     "" ->  return context.getString(R.string.ui_default_action)
                     "none"  -> return context.getString(R.string.ui_no_action)
                     "wait" -> return context.getString(R.string.ui_wait_app)
-                    is  GestureAction.ActionItem -> return item.name(context)
-                    is String -> return GestureAction.getAction(context, item)?.name(context) ?: ""
+                    is ActionItem -> return item.name(context)
+                    is String -> return GestureAction.getInstance(context)
+                            .getAction(item)?.name(context) ?: ""
                 }
                 return ""
             }
@@ -571,8 +573,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 when(item){
                     is AppListItem -> return item.icon
                     is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
-                    is  GestureAction.ActionItem -> return item.icon(context)
-                    is String -> return GestureAction.getAction(context, item)?.icon(context) ?: context.getDrawable(android.R.color.transparent)
+                    is ActionItem -> return item.icon(context)
+                    is String -> return GestureAction.getInstance(context)
+                            .getAction(item)?.icon(context) ?: context.getDrawable(android.R.color.transparent)
                 }
                 return context.getDrawable(android.R.color.transparent)
             }
