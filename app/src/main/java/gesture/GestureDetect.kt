@@ -523,7 +523,7 @@ class GestureDetect private constructor()
         var nearTimeNear = GregorianCalendar.getInstance().timeInMillis
         var bLongTrigger = false
 
-        val sensor1wait = 2*1000
+        val sensor1wait = 1*1000
         val sensor2wait = 1*1000
 
         override fun onDetect(context:Context): Boolean
@@ -542,7 +542,7 @@ class GestureDetect private constructor()
                 return
 
             bRegisterEvent = true
-            longTimeFar = GregorianCalendar.getInstance().timeInMillis + sensor1wait
+            longTimeFar = GregorianCalendar.getInstance().timeInMillis// + sensor1wait
             mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
         }
 

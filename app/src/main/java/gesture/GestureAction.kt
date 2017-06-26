@@ -75,51 +75,34 @@ class GestureAction {
     interface ActionItemSpeech : ActionItem, TextToSpeech.OnInitListener {
         companion object {
             var tts: TextToSpeech? = null
-            var values = arrayOf<String>()
-            var isInit = false
         }
 
-        fun doSpeech(context: Context, value: String): Boolean {
+        fun doSpeech(context: Context, value: String): Boolean
+        {
             init(context)
+
             GestureService.UI.vibrate(context)
             GestureService.UI.playNotifyToEnd(context)
 
-            if (isInit) {
-                doIntSpeak(value)
-            } else {
-                values += value
-            }
+            tts?.language = Locale.getDefault()
+            tts?.speak(value, TextToSpeech.QUEUE_ADD, null)
+
             return false
         }
 
         override fun init(context: Context) {
-            if (tts == null) {
-                tts = TextToSpeech(context, this)
-            }
+            if (tts != null) return
+            tts = TextToSpeech(context, this)
         }
 
-        override fun onInit(status: Int) {
+        override fun onInit(status: Int)
+        {
             if (status != TextToSpeech.SUCCESS) {
-                values = emptyArray()
                 tts = null
                 return
             }
 
-            isInit = true
-            values.forEach {
-                doIntSpeak(it)
-            }
-            values = emptyArray()
-        }
-
-        fun doIntSpeak(value: String) {
-            if (tts == null) return
-
-            tts?.language = Locale.getDefault()
-            tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null)
-            while (tts?.isSpeaking == true) {
-                Thread.sleep(100)
-            }
+            tts?.speak("", TextToSpeech.QUEUE_FLUSH, null)
         }
     }
 
