@@ -5,9 +5,9 @@ import gesture.GestureDetect
 /*
 SunXI tablet
  */
-open class InputSunXi_KPD : InputHandler
+open class InputSunXi_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
-    override fun onDetect(gesture:GestureDetect, name:String):Boolean {
+    override fun onDetect(name:String):Boolean {
         if (!arrayOf("sun4i-keyboard")
                 .contains(name.toLowerCase())) return false
 
@@ -15,13 +15,13 @@ open class InputSunXi_KPD : InputHandler
         return true
     }
 
-    override fun onEvent(gesture:GestureDetect, line: String): String? {
+    override fun onEvent(line: String): String? {
         val arg = line.replace(Regex("\\s+"), " ").split(" ")
         if (arg[0] != "EV_KEY") return null
 
         val keys = arrayOf(
                 Pair("KEY_MENU",     "KEY_VOLUMEUP"),
                 Pair("KEY_SEARCH",   "KEY_VOLUMEDOWN"))
-        return GestureDetect.GS.runGesture(arg[1], keys)
+        return filter(arg[1], keys)
     }
 }

@@ -2,13 +2,11 @@ package gesture.drivers.sensor
 
 import gesture.GestureDetect
 
-interface SensorHandler
+open class SensorHandler(val gesture:GestureDetect)
 {
-    val gesture:GestureDetect
-
-    fun onDetect():Boolean
-    fun onStart()
-    fun onStop()
+    open fun onDetect():Boolean = false
+    open fun onStart() = Unit
+    open fun onStop() = Unit
 
     fun sensorEvent(event:String):Boolean{
         return gesture.sensorEvent(event)

@@ -10,7 +10,8 @@ import gesture.GestureDetect
 import ru.vpro.kernelgesture.BuildConfig
 import java.util.*
 
-open class SensorProximity(override val gesture: GestureDetect) : SensorHandler, SensorEventListener
+open class SensorProximity(gesture: GestureDetect) :
+        SensorHandler(gesture), SensorEventListener
 {
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null

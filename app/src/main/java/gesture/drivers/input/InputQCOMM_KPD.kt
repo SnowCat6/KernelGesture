@@ -5,9 +5,9 @@ import gesture.GestureDetect
 /*
 Qualcomm keys
  */
-open class InputQCOMM_KPD : InputHandler
+open class InputQCOMM_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
-    override fun onDetect(gesture:GestureDetect, name:String):Boolean {
+    override fun onDetect(name:String):Boolean {
         if (!arrayOf("qpnp_pon",  "gpio-keys")
                 .contains(name.toLowerCase())) return false
 
@@ -15,9 +15,9 @@ open class InputQCOMM_KPD : InputHandler
         return true
     }
 
-    override fun onEvent(gesture:GestureDetect, line: String): String? {
+    override fun onEvent(line: String): String? {
         val arg = line.replace(Regex("\\s+"), " ").split(" ")
         if (arg[0] != "EV_KEY") return null
-        return GestureDetect.GS.runGesture(arg[1])
+        return filter(arg[1])
     }
 }

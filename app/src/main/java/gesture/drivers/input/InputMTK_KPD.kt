@@ -5,7 +5,7 @@ import gesture.GestureDetect
 /*
 MTK and QCOMM keyboard
  */
-open class InputMTK_KPD : InputHandler
+open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
     private class GS(
             val detectFile: String,
@@ -42,7 +42,7 @@ open class InputMTK_KPD : InputHandler
         else GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
     }
 
-    override fun onDetect(gesture:GestureDetect, name:String): Boolean
+    override fun onDetect(name:String): Boolean
     {
         if (name.toLowerCase() != "mtk-kpd") return false
         gesture.addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
@@ -58,7 +58,7 @@ open class InputMTK_KPD : InputHandler
         return true
     }
 
-    override fun onEvent(gesture:GestureDetect, line:String):String?
+    override fun onEvent(line:String):String?
     {
         val arg = line.replace(Regex("\\s+"), " ").split(" ")
         if (arg[0] != "EV_KEY") return null
@@ -66,7 +66,7 @@ open class InputMTK_KPD : InputHandler
         when(arg[1]){
             "KEY_PROG3" ->  return onEventHCT()
             "KEY_VOLUMEUP",
-            "KEY_VOLUMEDOWN" ->  return GestureDetect.GS.runGesture(arg[1])
+            "KEY_VOLUMEDOWN" ->  return filter(arg[1])
         }
         return onEventOKK(arg[1])
     }
@@ -92,7 +92,7 @@ open class InputMTK_KPD : InputHandler
         if (HCT_GESTURE_IO == null) return null
         //  get gesture name
         val gs = GestureDetect.SU.getFileLine(HCT_GESTURE_IO!!.getGesture)
-        return GestureDetect.GS.runGesture(gs, keys)
+        return filter(gs, keys)
     }
     //  Oukitel K4000 device gesture
     private fun onEventOKK(key:String):String?
@@ -112,6 +112,6 @@ open class InputMTK_KPD : InputHandler
                 Pair("BTN_TOP",     "KEY_M"),
                 Pair("BTN_BASE5",   "KEY_Z")
         )
-        return GestureDetect.GS.runGesture(key, keys)
+        return filter(key, keys)
     }
 }

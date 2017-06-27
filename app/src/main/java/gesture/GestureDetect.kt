@@ -25,9 +25,9 @@ class GestureDetect (val context:Context)
      * Input devices
      */
     private val inputHandlers = arrayOf(
-            InputMTK_TPD(), InputMTK_KPD(),
-            InputQCOMM_KPD(), InputFT5x06_ts(),
-            InputSunXi_KPD()
+            InputMTK_TPD(this), InputMTK_KPD(this),
+            InputQCOMM_KPD(this), InputFT5x06_ts(this),
+            InputSunXi_KPD(this)
     )
 
     /**
@@ -131,7 +131,7 @@ class GestureDetect (val context:Context)
             if (ix < 0) continue
 
             val n = line.substring(ix + 5).trim('"')
-            bThisEntry = handler.onDetect(this, n)
+            bThisEntry = handler.onDetect(n)
         }
         return null
     }
@@ -207,7 +207,7 @@ class GestureDetect (val context:Context)
                     Log.d("Event detected", line)
                 }
                 //  Get gesture
-                val gesture = second.onEvent(this, line) ?: break
+                val gesture = second.onEvent(line) ?: break
                 //  Check gesture enable
                 if (!getEnable(context, gesture)) break
                 //  Close cmd events
@@ -443,45 +443,6 @@ class GestureDetect (val context:Context)
                 e.printStackTrace()
             }
             return null
-        }
-    }
-
-    object GS
-    {
-        fun runGesture(key:String?, convert:Array<Pair<String,String>>? = null):String?
-        {
-            if (key == null || key.isEmpty())
-                return null
-
-            var gesture = key
-            if (convert != null) {
-                for ((first, second) in convert) {
-                    if (key != first) continue
-                    gesture = second
-                    break
-                }
-            }
-
-            //  Allowed standard key
-            val allowGestures = arrayOf(
-                    "KEY_UP",
-                    "KEY_DOWN",
-                    "KEY_LEFT",
-                    "KEY_RIGHT",
-                    "KEY_U",
-                    "KEY_C",
-                    "KEY_O",
-                    "KEY_W",
-                    "KEY_E",
-                    "KEY_V",
-                    "KEY_M",
-                    "KEY_Z",
-                    "KEY_S",
-                    "KEY_VOLUMEUP",
-                    "KEY_VOLUMEDOWN",
-                    "KEY_PROXIMITY"
-            )
-            return if (gesture in allowGestures) gesture else null
         }
     }
 
