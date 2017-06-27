@@ -27,7 +27,7 @@ import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
 import gesture.action.ActionItem
 import gesture.GestureAction
-import ru.vpro.kernelgesture.SettingsActivity.GesturePreferenceFragment.Companion.getItemInstance
+
 
 
 /**
@@ -206,10 +206,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             if (alertMessage == null || !bShowAlert) return
 
-            val dlgAlert = AlertDialog.Builder(activity)
-            dlgAlert.setTitle(getString(R.string.ui_alert_gs_title))
-            dlgAlert.setMessage(alertMessage)
-            dlgAlert.create().show()
+            with(AlertDialog.Builder(activity))
+            {
+                setTitle(getString(R.string.ui_alert_gs_title))
+                setMessage(alertMessage)
+                create().show()
+            }
         }
 
         fun updateRootAccess(bRootExists:Boolean)
@@ -314,18 +316,16 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
 
         }
-        companion object
-        {
-            private var commonGestureItems = emptyArray<GestureItem>()
-            fun getItemInstance(key:String):GestureItem?
-                    = commonGestureItems.find { it.key == key }
-        }
     }
 
     companion object
     {
         var thisFragment:GesturePreferenceFragment? = null
         var thisSupport:Array<String>? = null
+
+        private var commonGestureItems = emptyArray<GesturePreferenceFragment.GestureItem>()
+        fun getItemInstance(key:String): GesturePreferenceFragment.GestureItem?
+                = commonGestureItems.find { it.key == key }
 
         /**
          * A preference value change listener that updates the preference's summary
@@ -436,14 +436,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         private val sBindGestureActionListener = Preference.OnPreferenceClickListener { preference ->
 
-            val builder = AlertDialog.Builder(preference.context)
-            builder.setTitle(preference.context.getString(R.string.iu_choose_action))
-
             val adapter = BoxAdapter(preference)
-            builder.setAdapter(adapter, onClickListener)
 
-            val alert = builder.create()
-            alert.show()
+            with(AlertDialog.Builder(preference.context))
+            {
+                setTitle(preference.context.getString(R.string.iu_choose_action))
+                setAdapter(adapter, onClickListener)
+                create().show()
+            }
 
             true
         }
@@ -452,7 +452,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
             val item = adapter.getItem(i) as? AppListItem ?: return@OnClickListener
-            //            if (item == "wait") return@OnClickListener
 
             val preference = adapter.preference as TwoStatePreference
             val itemAction =  UI.action(preference.context, item)
@@ -460,7 +459,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             if (BuildConfig.DEBUG) {
                 Log.d("Set gesture action", itemAction)
             }
-            
+
             val gestureItem = getItemInstance(preference.key) ?: return@OnClickListener
             with(gestureItem)
             {
