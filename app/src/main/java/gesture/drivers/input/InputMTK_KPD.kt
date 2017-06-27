@@ -51,7 +51,8 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
             for (it in HCT_GESTURE_PATH) {
                 if (!GestureDetect.SU.isFileExists(it.detectFile)) continue
                 HCT_GESTURE_IO = it
-                gesture.addSupport(arrayOf("GESTURE"))
+                gesture.addSupport("GESTURE")
+                gesture.addSupport(allowGestures)
                 break
             }
         }
