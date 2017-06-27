@@ -10,10 +10,10 @@ import ru.vpro.kernelgesture.R
 class ActionCamera(action: GestureAction) : ActionApp(action)
 {
     init{
-        onCreate(Intent("android.media.action.IMAGE_CAPTURE"))
+        intent = Intent("android.media.action.IMAGE_CAPTURE")
     }
     override fun action(): String
-            = if (applicationInfo?.packageName != null) "application.camera" else ""
+            = if (getInfo() != null) "application.camera" else ""
 
     override fun name(): String
             = action.context.getString(R.string.ui_action_camera)

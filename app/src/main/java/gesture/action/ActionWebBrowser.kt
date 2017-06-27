@@ -11,11 +11,11 @@ import ru.vpro.kernelgesture.R
 class ActionWebBrowser(action: GestureAction) : ActionApp(action)
 {
     init{
-        onCreate(Intent("android.intent.action.VIEW", Uri.parse("http://")))
+        intent = Intent("android.intent.action.VIEW", Uri.parse("http://"))
     }
 
     override fun action(): String
-            = if (applicationInfo?.packageName != null) "application.browser" else ""
+            = if (getInfo() != null) "application.browser" else ""
 
     override fun name(): String = action.context.getString(R.string.ui_web_browser)
 }

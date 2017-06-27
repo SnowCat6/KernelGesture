@@ -12,23 +12,28 @@ import gesture.GestureAction
 abstract class ActionApp(action: GestureAction) : ActionItem(action)
 {
     var applicationInfo: ApplicationInfo? = null
+    var intent:Intent? = null
 
-    fun onCreate(intent: Intent)
+    fun getInfo():ApplicationInfo?
     {
-        val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-        // This is the default browser's packageName
-        applicationInfo = resolveInfo?.activityInfo?.applicationInfo
+        if (applicationInfo == null) {
+            val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+            applicationInfo = resolveInfo?.activityInfo?.applicationInfo
+        }
+        return applicationInfo
     }
 
     override fun action(): String
-            = applicationInfo?.packageName ?: ""
+            = getInfo()?.packageName ?: ""
 
-    override fun name(): String
-            = action.context.packageManager.getApplicationLabel(applicationInfo).toString()
+    override fun name(): String {
+        if (getInfo() == null) return super.name()
+        return action.context.packageManager.getApplicationLabel(getInfo()).toString()
+    }
 
     override fun icon(): Drawable {
-        if (applicationInfo == null) return super.icon()
-        return action.context.packageManager.getApplicationIcon(applicationInfo)
+        if (getInfo() == null) return super.icon()
+        return action.context.packageManager.getApplicationIcon(getInfo())
     }
 
     override fun run(): Boolean
