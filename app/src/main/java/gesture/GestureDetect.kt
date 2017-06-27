@@ -260,6 +260,25 @@ class GestureDetect (val context:Context)
             Toast.makeText(context, value, Toast.LENGTH_LONG).show()
         }
     }
+    fun getSupport(context:Context):Array<String>
+    {
+/*
+        if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
+        {
+            while (true) {
+                val line = SU.readExecLine() ?: break
+                Log.d("Read line", line)
+                if (line == "--END--") break
+
+                val path =  line.substring(line.lastIndexOf("/")+1)
+                when(path){
+//                        "tpgesture_status" -> { addSupport("GESTURE") }
+                }
+            }
+        }
+ */
+        return supported
+    }
 
     companion object
     {
@@ -462,30 +481,6 @@ class GestureDetect (val context:Context)
                 e.printStackTrace()
             }
             return null
-        }
-    }
-
-    object SUPPORT
-    {
-        fun get(context:Context):Array<String>
-        {
-            val gs = GestureDetect(context)
-/*
-        if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
-        {
-            while (true) {
-                val line = SU.readExecLine() ?: break
-                Log.d("Read line", line)
-                if (line == "--END--") break
-
-                val path =  line.substring(line.lastIndexOf("/")+1)
-                when(path){
-//                        "tpgesture_status" -> { addSupport("GESTURE") }
-                }
-            }
-        }
- */
-            return gs.supported
         }
     }
 }

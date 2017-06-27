@@ -370,7 +370,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
 
                     if (bRoot) {
-                        thisSupport = GestureDetect.SUPPORT.get(preference.context)
+                        val gs = GestureDetect(preference.context)
+                        thisSupport = gs.getSupport(preference.context)
                         mainHandler.post {
                             thisFragment?.updateGesturesDetect(thisSupport!!, !bHasRoot)
                         }
@@ -385,7 +386,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         thisFragment?.updateGesturesDetect(thisSupport!!, false)
                     }else{
                         thread{
-                            thisSupport = GestureDetect.SUPPORT.get(preference.context)
+                            val gs = GestureDetect(preference.context)
+                            thisSupport = gs.getSupport(preference.context)
                             mainHandler.post {
                                 thisFragment?.updateGesturesDetect(thisSupport!!, false)
                             }
