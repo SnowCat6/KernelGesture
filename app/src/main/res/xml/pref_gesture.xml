@@ -84,6 +84,11 @@
             />
         <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
+            android:key="KEY_Z"
+            android:title="@string/ui_draw_z"
+            />
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="false"
             android:key="KEY_VOLUMEUP"
             android:title="@string/ui_volume_up"
             />

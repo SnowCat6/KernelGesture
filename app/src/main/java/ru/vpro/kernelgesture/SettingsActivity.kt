@@ -133,7 +133,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         override fun onCreate(savedInstanceState: Bundle?)
         {
-            val gestureItems:Array<GestureItem> = arrayOf(
+            super.onCreate(savedInstanceState)
+            addPreferencesFromResource(R.xml.pref_gesture)
+            setHasOptionsMenu(true)
+
+            thisFragment = this
+            commonGestureItems = arrayOf(
                     GestureItem("KEY_U",       "screen.on"),
                     GestureItem("KEY_UP",      "com.android.dialer"),
                     GestureItem("KEY_DOWN",    "com.android.contacts"),
@@ -153,31 +158,26 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     GestureItem("GESTURE_DEFAULT_ACTION",  "")
             )
 
-            commonGestureItems = gestureItems
-            thisFragment = this
+            commonGestureItems.forEach {
 
-            super.onCreate(savedInstanceState)
-            addPreferencesFromResource(R.xml.pref_gesture)
-            setHasOptionsMenu(true)
-
-            gestureItems.forEach {
-                val preference = findPreference(it.key) ?: return@forEach
-
-                preference.icon = it.icon
-
-                preference.onPreferenceChangeListener = sBindGestureChangeListener
-                preference.onPreferenceClickListener = sBindGestureActionListener
-
-                preference.onPreferenceChangeListener.onPreferenceChange(preference, it.enable)
+                with(findPreference(it.key))
+                {
+                    icon = it.icon
+                    onPreferenceChangeListener = sBindGestureChangeListener
+                    onPreferenceClickListener = sBindGestureActionListener
+                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
+                }
             }
 
-            val preferenceEnable = findPreference("GESTURE_ENABLE")
-            preferenceEnable.onPreferenceChangeListener = sBindAllEnableListener
-            preferenceEnable.onPreferenceChangeListener.onPreferenceChange(preferenceEnable, GestureDetect.getAllEnable(activity))
+            with(findPreference("GESTURE_ENABLE")){
+                onPreferenceChangeListener = sBindAllEnableListener
+                onPreferenceChangeListener.onPreferenceChange(this, GestureDetect.getAllEnable(activity))
+            }
 
-            val preferenceNotify = findPreference("GESTURE_NOTIFY")
-            preferenceNotify.onPreferenceChangeListener = sBindNotifyListener
-            preferenceNotify.onPreferenceChangeListener.onPreferenceChange(preferenceNotify, null)
+            with(findPreference("GESTURE_NOTIFY")){
+                onPreferenceChangeListener = sBindNotifyListener
+                onPreferenceChangeListener.onPreferenceChange(this, null)
+            }
         }
         fun updateGesturesDetect(support:Array<String>, bShowAlert:Boolean)
         {
@@ -312,6 +312,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                 return null
             }
+
         }
         companion object
         {
@@ -321,9 +322,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
         }
     }
 
-    companion object {
+    companion object
+    {
         var thisFragment:GesturePreferenceFragment? = null
         var thisSupport:Array<String>? = null
+
         /**
          * A preference value change listener that updates the preference's summary
          * to reflect its new value.
@@ -351,12 +354,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val mainHandler = Handler(preference.context.mainLooper)
 
-            val bHasRoot = GestureDetect.hasRootProcess()
+            val bHasRoot = GestureDetect.SU.hasRootProcess()
             if (value == true && !bHasRoot)
             {
                 thisFragment?.updateRootAccess(bHasRoot)
                 thread{
-                    val bRoot = GestureDetect.checkRootAccess()
+                    val bRoot = GestureDetect.SU.checkRootAccess()
 
                     GestureDetect.setAllEnable(preference.context, bRoot)
 

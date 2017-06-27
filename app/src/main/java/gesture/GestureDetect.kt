@@ -16,7 +16,6 @@ import gesture.drivers.input.*
 import gesture.drivers.sensor.SensorHandler
 import gesture.drivers.sensor.SensorProximity
 import java.util.*
-import java.util.concurrent.Semaphore
 
 
 class GestureDetect (val context:Context)
@@ -86,8 +85,9 @@ class GestureDetect (val context:Context)
 
     fun enable(powerOn: Boolean)
     {
-        if (SU.processSU == null) return
-        inputDevices.forEach{ it.second.setEnable(powerOn) }
+        if (SU.hasRootProcess()) {
+            inputDevices.forEach { it.second.setEnable(powerOn) }
+        }
     }
 
     private fun detectDevices()
@@ -338,15 +338,6 @@ class GestureDetect (val context:Context)
         <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
          */
 
-        fun checkRootAccess():Boolean
-        {
-            return SU.open() != null
-        }
-        fun hasRootProcess():Boolean
-        {
-            return SU.processSU != null
-        }
-
     }
     /**
      * SuperSU wrapper
@@ -357,76 +348,99 @@ class GestureDetect (val context:Context)
         var errorSU: BufferedReader? = null
         var readerSU: BufferedReader? = null
         var writerSU: OutputStream? = null
-        val lockSU = Semaphore(1)
+        var bEnableSU = false
+
+        fun checkRootAccess():Boolean
+                = SU.open() != null
+
+        fun hasRootProcess():Boolean
+                = bEnableSU
 
         fun open(): Process?
         {
-            try{
-                val exit = processSU?.exitValue()
-                if (exit != null) close()
-            }catch (e:Exception){}
+            synchronized(bEnableSU)
+            {
+                try{
+                    val exit = processSU?.exitValue()
+                    if (exit != null) close()
+                }catch (e:Exception){}
 
-            if (processSU != null)
-                return processSU
+                if (processSU != null)
+                    return processSU
 
-            lockSU.acquire()
-            try {
-                processSU = Runtime.getRuntime().exec("su")
-                readerSU = processSU?.inputStream?.bufferedReader()
-                errorSU = processSU?.errorStream?.bufferedReader()
-                writerSU = processSU?.outputStream
+                try {
+                    processSU = Runtime.getRuntime().exec("su")
+                    readerSU = processSU?.inputStream?.bufferedReader()
+                    errorSU = processSU?.errorStream?.bufferedReader()
+                    writerSU = processSU?.outputStream
 
-                exec("id")
-                val id = readExecLine()?.contains("root")
-                if (id == null || id == false) close()
+                    exec("id")
+                    val id = readExecLine()?.contains("root")
+                    if (id == null || id == false) close()
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-                close()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    close()
+                }
+                bEnableSU = processSU != null
             }
-            lockSU.release()
             return processSU
         }
 
         fun exec(cmd: String): Boolean
         {
-            SU.open()
-            try {
-                writerSU?.write("$cmd\n".toByteArray())
-                writerSU?.flush()
-            }catch (e:Exception){
-                e.printStackTrace()
-                return false
-            }
+            synchronized(bEnableSU)
+            {
+                SU.open()
 
-            if (BuildConfig.DEBUG) {
-                Log.d("GestureDetect exec", "$cmd\n")
-            }
+                try {
+                    writerSU?.write("$cmd\n".toByteArray())
+                    writerSU?.flush()
+                }catch (e:Exception){
+                    e.printStackTrace()
+                    return false
+                }
 
+                if (BuildConfig.DEBUG) {
+                    Log.d("GestureDetect exec", "$cmd\n")
+                }
+            }
             return true
         }
 
-        fun close(){
-            if (processSU == null) return
-            try {
-                processSU?.destroy()
-            }catch (e:Exception){
-                e.printStackTrace()
+        fun close()
+        {
+            synchronized(bEnableSU)
+            {
+                if (processSU == null) return
+                try {
+                    processSU?.destroy()
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+                processSU = null
+                writerSU = null
+                readerSU = null
+                errorSU = null
+
+                bEnableSU = false
             }
-            processSU = null
-            writerSU = null
-            readerSU = null
-            errorSU = null
         }
 
-        fun getFileLine(name: String): String? {
-            if (exec("echo $(cat $name)")) return readExecLine()
+        fun getFileLine(name: String): String?
+        {
+            synchronized(bEnableSU) {
+                if (exec("echo $(cat $name)")) return readExecLine()
+            }
             return null
         }
 
-        fun isFileExists(name: String): Boolean {
-            if (exec("[ -f $name ] && echo 1 || echo 0")) {
-                return readExecLine() == "1"
+        fun isFileExists(name: String): Boolean
+        {
+            synchronized(bEnableSU) {
+                if (exec("[ -f $name ] && echo 1 || echo 0")) {
+                    return readExecLine() == "1"
+                }
             }
             return false
         }

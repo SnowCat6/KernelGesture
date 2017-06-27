@@ -58,6 +58,7 @@
     <string name="ui_action_camera">Camera</string>
     <string name="ui_adv_menu">Adv</string>
     <string name="ui_service">Background service</string>
+    <string name="ui_draw_z">Draw Z letter</string>
 
     <!-- Strings related to Settings -->
 
