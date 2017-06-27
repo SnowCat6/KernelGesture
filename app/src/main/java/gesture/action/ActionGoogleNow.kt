@@ -9,8 +9,10 @@ import ru.vpro.kernelgesture.R
 /**
  * Action OK Google
  */
-class ActionGoogleNow(override val context: Context) : ActionItem {
-    override fun action(): String = "google.ok"
+class ActionGoogleNow(context: Context) : ActionItem(context)
+{
+    override fun action(): String
+            = "google.ok"
 
     override fun name(): String
             = context.getString(R.string.ui_ok_google)

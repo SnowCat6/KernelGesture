@@ -1,5 +1,6 @@
 package gesture.action
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -9,9 +10,9 @@ import gesture.GestureService
 /**
  * Action common class
  */
-interface ActionApp : ActionItem
+abstract class ActionApp(context:Context) : ActionItem(context)
 {
-    var applicationInfo: ApplicationInfo?
+    var applicationInfo: ApplicationInfo? = null
 
     fun onCreate(intent: Intent)
     {

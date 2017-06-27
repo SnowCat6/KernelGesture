@@ -10,7 +10,8 @@ import java.util.*
 /**
  * Time speech action
  */
-class ActionSpeechTime(override val context: Context) : ActionSpeechItem {
+class ActionSpeechTime(context: Context) : ActionSpeechItem(context)
+{
     override fun action(): String
             = "speech.time"
 

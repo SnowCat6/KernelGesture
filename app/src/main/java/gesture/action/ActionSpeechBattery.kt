@@ -9,7 +9,7 @@ import ru.vpro.kernelgesture.R
 /**
  * Speech battery percent
  */
-class ActionSpeechBattery(override val context: Context) : ActionSpeechItem
+class ActionSpeechBattery(context: Context) : ActionSpeechItem(context)
 {
     override fun action(): String
             = "speech.battery"

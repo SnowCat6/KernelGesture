@@ -8,8 +8,10 @@ import ru.vpro.kernelgesture.R
 /**
  * Screen ON
  */
-class ActionScreenOn(override val context: Context) : ActionItem {
-    override fun action(): String = "screen.on"
+class ActionScreenOn(context: Context) : ActionItem(context)
+{
+    override fun action(): String
+            = "screen.on"
 
     override fun name(): String
             = context.getString(R.string.ui_screen_on)

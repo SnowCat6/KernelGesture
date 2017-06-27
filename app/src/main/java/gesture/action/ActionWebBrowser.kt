@@ -9,10 +9,8 @@ import ru.vpro.kernelgesture.R
 /**
  * Action default browser
  */
-class ActionWebBrowser(override val context: Context) : ActionApp
+class ActionWebBrowser(context: Context) : ActionApp(context)
 {
-    override var applicationInfo: ApplicationInfo? = null
-
     init{
         onCreate(Intent("android.intent.action.VIEW", Uri.parse("http://")))
     }

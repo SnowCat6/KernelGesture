@@ -1,5 +1,6 @@
 package gesture.action
 
+import android.content.Context
 import android.speech.tts.TextToSpeech
 import gesture.GestureService
 import java.util.*
@@ -8,7 +9,8 @@ import java.util.*
  * Common speech class
  */
 
-interface ActionSpeechItem : ActionItem, TextToSpeech.OnInitListener
+abstract class ActionSpeechItem(context: Context) :
+        ActionItem(context), TextToSpeech.OnInitListener
 {
     companion object {
         var tts: TextToSpeech? = null

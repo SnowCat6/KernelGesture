@@ -8,10 +8,8 @@ import ru.vpro.kernelgesture.R
 /**
  * Action default browser
  */
-class ActionCamera(override val context: Context) : ActionApp
+class ActionCamera(context: Context) : ActionApp(context)
 {
-    override var applicationInfo: ApplicationInfo? = null
-
     init{
         onCreate(Intent("android.media.action.IMAGE_CAPTURE"))
     }
