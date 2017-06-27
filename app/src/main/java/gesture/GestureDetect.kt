@@ -39,10 +39,13 @@ class GestureDetect (val context:Context)
     /**
      * Devices control
      */
+    //  Supported devices and keys
     private var supported = emptyArray<String>()
+    //  Detected input and sensor devices
     private var inputDevices = emptyArray<Pair<String, InputHandler>>()
     private var sensorDevices = emptyArray<SensorHandler>()
-
+    //  Get events in process
+    private var bGetEvents = false
     /**
      * Internal variables
      */
@@ -51,9 +54,7 @@ class GestureDetect (val context:Context)
         get() = _bLock
         set(value) {
             _bLock = value
-            if (_bLock){
-                closeEvents()
-            }
+            if (_bLock) closeEvents()
         }
 
     private var timeNearChange = GregorianCalendar.getInstance().timeInMillis
@@ -96,13 +97,10 @@ class GestureDetect (val context:Context)
         inputDevices = emptyArray()
         sensorDevices = emptyArray()
 
-        try {
-            val lines = BufferedReader(FileReader("/proc/bus/input/devices")).readLines()
+        getInputDevices().forEach { (input, name) ->
             inputHandlers.forEach {
-                findDevicePath(it, lines)
+                if (it.onDetect(name)) inputDevices += Pair(input, it)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
 
         sensorHandlers.forEach {
@@ -110,31 +108,31 @@ class GestureDetect (val context:Context)
         }
     }
 
-    private fun findDevicePath(handler: InputHandler, lines: List<String>): String? {
-        var bThisEntry = false
+    private fun getInputDevices():Array<Pair<String, String>>
+    {
+        var inputs = emptyArray<Pair<String, String>>()
+        try {
+            var name = ""
+            BufferedReader(FileReader("/proc/bus/input/devices"))
+                    .readLines()
+                    .forEach { line ->
 
-        for (line in lines) {
-            if (bThisEntry) {
-                val ix = line.indexOf("Handlers=")
-                if (ix >= 0) {
-                    val a = line.substring(ix + 9).split(" ")
-                    for (ev in a) {
-                        if (ev.length < 5 || !ev.contains("event")) continue
-                        inputDevices += Pair("/dev/input/$ev", handler)
-                        bThisEntry = false
-                        break
+                        val iName = line.indexOf("Name=")
+                        if (iName >= 0) name = line.substring(iName + 5).trim('"')
+
+                        val iHandlers = line.indexOf("Handlers=")
+                        if (iHandlers >= 0)
+                        {
+                            line.substring(iHandlers + 9)
+                                .split(" ")
+                                .filter { it.contains("event") }
+                                .forEach { inputs += Pair("/dev/input/$it", name) }
+                        }
                     }
-                    continue
-                }
-            }
-
-            val ix = line.indexOf("Name=")
-            if (ix < 0) continue
-
-            val n = line.substring(ix + 5).trim('"')
-            bThisEntry = handler.onDetect(n)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        return null
+        return inputs
     }
 
     fun waitGesture(): String?
@@ -143,7 +141,6 @@ class GestureDetect (val context:Context)
         return getEvent()
     }
 
-    private var bGetEvents = false
     private fun getEvent(): String?
     {
         var device = ""
@@ -167,13 +164,13 @@ class GestureDetect (val context:Context)
         }
 
         SU.exec("echo query$queryIx>&2")
-        while(!lock)
+        while(!lock && bGetEvents)
         {
             //  Read line from input
             val line = SU.readErrorLine() ?: break
 
             //  Stop if gesture need stop run
-            if (lock) break
+            if (lock || !bGetEvents) break
 
             //  Check query number for prevent old events output
             if (!bQueryFound){
@@ -220,6 +217,7 @@ class GestureDetect (val context:Context)
         }
 
         closeEvents()
+
         //  Error reading, no continue or sensorEvent handled
         return null
     }
@@ -228,9 +226,11 @@ class GestureDetect (val context:Context)
         if (!bGetEvents) return
         bGetEvents = false
 
-        for(ix in 0..15) SU.exec("echo CLOSE_EVENTS>&2")
         SU.exec("kill -s SIGINT %%")
         sensorDevices.forEach { it.onStop() }
+
+        //  Many execute for flush process buffer
+        for(ix in 0..15) SU.exec("echo CLOSE_EVENTS>&2")
     }
     fun sensorEvent(value:String):Boolean
     {
@@ -239,7 +239,7 @@ class GestureDetect (val context:Context)
 
         //  Many execute for flush process buffer
         for(ix in 0..15) SU.exec("echo SENSOR_EVENT $value>&2")
-//        vibrate(context)
+
         return true
     }
 
