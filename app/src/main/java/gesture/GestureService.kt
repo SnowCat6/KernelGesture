@@ -145,7 +145,6 @@ class GestureService : Service(), SensorEventListener {
 
     override fun stopService(name: Intent?): Boolean
     {
-        gesture?.lock = true
         gesture?.close()
         gesture = null
 

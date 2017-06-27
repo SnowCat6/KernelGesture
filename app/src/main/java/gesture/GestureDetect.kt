@@ -79,6 +79,7 @@ class GestureDetect (val context:Context)
     }
 
     fun close(){
+        lock = true
         closeEvents()
         SU.close()
     }

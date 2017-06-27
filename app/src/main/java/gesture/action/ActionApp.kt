@@ -17,7 +17,7 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     {
         val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         // This is the default browser's packageName
-        applicationInfo = resolveInfo.activityInfo.applicationInfo
+        applicationInfo = resolveInfo?.activityInfo?.applicationInfo
     }
 
     override fun action(): String
