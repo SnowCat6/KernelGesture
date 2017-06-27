@@ -349,8 +349,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
             value as Boolean
             preference as TwoStatePreference
 
-            preference.preferenceManager.findPreference("GESTURE_GROUP").isEnabled = value
-            preference.preferenceManager.findPreference("GESTURE_GROUP_ADD").isEnabled = value
+            with( preference.preferenceManager)
+            {
+                findPreference("GESTURE_GROUP").isEnabled = value
+                findPreference("GESTURE_GROUP_ADD").isEnabled = value
+            }
 
             val mainHandler = Handler(preference.context.mainLooper)
 
@@ -452,18 +455,22 @@ class SettingsActivity : AppCompatPreferenceActivity()
             //            if (item == "wait") return@OnClickListener
 
             val preference = adapter.preference as TwoStatePreference
+            val itemAction =  UI.action(preference.context, item)
 
-            val action =  UI.action(preference.context, item)
             if (BuildConfig.DEBUG) {
-                Log.d("Set gesture action", action)
+                Log.d("Set gesture action", itemAction)
             }
+            
             val gestureItem = getItemInstance(preference.key) ?: return@OnClickListener
+            with(gestureItem)
+            {
+                action = itemAction
+                enable = itemAction.isNotEmpty()
 
-            gestureItem.action = action
-            gestureItem.enable = action.isNotEmpty()
-            preference.isChecked = gestureItem.enable
-            preference.icon = gestureItem.icon
-            preference.onPreferenceChangeListener.onPreferenceChange(preference, gestureItem.enable)
+                preference.isChecked = enable
+                preference.icon = icon
+                preference.onPreferenceChangeListener.onPreferenceChange(preference, enable)
+            }
         }
 
         class AppListItem(val action:String, val name:String, val icon:Drawable)
