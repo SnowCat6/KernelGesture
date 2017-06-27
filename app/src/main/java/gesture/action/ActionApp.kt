@@ -6,7 +6,6 @@ import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import gesture.GestureAction
-import gesture.GestureService
 
 /**
  * Action common class

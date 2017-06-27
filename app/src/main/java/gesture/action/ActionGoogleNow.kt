@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import gesture.GestureAction
-import gesture.GestureService
 import ru.vpro.kernelgesture.R
 
 /**

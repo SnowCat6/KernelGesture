@@ -56,4 +56,5 @@
     <string name="ui_action_battery">Заряд</string>
     <string name="ui_action_speech_battery">Сказать заряд батареи</string>
     <string name="ui_action_camera">Камера</string>
+    <string name="ui_adv_menu">Реклама</string>
 </resources>

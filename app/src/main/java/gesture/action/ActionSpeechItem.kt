@@ -3,7 +3,6 @@ package gesture.action
 import android.content.Context
 import android.speech.tts.TextToSpeech
 import gesture.GestureAction
-import gesture.GestureService
 import java.util.*
 
 /**

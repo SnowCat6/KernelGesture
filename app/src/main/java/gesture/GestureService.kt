@@ -3,21 +3,15 @@ package gesture
 import android.app.KeyguardManager
 import android.app.Service
 import android.content.*
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
-import android.content.Intent
-import android.content.BroadcastReceiver
-import android.hardware.Sensor
-import android.hardware.SensorEventListener
-import android.media.Ringtone
-import android.media.RingtoneManager
-import android.net.Uri
-import android.preference.PreferenceManager
-import kotlin.concurrent.thread
-import android.hardware.SensorEvent
-import android.hardware.SensorManager
 import ru.vpro.kernelgesture.BuildConfig
 import java.lang.Thread.MAX_PRIORITY
+import kotlin.concurrent.thread
 
 
 class GestureService : Service(), SensorEventListener {

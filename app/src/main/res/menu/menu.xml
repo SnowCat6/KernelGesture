@@ -5,5 +5,5 @@
         android:id="@+id/menu_adv"
         android:icon="@android:drawable/ic_menu_info_details"
         app:showAsAction="always"
-        android:title="Adv menu" />
+        android:title="@string/ui_adv_menu" />
 </menu>
