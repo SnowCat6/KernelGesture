@@ -26,9 +26,11 @@ class GestureAction(val context:Context)
         //  Preload notify
         try {
             UI.ringtone = null
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            val notify = Uri.parse(sharedPreferences.getString("GESTURE_NOTIFY", null))
-            if (notify != null)  UI.ringtone = RingtoneManager.getRingtone(context, notify)
+            val value = PreferenceManager.getDefaultSharedPreferences(context).getString("GESTURE_NOTIFY", null)
+            if (value != null && !value.isEmpty()) {
+                val notify = Uri.parse(value)
+                if (notify != null) UI.ringtone = RingtoneManager.getRingtone(context, notify)
+            }
         }catch (e:Exception){}
 
        allActions.forEach { it.onStart() }

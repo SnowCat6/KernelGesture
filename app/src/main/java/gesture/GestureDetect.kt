@@ -144,7 +144,6 @@ class GestureDetect (val context:Context)
     }
 
     private var bGetEvents = false
-    private var queryIx = 0
     private fun getEvent(): String?
     {
         var device = ""
@@ -162,9 +161,9 @@ class GestureDetect (val context:Context)
             device.setEnable(true)
             //  Run input event detector
             ++ix
-            SU.exec("while v$ix=$(getevent -c 2 -l $inputName)  ; do echo $inputName\\\\n\"\$v$ix\$v$ix\">&2 ; done &")
-            ++ix
-            SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done &")
+            SU.exec("while v$ix=$(getevent -c 2 -l $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+           ++ix
+            SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
         }
 
         SU.exec("echo query$queryIx>&2")
@@ -181,6 +180,8 @@ class GestureDetect (val context:Context)
                 bQueryFound = line == "query$queryIx"
                 continue
             }
+            if (line.contains("CLOSE_EVENTS"))
+                break
 
             if (line.contains("SENSOR_EVENT")){
                 closeEvents()
@@ -227,6 +228,7 @@ class GestureDetect (val context:Context)
         if (!bGetEvents) return
         bGetEvents = false
 
+        for(ix in 0..15) SU.exec("echo CLOSE_EVENTS>&2")
         SU.exec("kill -s SIGINT %%")
         sensorDevices.forEach { it.onStop() }
     }
@@ -236,7 +238,7 @@ class GestureDetect (val context:Context)
         if (!getEnable(context, value)) return false
 
         //  Many execute for flush process buffer
-        for(ix in 0..7){ SU.exec("echo SENSOR_EVENT $value>&2") }
+        for(ix in 0..15) SU.exec("echo SENSOR_EVENT $value>&2")
 //        vibrate(context)
         return true
     }
@@ -261,6 +263,8 @@ class GestureDetect (val context:Context)
 
     companion object
     {
+        private var queryIx = 0
+
         fun getAllEnable(context: Context): Boolean
         {
             return getEnable(context, "GESTURE_ENABLE")

@@ -1,6 +1,7 @@
 package gesture
 
 import android.app.KeyguardManager
+import android.app.Notification
 import android.app.Service
 import android.content.*
 import android.hardware.Sensor
@@ -12,6 +13,11 @@ import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import java.lang.Thread.MAX_PRIORITY
 import kotlin.concurrent.thread
+import android.os.Build
+import ru.vpro.kernelgesture.R
+import ru.vpro.kernelgesture.R.mipmap.ic_launcher
+
+
 
 
 class GestureService : Service(), SensorEventListener {
@@ -44,6 +50,15 @@ class GestureService : Service(), SensorEventListener {
         bRunning = true
 
         thread {
+            /*****************************/
+            val builder = Notification.Builder(this)
+                    .setSmallIcon(R.drawable.icon_screen_on)
+                    .setContentTitle(getString(R.string.app_name))
+
+            val notification = builder.build()
+            startForeground(777, notification)
+            /*****************************/
+
             val ga = GestureAction(this)
             if (gesture == null)
                 gesture = GestureDetect(this)
@@ -64,8 +79,7 @@ class GestureService : Service(), SensorEventListener {
                 val ev = gesture?.waitGesture() ?: break
                 if (ga.onGestureEvent(ga, ev)) break
             }
-            //  Mark thread stopped
-            bRunning = false
+
             gesture?.lock = true
 
             //  Unregister even if this need
@@ -73,6 +87,14 @@ class GestureService : Service(), SensorEventListener {
                 mSensorManager?.unregisterListener(this)
             }
             ga.onStop()
+
+            /*****************************/
+            stopForeground(true)
+            /*****************************/
+
+            //  Mark thread stopped
+            bRunning = false
+
         }.priority = MAX_PRIORITY
     }
     /************************************/
@@ -143,12 +165,13 @@ class GestureService : Service(), SensorEventListener {
         }
     }
 
-    override fun stopService(name: Intent?): Boolean
+    override fun onDestroy()
     {
         gesture?.close()
         gesture = null
 
         unregisterReceiver(onScreenIntent)
-        return super.stopService(name)
+
+        super.onDestroy()
     }
 }

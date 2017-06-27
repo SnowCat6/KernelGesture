@@ -18,10 +18,12 @@ abstract class ActionSpeechItem(action: GestureAction) :
     fun doSpeech(value: String): Boolean
     {
         GestureAction.UI.vibrate(action.context)
-        GestureAction.UI.playNotifyToEnd(action.context)
+        val bNotify = GestureAction.UI.playNotifyToEnd(action.context)
 
         tts?.language = Locale.getDefault()
-        tts?.speak(value, TextToSpeech.QUEUE_ADD, null, "")
+        tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
+
+        if (!bNotify) Thread.sleep(500)
 
         return false
     }
