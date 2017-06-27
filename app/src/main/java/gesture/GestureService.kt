@@ -53,7 +53,7 @@ class GestureService : Service(), SensorEventListener {
             /*****************************/
             val builder = Notification.Builder(this)
                     .setSmallIcon(R.drawable.icon_screen_on)
-                    .setContentTitle(getString(R.string.app_name))
+                    .setContentTitle(getString(R.string.ui_service))
 
             val notification = builder.build()
             startForeground(777, notification)
