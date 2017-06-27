@@ -1,6 +1,5 @@
 package gesture.action
 
-import android.content.Context
 import android.graphics.drawable.Drawable
 import gesture.GestureAction
 import ru.vpro.kernelgesture.R
@@ -8,19 +7,19 @@ import ru.vpro.kernelgesture.R
 /**
  * Screen ON
  */
-class ActionScreenOn(context: Context) : ActionItem(context)
+class ActionScreenOn(action: GestureAction) : ActionItem(action)
 {
     override fun action(): String
             = "screen.on"
 
     override fun name(): String
-            = context.getString(R.string.ui_screen_on)
+            = action.context.getString(R.string.ui_screen_on)
 
     override fun icon(): Drawable
-            = context.getDrawable(R.drawable.icon_screen_on)
+            = action.context.getDrawable(R.drawable.icon_screen_on)
 
     override fun run(): Boolean {
-        GestureAction.UI.screenON(context)
+        GestureAction.UI.screenON(action.context)
         return true
     }
 }

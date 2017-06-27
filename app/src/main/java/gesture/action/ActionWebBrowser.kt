@@ -1,14 +1,14 @@
 package gesture.action
 
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import gesture.GestureAction
 import ru.vpro.kernelgesture.R
 
 /**
  * Action default browser
  */
-class ActionWebBrowser(context: Context) : ActionApp(context)
+class ActionWebBrowser(action: GestureAction) : ActionApp(action)
 {
     init{
         onCreate(Intent("android.intent.action.VIEW", Uri.parse("http://")))
@@ -17,5 +17,5 @@ class ActionWebBrowser(context: Context) : ActionApp(context)
     override fun action(): String
             = if (applicationInfo?.packageName != null) "application.browser" else ""
 
-    override fun name(): String = context.getString(R.string.ui_web_browser)
+    override fun name(): String = action.context.getString(R.string.ui_web_browser)
 }

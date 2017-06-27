@@ -1,6 +1,5 @@
 package gesture.action
 
-import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -10,13 +9,13 @@ import gesture.GestureAction
 /**
  * Action common class
  */
-abstract class ActionApp(context:Context) : ActionItem(context)
+abstract class ActionApp(action: GestureAction) : ActionItem(action)
 {
     var applicationInfo: ApplicationInfo? = null
 
     fun onCreate(intent: Intent)
     {
-        val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+        val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
         // This is the default browser's packageName
         applicationInfo = resolveInfo.activityInfo.applicationInfo
     }
@@ -25,20 +24,20 @@ abstract class ActionApp(context:Context) : ActionItem(context)
             = applicationInfo?.packageName ?: ""
 
     override fun name(): String
-            = context.packageManager.getApplicationLabel(applicationInfo).toString()
+            = action.context.packageManager.getApplicationLabel(applicationInfo).toString()
 
     override fun icon(): Drawable {
         if (applicationInfo == null) return super.icon()
-        return context.packageManager.getApplicationIcon(applicationInfo)
+        return action.context.packageManager.getApplicationIcon(applicationInfo)
     }
 
     override fun run(): Boolean
     {
         if (applicationInfo == null) return false
 
-        GestureAction.UI.screenON(context)
-        GestureAction.UI.screenUnlock(context)
+        GestureAction.UI.screenON(action.context)
+        GestureAction.UI.screenUnlock(action.context)
 
-        return GestureAction.UI.startNewActivity(context, applicationInfo!!.packageName)
+        return GestureAction.UI.startNewActivity(action.context, applicationInfo!!.packageName)
     }
 }

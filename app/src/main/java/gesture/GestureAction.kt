@@ -14,12 +14,12 @@ import ru.vpro.kernelgesture.BuildConfig
 class GestureAction(val context:Context)
 {
     private val allActions = arrayOf(
-            ActionScreenOn(context),
-            ActionGoogleNow(context),
-            ActionSpeechTime(context),
-            ActionSpeechBattery(context),
-            ActionWebBrowser(context),
-            ActionCamera(context)
+            ActionScreenOn(this),
+            ActionGoogleNow(this),
+            ActionSpeechTime(this),
+            ActionSpeechBattery(this),
+            ActionWebBrowser(this),
+            ActionCamera(this)
     )
 
     fun onStart() {

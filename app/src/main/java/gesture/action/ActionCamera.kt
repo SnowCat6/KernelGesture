@@ -1,13 +1,13 @@
 package gesture.action
 
-import android.content.Context
 import android.content.Intent
+import gesture.GestureAction
 import ru.vpro.kernelgesture.R
 
 /**
  * Action default browser
  */
-class ActionCamera(context: Context) : ActionApp(context)
+class ActionCamera(action: GestureAction) : ActionApp(action)
 {
     init{
         onCreate(Intent("android.media.action.IMAGE_CAPTURE"))
@@ -16,5 +16,5 @@ class ActionCamera(context: Context) : ActionApp(context)
             = if (applicationInfo?.packageName != null) "application.camera" else ""
 
     override fun name(): String
-            = context.getString(R.string.ui_action_camera)
+            = action.context.getString(R.string.ui_action_camera)
 }

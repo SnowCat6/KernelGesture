@@ -1,6 +1,5 @@
 package gesture.action
 
-import android.content.Context
 import android.speech.tts.TextToSpeech
 import gesture.GestureAction
 import java.util.*
@@ -9,8 +8,8 @@ import java.util.*
  * Common speech class
  */
 
-abstract class ActionSpeechItem(context: Context) :
-        ActionItem(context), TextToSpeech.OnInitListener
+abstract class ActionSpeechItem(action: GestureAction) :
+        ActionItem(action), TextToSpeech.OnInitListener
 {
     companion object {
         var tts: TextToSpeech? = null
@@ -18,8 +17,8 @@ abstract class ActionSpeechItem(context: Context) :
 
     fun doSpeech(value: String): Boolean
     {
-        GestureAction.UI.vibrate(context)
-        GestureAction.UI.playNotifyToEnd(context)
+        GestureAction.UI.vibrate(action.context)
+        GestureAction.UI.playNotifyToEnd(action.context)
 
         tts?.language = Locale.getDefault()
         tts?.speak(value, TextToSpeech.QUEUE_ADD, null, "")
@@ -30,7 +29,7 @@ abstract class ActionSpeechItem(context: Context) :
     override fun onStart()
     {
         if (tts != null) return
-        tts = TextToSpeech(context, this)
+        tts = TextToSpeech(action.context, this)
     }
 
     override fun onInit(status: Int)
