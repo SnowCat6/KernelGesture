@@ -24,7 +24,6 @@ class GestureService : Service(), SensorEventListener {
 
     companion object
     {
-        private var ringtone: Ringtone? = null
         var keyguardLock: KeyguardManager.KeyguardLock? = null
     }
 
@@ -58,14 +57,6 @@ class GestureService : Service(), SensorEventListener {
             ga.onStart()
             gesture?.lock = false
 
-            //  Preload notify
-            try {
-                ringtone = null
-                val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
-                val notify = Uri.parse(sharedPreferences.getString("GESTURE_NOTIFY", null))
-                if (notify != null) ringtone = RingtoneManager.getRingtone(this, notify)
-            }catch (e:Exception){}
-
             //  If proximity sensor used, register event
             val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
             gesture?.isNear = false
@@ -77,7 +68,7 @@ class GestureService : Service(), SensorEventListener {
             //  Wait gesture while live
             while (gesture?.lock != true) {
                 val ev = gesture?.waitGesture() ?: break
-                if (onGestureEvent(ga, ev)) break
+                if (ga.onGestureEvent(ga, ev)) break
             }
             //  Mark thread stopped
             bRunning = false
@@ -162,95 +153,9 @@ class GestureService : Service(), SensorEventListener {
     {
         gesture?.lock = true
         gesture?.close()
+        gesture = null
 
         unregisterReceiver(onScreenIntent)
         return super.stopService(name)
-    }
-
-    fun onGestureEvent(ga:GestureAction, gestureKey:String):Boolean
-    {
-        var action:String? = GestureDetect.getAction(this, gestureKey)
-
-        if ((action == null || action.isEmpty()) && GestureDetect.getEnable(this, "GESTURE_DEFAULT_ACTION")){
-            action = GestureDetect.getAction(this, "GESTURE_DEFAULT_ACTION")
-        }
-        if (action == null || action.isEmpty()) return false
-
-        if (BuildConfig.DEBUG) {
-            Log.d("Gesture action", gestureKey)
-        }
-
-        val a = ga.getAction(action)
-        if (a != null) return a.run()
-/*
-            "screen.on"
-            "player.next"
-            "player.prev"
-            "player.playPause"
-            "browser"
-            "speech.time"
-            "okgoogle"
-            "phone.call.#############"
-*/
-        try {
-            UI.screenON(this)
-            UI.screenUnlock(this)
-            val intent = packageManager.getLaunchIntentForPackage(action) ?: return false
-            return UI.startNewActivity(this, intent)
-        }catch (e:Exception){}
-        return false
-    }
-
-    object UI
-    {
-        fun startNewActivity(context: Context, packageName: String):Boolean
-        {
-            var intent = context.packageManager.getLaunchIntentForPackage(packageName)
-            if (intent == null) {
-                // Bring user to the market or let them choose an app?
-                intent = Intent(Intent.ACTION_VIEW)
-                intent.data = Uri.parse("market://details?id=$packageName")
-            }
-            return startNewActivity(context, intent)
-        }
-        fun startNewActivity(context: Context, intent: Intent):Boolean
-        {
-            try {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-            }catch (e:Exception){
-                return false
-            }
-            return true
-        }
-        fun screenUnlock(context: Context)
-        {
-            if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN")) {
-                Companion.keyguardLock?.disableKeyguard()
-            }
-        }
-        fun screenON(context: Context)
-        {
-            playNotify(context)
-            vibrate(context)
-            GestureDetect.screenON(context)
-        }
-        fun playNotify(context: Context):Boolean{
-            if (ringtone == null) return false
-            ringtone?.play()
-            return false
-        }
-        fun playNotifyToEnd(context: Context):Boolean{
-            if (ringtone == null) return false
-            ringtone?.play()
-            while(ringtone?.isPlaying == true){
-                Thread.sleep(100)
-            }
-            return false
-        }
-        fun vibrate(context: Context){
-            if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))
-                GestureDetect.vibrate(context)
-        }
     }
 }

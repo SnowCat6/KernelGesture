@@ -3,6 +3,7 @@ package gesture.action
 import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
+import gesture.GestureAction
 import gesture.GestureService
 import ru.vpro.kernelgesture.R
 
@@ -22,9 +23,9 @@ class ActionGoogleNow(context: Context) : ActionItem(context)
 
     override fun run(): Boolean
     {
-        GestureService.UI.screenON(context)
-        GestureService.UI.screenUnlock(context)
+        GestureAction.UI.screenON(context)
+        GestureAction.UI.screenUnlock(context)
         val googleNowIntent = Intent("android.intent.action.VOICE_ASSIST")
-        return GestureService.UI.startNewActivity(context, googleNowIntent)
+        return GestureAction.UI.startNewActivity(context, googleNowIntent)
     }
 }

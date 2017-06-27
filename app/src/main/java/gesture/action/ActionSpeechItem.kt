@@ -2,6 +2,7 @@ package gesture.action
 
 import android.content.Context
 import android.speech.tts.TextToSpeech
+import gesture.GestureAction
 import gesture.GestureService
 import java.util.*
 
@@ -18,8 +19,8 @@ abstract class ActionSpeechItem(context: Context) :
 
     fun doSpeech(value: String): Boolean
     {
-        GestureService.UI.vibrate(context)
-        GestureService.UI.playNotifyToEnd(context)
+        GestureAction.UI.vibrate(context)
+        GestureAction.UI.playNotifyToEnd(context)
 
         tts?.language = Locale.getDefault()
         tts?.speak(value, TextToSpeech.QUEUE_ADD, null, "")

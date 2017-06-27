@@ -2,6 +2,7 @@ package gesture.action
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import gesture.GestureAction
 import gesture.GestureService
 import ru.vpro.kernelgesture.R
 
@@ -20,7 +21,7 @@ class ActionScreenOn(context: Context) : ActionItem(context)
             = context.getDrawable(R.drawable.icon_screen_on)
 
     override fun run(): Boolean {
-        GestureService.UI.screenON(context)
+        GestureAction.UI.screenON(context)
         return true
     }
 }

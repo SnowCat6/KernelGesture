@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import gesture.GestureAction
 import gesture.GestureService
 
 /**
@@ -36,9 +37,9 @@ abstract class ActionApp(context:Context) : ActionItem(context)
     {
         if (applicationInfo == null) return false
 
-        GestureService.UI.screenON(context)
-        GestureService.UI.screenUnlock(context)
+        GestureAction.UI.screenON(context)
+        GestureAction.UI.screenUnlock(context)
 
-        return GestureService.UI.startNewActivity(context, applicationInfo!!.packageName)
+        return GestureAction.UI.startNewActivity(context, applicationInfo!!.packageName)
     }
 }
