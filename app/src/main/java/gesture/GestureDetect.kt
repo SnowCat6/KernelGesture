@@ -1,21 +1,21 @@
 package gesture
 
-import java.io.*
-import android.content.*
-import android.os.PowerManager
-import android.preference.PreferenceManager
-import android.util.Log
-import android.os.Vibrator
-import ru.vpro.kernelgesture.BuildConfig
-import android.view.Display
+import android.content.Context
 import android.hardware.display.DisplayManager
 import android.os.Handler
-import android.widget.Toast
 import android.os.Looper
-import gesture.drivers.input.*
+import android.os.PowerManager
+import android.os.Vibrator
+import android.preference.PreferenceManager
+import android.util.Log
+import android.view.Display
+import android.widget.Toast
 import gesture.drivers.sensor.SensorHandler
 import gesture.drivers.sensor.SensorInput
 import gesture.drivers.sensor.SensorProximity
+import ru.vpro.kernelgesture.BuildConfig
+import java.io.BufferedReader
+import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.Semaphore
 

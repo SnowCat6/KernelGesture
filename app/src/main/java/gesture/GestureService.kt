@@ -11,14 +11,9 @@ import android.hardware.SensorManager
 import android.os.IBinder
 import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
+import ru.vpro.kernelgesture.R
 import java.lang.Thread.MAX_PRIORITY
 import kotlin.concurrent.thread
-import android.os.Build
-import ru.vpro.kernelgesture.R
-import ru.vpro.kernelgesture.R.mipmap.ic_launcher
-
-
-
 
 class GestureService : Service(), SensorEventListener {
 

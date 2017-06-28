@@ -83,7 +83,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
             }
 
-            GestureDetect.SU.exec("echo query${queryIx}>&2")
+            GestureDetect.SU.exec("echo query$queryIx>&2")
             while(bRunning)
             {
                 //  Read line from input
@@ -94,7 +94,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
                 //  Check query number for prevent old events output
                 if (!bQueryFound){
-                    bQueryFound = line == "query${queryIx}"
+                    bQueryFound = line == "query$queryIx"
                     continue
                 }
 
