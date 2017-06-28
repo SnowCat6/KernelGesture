@@ -16,6 +16,7 @@ import gesture.drivers.input.*
 import gesture.drivers.sensor.SensorHandler
 import gesture.drivers.sensor.SensorProximity
 import java.util.*
+import java.util.concurrent.Semaphore
 
 
 class GestureDetect (val context:Context)
@@ -97,9 +98,12 @@ class GestureDetect (val context:Context)
         inputDevices = emptyArray()
         sensorDevices = emptyArray()
 
-        getInputDevices().forEach { (input, name) ->
-            inputHandlers.forEach {
-                if (it.onDetect(name)) inputDevices += Pair(input, it)
+        if (SU.hasRootProcess())
+        {
+            getInputDevices().forEach { (input, name) ->
+                inputHandlers.forEach {
+                    if (it.onDetect(name)) inputDevices += Pair(input, it)
+                }
             }
         }
 
@@ -135,10 +139,38 @@ class GestureDetect (val context:Context)
         return inputs
     }
 
+    var isTypeSU = false
+    var semaphore = Semaphore(1)
+    var sensorEventGesture:String? = null
+
     fun waitGesture(): String?
     {
-        if (SU.open() == null) return null
-        return getEvent()
+        isTypeSU = SU.open() != null
+        if (isTypeSU) return  getEvent()
+        return getEventThread()
+    }
+
+    private fun getEventThread():String?
+    {
+        sensorEventGesture = null
+        bGetEvents = true
+        sensorDevices.forEach { it.onStart() }
+
+        Log.d("Lock", "First lock")
+        semaphore.acquire() // Lock
+        Log.d("Lock", "Wait lock")
+        semaphore.acquire() // Wait unlock
+        Log.d("Lock", "Release lock")
+        semaphore.release() // Release first lock
+
+        sensorDevices.forEach { it.onStop() }
+
+        return sensorEventGesture
+    }
+    private fun unlockGesture(){
+        if (isTypeSU) return
+        Log.d("Lock", "Unlock lock")
+        semaphore.release()
     }
 
     private fun getEvent(): String?
@@ -226,20 +258,29 @@ class GestureDetect (val context:Context)
         if (!bGetEvents) return
         bGetEvents = false
 
-        SU.exec("kill -s SIGINT %%")
         sensorDevices.forEach { it.onStop() }
 
-        //  Many execute for flush process buffer
-        for(ix in 0..15) SU.exec("echo CLOSE_EVENTS>&2")
+        if (isTypeSU)
+        {
+            SU.exec("kill -s SIGINT %%")
+            //  Many execute for flush process buffer
+            for(ix in 0..15) SU.exec("echo CLOSE_EVENTS>&2")
+        }else{
+            unlockGesture()
+        }
     }
     fun sensorEvent(value:String):Boolean
     {
         if (lock) return false
         if (!getEnable(context, value)) return false
 
-        //  Many execute for flush process buffer
-        for(ix in 0..15) SU.exec("echo SENSOR_EVENT $value>&2")
-
+        if (isTypeSU){
+            //  Many execute for flush process buffer
+            for(ix in 0..15) SU.exec("echo SENSOR_EVENT $value>&2")
+        }else{
+            sensorEventGesture = value
+            unlockGesture()
+        }
         return true
     }
 

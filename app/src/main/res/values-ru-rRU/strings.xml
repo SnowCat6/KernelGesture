@@ -59,4 +59,6 @@
     <string name="ui_adv_menu">Реклама</string>
     <string name="ui_service">Фоновый процесс</string>
     <string name="ui_draw_z">Рисовать букву Z</string>
+    <string name="ui_key_actions">Нажатие клавиш</string>
+    <string name="ui_sensor_actions">Сенсорные действия</string>
 </resources>

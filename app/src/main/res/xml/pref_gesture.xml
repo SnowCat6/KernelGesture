@@ -87,6 +87,12 @@
             android:key="KEY_Z"
             android:title="@string/ui_draw_z"
             />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/ui_key_actions"
+        android:key="KEY_GROUP"
+        >
         <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_VOLUMEUP"
@@ -97,6 +103,12 @@
             android:key="KEY_VOLUMEDOWN"
             android:title="@string/ui_volume_down"
             />
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/ui_sensor_actions"
+        android:key="SENSOR_GROUP"
+        >
         <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
             android:key="KEY_PROXIMITY"

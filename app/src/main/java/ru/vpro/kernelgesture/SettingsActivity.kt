@@ -181,14 +181,26 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             var titles = emptyArray<String>()
             var alertMessage:String? = null
+            val bAllEnable = GestureDetect.getAllEnable(activity)
 
-            if (support.contains("GESTURE")){
+            val bGesture = support.contains("GESTURE")
+            findPreference("GESTURE_GROUP").isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
+
+            if (bGesture){
                 titles += getString(R.string.ui_title_gestures)
             }
-            if (support.contains("KEYS")){
+
+            val bKeys = support.contains("KEYS")
+            findPreference("KEY_GROUP").isEnabled = bKeys && bAllEnable
+
+            if (bKeys){
                 titles += getString(R.string.ui_title_keys)
             }
-            if (support.contains("PROXIMITY")){
+
+            val bProximity = support.contains("PROXIMITY")
+            findPreference("SENSOR_GROUP").isEnabled = bProximity && bAllEnable
+
+            if (bProximity){
                 titles += getString(R.string.ui_title_gesture)
             }
             if (!titles.isEmpty()){
@@ -319,7 +331,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
     companion object
     {
         var thisFragment:GesturePreferenceFragment? = null
-        var thisSupport:Array<String>? = null
 
         private var commonGestureItems = emptyArray<GesturePreferenceFragment.GestureItem>()
         fun getItemInstance(key:String): GesturePreferenceFragment.GestureItem?
@@ -348,61 +359,36 @@ class SettingsActivity : AppCompatPreferenceActivity()
             preference as TwoStatePreference
             val context = preference.context
 
+            GestureDetect.setAllEnable(context, value)
+/*
             with( preference.preferenceManager)
             {
                 findPreference("GESTURE_GROUP").isEnabled = value
                 findPreference("GESTURE_GROUP_ADD").isEnabled = value
             }
-
+*/
             val mainHandler = Handler(context.mainLooper)
-
             val bHasRoot = GestureDetect.SU.hasRootProcess()
+
             if (value == true && !bHasRoot)
             {
                 thisFragment?.updateRootAccess(bHasRoot)
                 thread{
                     val bRoot = GestureDetect.SU.checkRootAccess()
-
-                    GestureDetect.setAllEnable(context, bRoot)
-
+                    val support = GestureDetect(context).getSupport()
                     mainHandler.post {
                         thisFragment?.updateRootAccess(bRoot)
-                        preference.isChecked = bRoot
-                        preference.onPreferenceChangeListener.onPreferenceChange(preference, bRoot)
-                    }
-
-                    if (bRoot) {
-                        val gs = GestureDetect(context)
-                        thisSupport = gs.getSupport()
-                        mainHandler.post {
-                            thisFragment?.updateGesturesDetect(thisSupport!!, !bHasRoot)
-                        }
-                        context.startService(Intent(context, GestureService::class.java))
-                    }
-                }
-            }else{
-                GestureDetect.setAllEnable(context, value)
-
-                thisFragment?.updateRootAccess(bHasRoot)
-                if (bHasRoot){
-                    if (thisSupport != null) {
-                        thisFragment?.updateGesturesDetect(thisSupport!!, false)
-
-                        if (value) {
-                            context.startService(Intent(context, GestureService::class.java))
-                        }
-                    }else{
-                        thread{
-                            val gs = GestureDetect(context)
-                            thisSupport = gs.getSupport()
-                            mainHandler.post {
-                                thisFragment?.updateGesturesDetect(thisSupport!!, false)
-                            }
-                        }
+                        thisFragment?.updateGesturesDetect(support, true)
                     }
                 }
             }
-            if (!value){
+
+            val support = GestureDetect(context).getSupport()
+            thisFragment?.updateGesturesDetect(support, false)
+
+            if (value) {
+                context.startService(Intent(context, GestureService::class.java))
+            }else{
                 context.stopService(Intent(context, GestureService::class.java))
             }
 

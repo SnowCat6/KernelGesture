@@ -59,6 +59,8 @@
     <string name="ui_adv_menu">Adv</string>
     <string name="ui_service">Background service</string>
     <string name="ui_draw_z">Draw Z letter</string>
+    <string name="ui_key_actions">Key actions</string>
+    <string name="ui_sensor_actions">Sensor actions</string>
 
     <!-- Strings related to Settings -->
 
