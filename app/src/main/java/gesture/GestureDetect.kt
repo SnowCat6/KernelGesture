@@ -14,6 +14,7 @@ import android.widget.Toast
 import android.os.Looper
 import gesture.drivers.input.*
 import gesture.drivers.sensor.SensorHandler
+import gesture.drivers.sensor.SensorInput
 import gesture.drivers.sensor.SensorProximity
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -22,19 +23,11 @@ import java.util.concurrent.Semaphore
 class GestureDetect (val context:Context)
 {
     /**
-     * Input devices
-     */
-    private val inputHandlers = arrayOf(
-            InputMTK_TPD(this), InputMTK_KPD(this),
-            InputQCOMM_KPD(this), InputFT5x06_ts(this),
-            InputSunXi_KPD(this)
-    )
-
-    /**
      * Sensor devices
      */
     private val sensorHandlers = arrayOf(
-            SensorProximity(this)
+            SensorProximity(this),
+            SensorInput(this)
     )
 
     /**
@@ -42,8 +35,7 @@ class GestureDetect (val context:Context)
      */
     //  Supported devices and keys
     private var supported = emptyArray<String>()
-    //  Detected input and sensor devices
-    private var inputDevices = emptyArray<Pair<String, InputHandler>>()
+    //  Detected sensor devices
     private var sensorDevices = emptyArray<SensorHandler>()
     //  Get events in process
     private var bGetEvents = false
@@ -58,6 +50,9 @@ class GestureDetect (val context:Context)
             if (_bLock) closeEvents()
         }
 
+    /**
+     *
+     */
     private var timeNearChange = GregorianCalendar.getInstance().timeInMillis
     private var _bIsNear:Boolean = false
     var isNear: Boolean
@@ -71,7 +66,6 @@ class GestureDetect (val context:Context)
                 timeNearChange = GregorianCalendar.getInstance().timeInMillis
             }
         }
-
     /**
      * CODE
      */
@@ -79,74 +73,35 @@ class GestureDetect (val context:Context)
         detectDevices()
     }
 
-    fun close(){
+    fun close()
+    {
         lock = true
+        sensorDevices.forEach { it.close() }
         closeEvents()
         SU.close()
     }
 
     fun enable(powerOn: Boolean)
     {
-        if (SU.hasRootProcess()) {
-            inputDevices.forEach { it.second.setEnable(powerOn) }
+        sensorDevices.forEach {
+            it.enable(powerOn)
         }
     }
 
     private fun detectDevices()
     {
         closeEvents()
-        inputDevices = emptyArray()
         sensorDevices = emptyArray()
-
-        if (SU.hasRootProcess())
-        {
-            getInputDevices().forEach { (input, name) ->
-                inputHandlers.forEach {
-                    if (it.onDetect(name)) inputDevices += Pair(input, it)
-                }
-            }
-        }
-
         sensorHandlers.forEach {
             if (it.onDetect()) sensorDevices += it
         }
     }
 
-    private fun getInputDevices():Array<Pair<String, String>>
-    {
-        var inputs = emptyArray<Pair<String, String>>()
-        try {
-            var name = ""
-            BufferedReader(FileReader("/proc/bus/input/devices"))
-                    .readLines()
-                    .forEach { line ->
-
-                        val iName = line.indexOf("Name=")
-                        if (iName >= 0) name = line.substring(iName + 5).trim('"')
-
-                        val iHandlers = line.indexOf("Handlers=")
-                        if (iHandlers >= 0)
-                        {
-                            line.substring(iHandlers + 9)
-                                .split(" ")
-                                .filter { it.contains("event") }
-                                .forEach { inputs += Pair("/dev/input/$it", name) }
-                        }
-                    }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-        return inputs
-    }
-
-    var isTypeSU = false
     var semaphore = Semaphore(0)
     var sensorEventGesture:String? = null
 
     fun waitGesture(): String?
     {
-        isTypeSU = SU.open() != null
-        if (isTypeSU) return  getEvent()
         return getEventThread()
     }
 
@@ -159,129 +114,35 @@ class GestureDetect (val context:Context)
         if (BuildConfig.DEBUG) {
             Log.d("Lock", "Wait semaphore lock")
         }
+
         semaphore.acquire() // Wait unlock
-
-        sensorDevices.forEach { it.onStop() }
-
-        return sensorEventGesture
-    }
-    private fun unlockGesture(){
-        if (isTypeSU) return
-
-        if (BuildConfig.DEBUG) {
-            Log.d("Lock", "Unlock locked semaphore")
-        }
-        semaphore.release()
-    }
-
-    private fun getEvent(): String?
-    {
-        var device = ""
-        var bQueryFound = false
-
-        ++queryIx
-        bGetEvents = true
-
-        sensorDevices.forEach { it.onStart() }
-
-        //  For each device
-        var ix = 0
-        inputDevices.forEach { (inputName, device) ->
-            //  Power on gesture if available, many drivers not set this value if screen off
-            device.setEnable(true)
-            //  Run input event detector
-            ++ix
-            SU.exec("while v$ix=$(getevent -c 2 -l $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
-           ++ix
-            SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
-        }
-
-        SU.exec("echo query$queryIx>&2")
-        while(!lock && bGetEvents)
-        {
-            //  Read line from input
-            val line = SU.readErrorLine() ?: break
-
-            //  Stop if gesture need stop run
-            if (lock || !bGetEvents) break
-
-            //  Check query number for prevent old events output
-            if (!bQueryFound){
-                bQueryFound = line == "query$queryIx"
-                continue
-            }
-            if (line.contains("CLOSE_EVENTS"))
-                break
-
-            if (line.contains("SENSOR_EVENT")){
-                closeEvents()
-                return line.split(" ")[1]
-            }
-
-            //  Detect current input device
-            if (line.contains("/dev/input/")) {
-                device = line
-                continue
-            }
-
-            //  Check only key events
-            if (!line.contains("EV_")) continue
-
-            //  Check device is near screen
-            if (isNear) continue
-
-            //  Find device for event accept
-            for ((first, second) in inputDevices)
-            {
-                if (first != device) continue
-
-                if (BuildConfig.DEBUG) {
-                    Log.d("Event detected", line)
-                }
-                //  Get gesture
-                val gesture = second.onEvent(line) ?: break
-                //  Check gesture enable
-                if (!getEnable(context, gesture)) break
-                //  Close cmd events
-                closeEvents()
-                //  Return result
-                return gesture
-            }
-        }
 
         closeEvents()
 
-        //  Error reading, no continue or sensorEvent handled
-        return null
+        return sensorEventGesture
     }
+
     private fun closeEvents()
     {
         if (!bGetEvents) return
         bGetEvents = false
 
-        sensorDevices.forEach { it.onStop() }
-
-        if (isTypeSU)
-        {
-            SU.exec("kill -s SIGINT %%")
-            //  Many execute for flush process buffer
-            for(ix in 0..15) SU.exec("echo CLOSE_EVENTS>&2")
-        }else{
-            unlockGesture()
+        if (BuildConfig.DEBUG) {
+            Log.d("Lock", "Unlock locked semaphore")
         }
+
+        semaphore.release()
+
+        sensorDevices.forEach { it.onStop() }
     }
     fun sensorEvent(value:String):Boolean
     {
         if (lock) return false
         if (!getEnable(context, value)) return false
 
-        if (isTypeSU){
-            //  Many execute for flush process buffer
-            for(ix in 0..15) SU.exec("echo SENSOR_EVENT $value>&2")
-        }else{
-            sensorEventGesture = value
-            unlockGesture()
-        }
+        sensorEventGesture = value
+        closeEvents()
+
         return true
     }
 
@@ -324,12 +185,9 @@ class GestureDetect (val context:Context)
 
     companion object
     {
-        private var queryIx = 0
-
         fun getAllEnable(context: Context): Boolean
-        {
-            return getEnable(context, "GESTURE_ENABLE")
-        }
+                = getEnable(context, "GESTURE_ENABLE")
+
         fun setAllEnable(context: Context, value: Boolean) {
             setEnable(context, "GESTURE_ENABLE", value)
 
