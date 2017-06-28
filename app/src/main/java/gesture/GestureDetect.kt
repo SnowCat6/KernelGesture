@@ -140,7 +140,7 @@ class GestureDetect (val context:Context)
     }
 
     var isTypeSU = false
-    var semaphore = Semaphore(1)
+    var semaphore = Semaphore(0)
     var sensorEventGesture:String? = null
 
     fun waitGesture(): String?
@@ -156,12 +156,10 @@ class GestureDetect (val context:Context)
         bGetEvents = true
         sensorDevices.forEach { it.onStart() }
 
-//        Log.d("Lock", "First lock")
-        semaphore.acquire() // Lock
-//        Log.d("Lock", "Wait lock")
+        if (BuildConfig.DEBUG) {
+            Log.d("Lock", "Wait semaphore lock")
+        }
         semaphore.acquire() // Wait unlock
-//        Log.d("Lock", "Release lock")
-        semaphore.release() // Release first lock
 
         sensorDevices.forEach { it.onStop() }
 
@@ -169,7 +167,10 @@ class GestureDetect (val context:Context)
     }
     private fun unlockGesture(){
         if (isTypeSU) return
-//        Log.d("Lock", "Unlock lock")
+
+        if (BuildConfig.DEBUG) {
+            Log.d("Lock", "Unlock locked semaphore")
+        }
         semaphore.release()
     }
 
