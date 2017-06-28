@@ -11,9 +11,7 @@ import java.util.*
 abstract class ActionSpeechItem(action: GestureAction) :
         ActionItem(action), TextToSpeech.OnInitListener
 {
-    companion object {
-        var tts: TextToSpeech? = null
-    }
+    var tts: TextToSpeech? = null
 
     fun doSpeech(value: String): Boolean
     {
@@ -32,6 +30,11 @@ abstract class ActionSpeechItem(action: GestureAction) :
     {
         if (tts != null) return
         tts = TextToSpeech(action.context, this)
+    }
+
+    override fun onStop() {
+        tts?.shutdown()
+        tts = null
     }
 
     override fun onInit(status: Int)

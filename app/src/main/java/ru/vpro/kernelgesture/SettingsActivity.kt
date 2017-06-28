@@ -49,8 +49,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
         super.onCreate(savedInstanceState)
         setupActionBar()
 
-        startService(Intent(this, GestureService::class.java))
-
         mInterstitialAd = InterstitialAd(this)
         mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548"
         mInterstitialAd?.loadAd(AdRequest.Builder().build())
@@ -348,6 +346,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             value as Boolean
             preference as TwoStatePreference
+            val context = preference.context
 
             with( preference.preferenceManager)
             {
@@ -355,7 +354,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 findPreference("GESTURE_GROUP_ADD").isEnabled = value
             }
 
-            val mainHandler = Handler(preference.context.mainLooper)
+            val mainHandler = Handler(context.mainLooper)
 
             val bHasRoot = GestureDetect.SU.hasRootProcess()
             if (value == true && !bHasRoot)
@@ -364,7 +363,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 thread{
                     val bRoot = GestureDetect.SU.checkRootAccess()
 
-                    GestureDetect.setAllEnable(preference.context, bRoot)
+                    GestureDetect.setAllEnable(context, bRoot)
 
                     mainHandler.post {
                         thisFragment?.updateRootAccess(bRoot)
@@ -373,30 +372,38 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
 
                     if (bRoot) {
-                        val gs = GestureDetect(preference.context)
-                        thisSupport = gs.getSupport(preference.context)
+                        val gs = GestureDetect(context)
+                        thisSupport = gs.getSupport()
                         mainHandler.post {
                             thisFragment?.updateGesturesDetect(thisSupport!!, !bHasRoot)
                         }
+                        context.startService(Intent(context, GestureService::class.java))
                     }
                 }
             }else{
-                GestureDetect.setAllEnable(preference.context, value)
+                GestureDetect.setAllEnable(context, value)
 
                 thisFragment?.updateRootAccess(bHasRoot)
                 if (bHasRoot){
                     if (thisSupport != null) {
                         thisFragment?.updateGesturesDetect(thisSupport!!, false)
+
+                        if (value) {
+                            context.startService(Intent(context, GestureService::class.java))
+                        }
                     }else{
                         thread{
-                            val gs = GestureDetect(preference.context)
-                            thisSupport = gs.getSupport(preference.context)
+                            val gs = GestureDetect(context)
+                            thisSupport = gs.getSupport()
                             mainHandler.post {
                                 thisFragment?.updateGesturesDetect(thisSupport!!, false)
                             }
                         }
                     }
                 }
+            }
+            if (!value){
+                context.stopService(Intent(context, GestureService::class.java))
             }
 
             true

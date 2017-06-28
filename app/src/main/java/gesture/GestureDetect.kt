@@ -260,7 +260,7 @@ class GestureDetect (val context:Context)
             Toast.makeText(context, value, Toast.LENGTH_LONG).show()
         }
     }
-    fun getSupport(context:Context):Array<String>
+    fun getSupport():Array<String>
     {
 /*
         if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
@@ -356,7 +356,6 @@ class GestureDetect (val context:Context)
         /*
         <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
          */
-
     }
     /**
      * SuperSU wrapper
@@ -408,10 +407,10 @@ class GestureDetect (val context:Context)
 
         fun exec(cmd: String): Boolean
         {
+            SU.open()
+
             synchronized(bEnableSU)
             {
-                SU.open()
-
                 try {
                     writerSU?.write("$cmd\n".toByteArray())
                     writerSU?.flush()
@@ -419,11 +418,12 @@ class GestureDetect (val context:Context)
                     e.printStackTrace()
                     return false
                 }
-
-                if (BuildConfig.DEBUG) {
-                    Log.d("GestureDetect exec", "$cmd\n")
-                }
             }
+
+            if (BuildConfig.DEBUG) {
+                Log.d("GestureDetect exec", "$cmd\n")
+            }
+
             return true
         }
 

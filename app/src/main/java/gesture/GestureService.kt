@@ -50,14 +50,19 @@ class GestureService : Service(), SensorEventListener {
         bRunning = true
 
         thread {
-            /*****************************/
-            val builder = Notification.Builder(this)
-                    .setSmallIcon(R.drawable.icon_screen_on)
-                    .setContentTitle(getString(R.string.ui_service))
 
-            val notification = builder.build()
-            startForeground(777, notification)
-            /*****************************/
+            val bForeground = true
+
+            if (bForeground) {
+                /*****************************/
+                val builder = Notification.Builder(this)
+                        .setSmallIcon(R.drawable.icon_screen_on)
+                        .setContentTitle(getString(R.string.ui_service))
+
+                val notification = builder.build()
+                startForeground(777, notification)
+                /*****************************/
+            }
 
             val ga = GestureAction(this)
             if (gesture == null)
@@ -88,9 +93,11 @@ class GestureService : Service(), SensorEventListener {
             }
             ga.onStop()
 
-            /*****************************/
-            stopForeground(true)
-            /*****************************/
+            if (bForeground) {
+                /*****************************/
+                stopForeground(true)
+                /*****************************/
+            }
 
             //  Mark thread stopped
             bRunning = false
