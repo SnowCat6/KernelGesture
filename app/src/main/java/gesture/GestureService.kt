@@ -27,7 +27,8 @@ class GestureService : Service(), SensorEventListener {
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
 
-    private var gesture:GestureDetect? = null// GestureDetect.getInstance(this)
+    private var gesture:GestureDetect? = null
+    private var gestureActions:GestureAction? = null
 
     /************************************/
     /*
@@ -59,11 +60,13 @@ class GestureService : Service(), SensorEventListener {
                 /*****************************/
             }
 
-            val ga = GestureAction(this)
+            if (gestureActions == null)
+                gestureActions = GestureAction(this)
+
             if (gesture == null)
                 gesture = GestureDetect(this)
 
-            ga.onStart()
+            gestureActions?.onStart()
             gesture?.lock = false
 
             //  If proximity sensor used, register event
@@ -75,9 +78,14 @@ class GestureService : Service(), SensorEventListener {
 
             //  Main gesture loop
             //  Wait gesture while live
-            while (gesture?.lock != true) {
+            while (gesture?.lock != true)
+            {
                 val ev = gesture?.waitGesture() ?: break
-                if (ga.onGestureEvent(ga, ev)) break
+                try {
+                    if (gestureActions?.onGestureEvent(ev) == true) break
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
             }
 
             gesture?.lock = true
@@ -86,7 +94,7 @@ class GestureService : Service(), SensorEventListener {
             if (bProximityEnable) {
                 mSensorManager?.unregisterListener(this)
             }
-            ga.onStop()
+            gestureActions?.onStop()
 
             if (bForeground) {
                 /*****************************/
@@ -171,6 +179,9 @@ class GestureService : Service(), SensorEventListener {
     {
         gesture?.close()
         gesture = null
+
+        gestureActions?.close()
+        gestureActions = null
 
         unregisterReceiver(onScreenIntent)
 

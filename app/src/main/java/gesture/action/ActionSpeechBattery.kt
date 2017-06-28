@@ -22,10 +22,15 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
 
     override fun run(): Boolean
     {
-        val bm = action.context.getSystemService(BATTERY_SERVICE) as BatteryManager
-        val batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-        val prefix = action.context.getString(R.string.ui_action_battery)
+        try {
+            val bm = action.context.getSystemService(BATTERY_SERVICE) as BatteryManager
+            val batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            val prefix = action.context.getString(R.string.ui_action_battery)
 
-        return doSpeech("$prefix $batLevel%")
+            return doSpeech("$prefix $batLevel%")
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
+        return false
     }
 }

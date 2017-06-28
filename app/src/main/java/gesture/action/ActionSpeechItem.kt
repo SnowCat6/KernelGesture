@@ -18,10 +18,14 @@ abstract class ActionSpeechItem(action: GestureAction) :
         GestureAction.UI.vibrate(action.context)
         val bNotify = GestureAction.UI.playNotifyToEnd(action.context)
 
-        tts?.language = Locale.getDefault()
-        tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
+        try {
+            tts?.language = Locale.getDefault()
+            tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
 
-        if (!bNotify) Thread.sleep(500)
+            if (!bNotify) Thread.sleep(500)
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
 
         return false
     }
@@ -32,19 +36,34 @@ abstract class ActionSpeechItem(action: GestureAction) :
         tts = TextToSpeech(action.context, this)
     }
 
-    override fun onStop() {
-        tts?.shutdown()
+    override fun close()
+    {
+        try {
+            tts?.shutdown()
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
         tts = null
     }
 
     override fun onInit(status: Int)
     {
-        if (status != TextToSpeech.SUCCESS) {
+        if (status != TextToSpeech.SUCCESS)
+        {
+            try {
+                tts?.shutdown()
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
             tts = null
             return
         }
 
-        tts?.language = Locale.getDefault()
-        tts?.speak("", TextToSpeech.QUEUE_FLUSH, null, "")
+        try {
+            tts?.language = Locale.getDefault()
+            tts?.speak("", TextToSpeech.QUEUE_FLUSH, null, "")
+        }catch (e:Exception){
+            e.printStackTrace()
+        }
     }
 }

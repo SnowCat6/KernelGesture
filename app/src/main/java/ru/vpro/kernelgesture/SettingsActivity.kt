@@ -127,6 +127,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
         override fun onResume() {
             super.onResume()
             thisFragment = this
+            if (GestureDetect.SU.hasRootProcess())
+            {
+                updateRootAccess(true)
+                updateGesturesDetect(GestureDetect(activity).getSupport(), false)
+            }
         }
 
         override fun onCreate(savedInstanceState: Bundle?)
@@ -232,9 +237,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 if (p != null) {
                     preferenceScreen?.removePreference(p)
                 }
-                actionBar.subtitle = ""
+ //               actionBar.subtitle = ""
             }else{
-                actionBar.subtitle = getString(R.string.ui_title_no_root)
+ //               actionBar.subtitle = getString(R.string.ui_title_no_root)
             }
         }
 
@@ -359,6 +364,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             preference as TwoStatePreference
             val context = preference.context
 
+            if (value) GestureDetect.SU.enable(true)
             GestureDetect.setAllEnable(context, value)
 /*
             with( preference.preferenceManager)

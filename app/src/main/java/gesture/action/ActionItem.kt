@@ -7,6 +7,7 @@ abstract class ActionItem(val action: GestureAction)
 {
     open fun onStart() {}
     open fun onStop() {}
+    open fun close() {}
 
     abstract fun action(): String
     open fun isAction(action: String): Boolean = action == action()

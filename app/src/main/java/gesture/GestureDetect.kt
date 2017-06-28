@@ -91,6 +91,8 @@ class GestureDetect (val context:Context)
     private fun detectDevices()
     {
         closeEvents()
+        sensorDevices.forEach { it.close() }
+
         sensorDevices = emptyArray()
         sensorHandlers.forEach {
             if (it.onDetect()) sensorDevices += it
@@ -107,7 +109,11 @@ class GestureDetect (val context:Context)
 
     private fun getEventThread():String?
     {
-        SU.checkRootAccess()
+        if (!SU.hasRootProcess() && SU.checkRootAccess())
+        {
+            detectDevices()
+            if (lock) return null
+        }
 
         sensorEventGesture = null
         bGetEvents = true
@@ -269,6 +275,7 @@ class GestureDetect (val context:Context)
         var readerSU: BufferedReader? = null
         var writerSU: OutputStream? = null
         var bEnableSU = false
+        var bEnableCheck = true
 
         fun checkRootAccess():Boolean
                 = SU.open() != null
@@ -276,8 +283,15 @@ class GestureDetect (val context:Context)
         fun hasRootProcess():Boolean
                 = bEnableSU
 
+        fun enable(bEnable:Boolean) {
+            bEnableCheck = bEnable
+        }
+
         fun open(): Process?
         {
+            if (!bEnableCheck)
+                return processSU
+
             synchronized(bEnableSU)
             {
                 try{
@@ -303,6 +317,7 @@ class GestureDetect (val context:Context)
                     close()
                 }
                 bEnableSU = processSU != null
+                bEnableCheck = bEnableSU
             }
             return processSU
         }

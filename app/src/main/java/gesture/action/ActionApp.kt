@@ -17,8 +17,12 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     fun getInfo():ApplicationInfo?
     {
         if (applicationInfo == null) {
-            val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
-            applicationInfo = resolveInfo?.activityInfo?.applicationInfo
+            try {
+                val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                applicationInfo = resolveInfo?.activityInfo?.applicationInfo
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
         }
         return applicationInfo
     }

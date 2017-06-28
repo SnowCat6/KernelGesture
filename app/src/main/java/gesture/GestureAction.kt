@@ -39,13 +39,17 @@ class GestureAction(val context:Context)
         allActions.forEach { it.onStop() }
     }
 
+    fun close(){
+        allActions.forEach { it.close() }
+    }
+
     fun getAction(action: String): ActionItem?
             = allActions.firstOrNull { it.isAction(action) }
 
     fun getActions(): Array<ActionItem>
             = allActions
 
-    fun onGestureEvent(ga:GestureAction, gestureKey:String):Boolean
+    fun onGestureEvent(gestureKey:String):Boolean
     {
         var action:String? = GestureDetect.getAction(context, gestureKey)
 
@@ -58,7 +62,7 @@ class GestureAction(val context:Context)
             Log.d("Gesture action", gestureKey)
         }
 
-        val a = ga.getAction(action)
+        val a = getAction(action)
         if (a != null) return a.run()
 /*
             "screen.on"
