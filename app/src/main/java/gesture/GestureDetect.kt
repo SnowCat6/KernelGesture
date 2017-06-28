@@ -107,6 +107,8 @@ class GestureDetect (val context:Context)
 
     private fun getEventThread():String?
     {
+        SU.checkRootAccess()
+
         sensorEventGesture = null
         bGetEvents = true
         sensorDevices.forEach { it.onStart() }

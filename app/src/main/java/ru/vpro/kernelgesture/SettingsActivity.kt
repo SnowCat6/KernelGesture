@@ -383,6 +383,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
             }
 
+            thisFragment?.updateRootAccess(bHasRoot)
             val support = GestureDetect(context).getSupport()
             thisFragment?.updateGesturesDetect(support, false)
 
