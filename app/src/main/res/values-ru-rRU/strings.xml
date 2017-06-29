@@ -61,4 +61,6 @@
     <string name="ui_draw_z">Рисовать букву Z</string>
     <string name="ui_key_actions">Нажатие клавиш</string>
     <string name="ui_sensor_actions">Сенсорные действия</string>
+    <string name="ui_touchscreen_summ">Включение жестами тачскрина</string>
+    <string name="ui_key_summ">Включение клавишами</string>
 </resources>

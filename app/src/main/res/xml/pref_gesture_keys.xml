@@ -1,0 +1,19 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="@string/ui_key_actions"
+        android:key="KEY_GROUP"
+        >
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="false"
+            android:key="KEY_VOLUMEUP"
+            android:title="@string/ui_volume_up"
+            />
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="false"
+            android:key="KEY_VOLUMEDOWN"
+            android:title="@string/ui_volume_down"
+            />
+    </PreferenceCategory>
+
+</PreferenceScreen>
