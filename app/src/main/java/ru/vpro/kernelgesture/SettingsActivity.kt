@@ -141,10 +141,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
      * This method stops fragment injection in malicious applications.
      * Make sure to deny any unknown fragments here.
      */
-    override fun isValidFragment(fragmentName: String): Boolean = arrayOf(
-            PreferenceFragment::class.java.name,
-            GesturePreferenceFragment::class.java.name
-    ).contains(fragmentName)
+    override fun isValidFragment(fragmentName: String): Boolean =
+        arrayOf(
+                PreferenceFragment::class.java.name,
+                GesturePreferenceFragment::class.java.name
+        ).contains(fragmentName)
 
     inner class GestureItem(val key:String, var defaultAction:String)
     {
@@ -275,30 +276,19 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 onPreferenceChangeListener.onPreferenceChange(this, null)
             }
 
-            findPreference("TOUCH_PREFERENCE")?.apply {
-
-                setOnPreferenceClickListener {
-
-                    fragmentManager
-                            .beginTransaction()
-                            .replace(android.R.id.content, TouchscreenPreferenceFragment())
-                            .addToBackStack(null)
-                            .commit()
-
-                    true
-                }
-            }
-
-            findPreference("KEY_PREFERENCE")?.apply {
-                setOnPreferenceClickListener {
-
-                    fragmentManager
-                            .beginTransaction()
-                            .replace(android.R.id.content,KeyPreferenceFragment())
-                            .addToBackStack(null)
-                            .commit()
-
-                    true
+            arrayOf(
+                    Pair("TOUCH_PREFERENCE", TouchscreenPreferenceFragment::class.java),
+                    Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
+            ).forEach { (preferenceName, preferenceClass) ->
+                findPreference(preferenceName)?.apply {
+                    setOnPreferenceClickListener {
+                        fragmentManager
+                                .beginTransaction()
+                                .replace(android.R.id.content, preferenceClass.newInstance())
+                                .addToBackStack(null)
+                                .commit()
+                        true
+                    }
                 }
             }
         }
