@@ -133,7 +133,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     override fun onBuildHeaders(target: List<Header>) {
 //        loadHeadersFromResource(R.xml.pref_headers, target)
         fragmentManager.beginTransaction()
-                .replace(android.R.id.content, GesturePreferenceFragment(R.xml.pref_gesture))
+                .replace(android.R.id.content, GesturePreferenceFragment())
                 .commit()
     }
 
@@ -229,17 +229,19 @@ class SettingsActivity : AppCompatPreferenceActivity()
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    class GesturePreferenceFragment(val xmlResourceId:Int) : PreferenceFragment()
+    open class GesturePreferenceFragment : PreferenceFragment()
     {
+        var xmlResourceId = R.xml.pref_gesture
+
         override fun onStop() {
-            settingsFragment = null
             super.onStop()
+            settingsFragment = null
         }
 
         override fun onResume()
         {
-            super.onResume()
             settingsFragment = this
+            super.onResume()
             if (GestureDetect.SU.hasRootProcess())
             {
                 TOOLS.updateRootAccess(true)
@@ -279,7 +281,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     fragmentManager
                             .beginTransaction()
-                            .replace(android.R.id.content, GesturePreferenceFragment(R.xml.pref_gesture_touch))
+                            .replace(android.R.id.content, TouchscreenPreferenceFragment())
                             .addToBackStack(null)
                             .commit()
 
@@ -292,13 +294,25 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     fragmentManager
                             .beginTransaction()
-                            .replace(android.R.id.content, GesturePreferenceFragment(R.xml.pref_gesture_keys))
+                            .replace(android.R.id.content,KeyPreferenceFragment())
                             .addToBackStack(null)
                             .commit()
 
                     true
                 }
             }
+        }
+    }
+    class TouchscreenPreferenceFragment : GesturePreferenceFragment()
+    {
+        init{
+            xmlResourceId = R.xml.pref_gesture_touch
+        }
+    }
+    class KeyPreferenceFragment : GesturePreferenceFragment()
+    {
+        init{
+            xmlResourceId = R.xml.pref_gesture_keys
         }
     }
 
@@ -563,6 +577,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
     {
         fun updateGesturesDetect(support:Array<String>, bShowAlert:Boolean)
         {
+            if (settingsFragment == null)
+                return
+
             val fragment = settingsFragment!!
 
             var titles = emptyArray<String>()

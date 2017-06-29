@@ -2,11 +2,11 @@ package gesture.drivers.sensor
 
 import android.util.Log
 import gesture.GestureDetect
-import ru.vpro.kernelgesture.BuildConfig
-import kotlin.concurrent.thread
 import gesture.drivers.input.*
+import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.FileReader
+import kotlin.concurrent.thread
 
 /**
  * Класс для получения событий мз устройств ввода, /dev/input/
@@ -83,8 +83,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 //  Run input event detector
                 ++ix
                 GestureDetect.SU.exec("while v$ix=$(getevent -c 2 -l $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
-                ++ix
-                GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+//                ++ix
+//                GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
             }
 
             GestureDetect.SU.exec("echo query$queryIx>&2")
@@ -140,6 +140,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 Log.d("SensorInput", "Exit")
             }
         }
+
     }
 
     override fun onStop()
