@@ -109,9 +109,8 @@ class GestureAction(val context:Context)
         }
         fun screenUnlock(context: Context)
         {
-            if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN")) {
+            if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN"))
                 GestureService.keyguardLock?.disableKeyguard()
-            }
         }
         fun screenON(context: Context)
         {
@@ -119,16 +118,19 @@ class GestureAction(val context:Context)
             vibrate(context)
             GestureDetect.screenON(context)
         }
-        fun playNotify(context: Context):Boolean{
+        fun playNotify(context: Context):Boolean
+        {
             if (ringtone == null) return false
+
             ringtone?.play()
-            return false
+            return true
         }
-        fun playNotifyToEnd(context: Context):Boolean{
-            if (ringtone == null) return false
-            ringtone?.play()
-            while(ringtone?.isPlaying == true){
-                Thread.sleep(100)
+        fun playNotifyToEnd(context: Context):Boolean
+        {
+            ringtone?.apply {
+                play()
+                while(isPlaying) Thread.sleep(100)
+                return true
             }
             return false
         }

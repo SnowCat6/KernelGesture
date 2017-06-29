@@ -84,8 +84,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
         when(item?.itemId)
         {
             android.R.id.home ->{
-                super.onBackPressed();
-                return true;
+                super.onBackPressed()
+                return true
             }
             R.id.menu_adv ->
             {
@@ -231,14 +231,19 @@ class SettingsActivity : AppCompatPreferenceActivity()
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     class GesturePreferenceFragment(val xmlResourceId:Int) : PreferenceFragment()
     {
+        override fun onStop() {
+            settingsFragment = null
+            super.onStop()
+        }
+
         override fun onResume()
         {
             super.onResume()
             settingsFragment = this
             if (GestureDetect.SU.hasRootProcess())
             {
-                TOOLS.updateRootAccess(this, true)
-                TOOLS.updateGesturesDetect(this, GestureDetect(activity).getSupport(), false)
+                TOOLS.updateRootAccess(true)
+                TOOLS.updateGesturesDetect(GestureDetect(activity).getSupport(), false)
             }
         }
 
@@ -269,6 +274,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
 
             findPreference("TOUCH_PREFERENCE")?.apply {
+
                 setOnPreferenceClickListener {
 
                     fragmentManager
@@ -312,10 +318,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             value as Boolean
 
-            val gestureItem = getItemInstance(preference.key)
-            if (gestureItem != null) {
-                gestureItem.enable = value
-                preference.summary = gestureItem.actionName
+            getItemInstance(preference.key)?.apply {
+                enable = value
+                preference.summary = actionName
             }
 
             true
@@ -341,20 +346,20 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             if (value == true && !bHasRoot)
             {
-                TOOLS.updateRootAccess(settingsFragment, bHasRoot)
+                TOOLS.updateRootAccess(bHasRoot)
                 thread{
                     val bRoot = GestureDetect.SU.checkRootAccess()
                     val support = GestureDetect(context).getSupport()
                     mainHandler.post {
-                        TOOLS.updateRootAccess(settingsFragment, bRoot)
-                        TOOLS.updateGesturesDetect(settingsFragment, support, true)
+                        TOOLS.updateRootAccess(bRoot)
+                        TOOLS.updateGesturesDetect(support, true)
                     }
                 }
             }
 
             val support = GestureDetect(context).getSupport()
-            TOOLS.updateRootAccess(settingsFragment, bHasRoot)
-            TOOLS.updateGesturesDetect(settingsFragment, support, false)
+            TOOLS.updateRootAccess(bHasRoot)
+            TOOLS.updateGesturesDetect(support, false)
 
             if (value) {
                 context.startService(Intent(context, GestureService::class.java))
@@ -379,7 +384,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
             if (notify == null || notify.isEmpty()) {
                 preference.summary = preference.context.getString(R.string.ui_no_notify)
             }else{
-
                 val ringtone = RingtoneManager.getRingtone(preference.context, Uri.parse(notify))
                 when (ringtone) {
                     null -> preference.summary = preference.context.getString(R.string.ui_sound_default)
@@ -423,9 +427,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 Log.d("Set gesture action", itemAction)
             }
 
-            val gestureItem = getItemInstance(preference.key) ?: return@OnClickListener
-            with(gestureItem)
-            {
+            getItemInstance(preference.key)?.apply {
+
                 action = itemAction
                 enable = itemAction.isNotEmpty()
 
@@ -558,11 +561,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
     }
     object TOOLS
     {
-        fun updateGesturesDetect(fragment:PreferenceFragment?, support:Array<String>, bShowAlert:Boolean)
+        fun updateGesturesDetect(support:Array<String>, bShowAlert:Boolean)
         {
+            val fragment = settingsFragment!!
+
             var titles = emptyArray<String>()
             var alertMessage:String? = null
-            val bAllEnable = GestureDetect.getAllEnable(fragment!!.activity)
+            val bAllEnable = GestureDetect.getAllEnable(fragment.activity)
 
             val bGesture = support.contains("GESTURE")
             fragment.findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
@@ -605,16 +610,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
         }
 
-        fun updateRootAccess(fragment:PreferenceFragment?, bRootExists:Boolean)
+        fun updateRootAccess(bRootExists:Boolean)
         {
-            val actionBar = (fragment!!.activity as AppCompatPreferenceActivity).supportActionBar
-            if (bRootExists) {
-                val p = fragment.findPreference("pref_ROOT")
-                if (p != null) {
-                    fragment.preferenceScreen?.removePreference(p)
-                }
-                //               actionBar.subtitle = ""
-            }else{
+ //           val actionBar = (fragment.activity as AppCompatPreferenceActivity).supportActionBar
+            //               actionBar.subtitle = ""
+            if (bRootExists) settingsFragment?.findPreference("pref_ROOT")?.apply {
+                settingsFragment?.preferenceScreen?.removePreference(this)
+            } else{
                 //               actionBar.subtitle = getString(R.string.ui_title_no_root)
             }
         }

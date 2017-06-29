@@ -206,7 +206,8 @@ class GestureDetect (val context:Context)
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getBoolean(key, false)
         }
-        fun setEnable(context: Context, key: String, value: Boolean) {
+        fun setEnable(context: Context, key: String, value: Boolean)
+        {
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             val e = sharedPreferences.edit()
             e.putBoolean(key, value)
@@ -336,8 +337,10 @@ class GestureDetect (val context:Context)
             synchronized(bEnableSU)
             {
                 try {
-                    writerSU?.write("$cmd\n".toByteArray())
-                    writerSU?.flush()
+                    writerSU?.apply {
+                        write("$cmd\n".toByteArray())
+                        flush()
+                    }
                 }catch (e:Exception){
                     e.printStackTrace()
                     return false
