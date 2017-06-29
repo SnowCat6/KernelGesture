@@ -2,11 +2,30 @@ package gesture.drivers.input
 
 import gesture.GestureDetect
 
+
+/**
+ * Базовый класс для получения события для конкретных устройств
+ */
 abstract class InputHandler(val gesture:GestureDetect)
 {
+    /**
+     * Определить возможность получения событий по имени /dev/input устройства
+     */
     abstract fun onDetect(name:String):Boolean
+
+    /**
+     * Реакция на событие от устройства ввода
+     */
     abstract fun onEvent(line:String):String?
+
+    /**
+     * Включить или выключить распознование жестов
+     */
     open fun setEnable(enable:Boolean) {}
+
+    /**
+     * Получить текущее состояние
+     */
     open fun getEnable():Boolean = false
 
     companion object
@@ -31,6 +50,9 @@ abstract class InputHandler(val gesture:GestureDetect)
                 "KEY_PROXIMITY"
         )
 
+        /**
+         * Отфильтровать не поддерживаемые жесты или сконвертировать частные жесты в поддерживаемые
+         */
         fun filter(key: String?, convert: Array<Pair<String, String>>? = null): String?
         {
             if (key == null || key.isEmpty())

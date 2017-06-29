@@ -10,6 +10,10 @@ import gesture.GestureDetect
 import ru.vpro.kernelgesture.BuildConfig
 import java.util.*
 
+/**
+ * Класс для определение жеста сенсором приближения
+ */
+
 open class SensorProximity(gesture: GestureDetect) :
         SensorHandler(gesture), SensorEventListener
 {

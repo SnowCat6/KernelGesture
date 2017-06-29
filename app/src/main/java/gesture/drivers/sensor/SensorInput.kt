@@ -8,6 +8,10 @@ import gesture.drivers.input.*
 import java.io.BufferedReader
 import java.io.FileReader
 
+/**
+ * Класс для получения событий мз устройств ввода, /dev/input/
+ */
+
 class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 {
     companion object{
