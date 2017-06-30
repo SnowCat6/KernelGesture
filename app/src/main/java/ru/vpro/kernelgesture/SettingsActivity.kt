@@ -129,7 +129,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
         GestureItem("KEY_V",       ""),
         GestureItem("KEY_Z",       ""),
         GestureItem("KEY_VOLUMEUP",            ""),
+        GestureItem("KEY_VOLUMEUP_DELAY",      ""),
         GestureItem("KEY_VOLUMEDOWN",          ""),
+        GestureItem("KEY_VOLUMEDOWN_DELAY",    ""),
         GestureItem("KEY_PROXIMITY",          "speech.time"),
         GestureItem("GESTURE_DEFAULT_ACTION",  "")
     )
@@ -436,6 +438,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         fun updateControls(bShowAlert:Boolean)
         {
+            if (thisActivity == null){
+                return
+            }
             val activity = thisActivity!!
 
             val fragment = activity.fragmentManager

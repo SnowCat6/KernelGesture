@@ -11,8 +11,18 @@
             />
         <ru.vpro.kernelgesture.GestureSwitchPreference
             android:defaultValue="false"
+            android:key="KEY_VOLUMEUP_DELAY"
+            android:title="@string/ui_volume_up_delay"
+            />
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="false"
             android:key="KEY_VOLUMEDOWN"
             android:title="@string/ui_volume_down"
+            />
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="false"
+            android:key="KEY_VOLUMEDOWN_DELAY"
+            android:title="@string/ui_volume_down_delay"
             />
     </PreferenceCategory>
 

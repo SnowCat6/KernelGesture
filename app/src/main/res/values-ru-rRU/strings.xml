@@ -63,4 +63,6 @@
     <string name="ui_sensor_actions">Сенсорные действия</string>
     <string name="ui_touchscreen_summ">Включение жестами тачскрина</string>
     <string name="ui_key_summ">Включение клавишами</string>
+    <string name="ui_volume_down_delay">Двойное УМЕНЬШЕНИЕ громкости</string>
+    <string name="ui_volume_up_delay">Двойное УВЕЛИЧЕНИЕ  громкости</string>
 </resources>

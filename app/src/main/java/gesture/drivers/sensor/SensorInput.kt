@@ -6,6 +6,7 @@ import gesture.drivers.input.*
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.FileReader
+import java.util.*
 import kotlin.concurrent.thread
 
 /**
@@ -54,6 +55,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 if (it.onDetect(name)) inputDevices += Pair(input, it)
             }
         }
+        gesture.registerDelayEvents("KEY_VOLUMEUP", "KEY_VOLUMEUP_DELAY")
+        gesture.registerDelayEvents("KEY_VOLUMEDOWN", "KEY_VOLUMEDOWN_DELAY")
 
         return inputDevices.isNotEmpty()
     }
@@ -82,30 +85,47 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
                 //  Run input event detector
                 ++ix
-                GestureDetect.SU.exec("while v$ix=$(getevent -c 2 -l $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+                GestureDetect.SU.exec("while v$ix=$(getevent -c 2 -tl $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
                 ++ix
-                GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+                GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -tl $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
             }
 
+            var lastEventTime:Double = 0.0
             GestureDetect.SU.exec("echo query$queryIx>&2")
             while(bRunning)
             {
                 //  Read line from input
-                val line = GestureDetect.SU.readErrorLine() ?: break
+                val rawLine = GestureDetect.SU.readErrorLine() ?: break
 
                 //  Stop if gesture need stop run
                 if (!bRunning) break
 
                 //  Check query number for prevent old events output
                 if (!bQueryFound){
-                    bQueryFound = line == "query$queryIx"
+                    bQueryFound = rawLine == "query$queryIx"
                     continue
                 }
 
-                if (line == "CLOSE_EVENTS")
+                if (rawLine == "CLOSE_EVENTS")
                     break
 
                 if (gesture.lock) continue
+                //  Check device is near screen
+                if (gesture.isNear) continue
+
+                val line:String
+                val splitLine = rawLine.split(']')
+                if (splitLine.size == 2) {
+
+                    val timeLine = splitLine[0].trim('[').trim().toDoubleOrNull() ?: continue
+                    val timeout = timeLine - lastEventTime
+                    if (timeout > 0) lastEventTime = timeLine
+
+                    if (timeout < 0.1) continue
+                    line = splitLine[1].trim()
+                }else{
+                    line  = rawLine
+                }
 
                 //  Detect current input device
                 if (line.contains("/dev/input/")) {
@@ -113,22 +133,24 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                     continue
                 }
 
-                //  Check device is near screen
-                if (gesture.isNear) continue
-
                 //  Check only key events
-                if (!line.contains("EV_")) continue
+                if (!line.contains("EV_KEY")) continue
+                val splitEvent = line.split(' ').filter { it.isNotBlank() }
+                if (splitEvent.size != 3) continue
+                if (splitEvent[2] != "DOWN") continue
 
                 //  Find device for event accept
                 for ((first, second) in inputDevices)
                 {
                     if (first != device) continue
 
+                    //  Get gesture
+                    val gestureEvent = second.onEvent(line) ?: break
+
                     if (BuildConfig.DEBUG) {
                         Log.d("SensorInput", line)
                     }
-                    //  Get gesture
-                    val gestureEvent = second.onEvent(line) ?: break
+
                     //  Close cmd events
                     sensorEvent(gestureEvent)
                     break
@@ -140,11 +162,6 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 Log.d("SensorInput", "Exit")
             }
         }
-
-    }
-
-    override fun onStop()
-    {
     }
 
     private fun getInputEvents():Array<Pair<String, String>>

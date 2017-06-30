@@ -18,6 +18,7 @@ import java.io.BufferedReader
 import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 
 class GestureDetect (val context:Context)
@@ -50,6 +51,12 @@ class GestureDetect (val context:Context)
             if (_bLock) closeEvents()
         }
 
+    var delayEvents = emptyArray<Pair<String, String>>()
+    fun registerDelayEvents(event:String, delayEvent:String)
+    {
+        for(it in delayEvents) if (it.first.contains(event)) return
+        delayEvents += Pair(event, delayEvent)
+    }
     /**
      *
      */
@@ -124,10 +131,29 @@ class GestureDetect (val context:Context)
         }
 
         semaphore.acquire() // Wait unlock
+        var thisEvent = sensorEventGesture
+        sensorEventGesture = null
+
+        if (thisEvent != null) {
+            for (it in delayEvents) {
+
+                if (it.first != thisEvent) continue
+                if (!getEnable(context, it.second)) break
+
+                Thread.sleep(500)
+                if (sensorEventGesture != null && sensorEventGesture == thisEvent)
+                    thisEvent = it.second
+                break
+            }
+        }
 
         closeEvents()
 
-        return sensorEventGesture
+        if (BuildConfig.DEBUG && thisEvent != null) {
+            Log.d("Lock gesture", thisEvent)
+        }
+
+        return thisEvent
     }
 
     private fun closeEvents()
