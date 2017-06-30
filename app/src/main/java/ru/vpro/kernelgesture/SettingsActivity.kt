@@ -249,6 +249,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     open class GesturePreferenceFragment() : PreferenceFragment()
     {
         var xmlResourceId = R.xml.pref_gesture
+        var iconResource = 0
 
         override fun onCreate(savedInstanceState: Bundle?)
         {
@@ -294,10 +295,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
             ).forEach { (preferenceName, preferenceClass) ->
                 findPreference(preferenceName)?.apply {
+
+                    val item = preferenceClass.newInstance()
+                    if (item.iconResource > 0)
+                        icon = context.getDrawable(item.iconResource)
+
                     setOnPreferenceClickListener {
                         fragmentManager
                                 .beginTransaction()
-                                .replace(android.R.id.content, preferenceClass.newInstance())
+                                .replace(android.R.id.content, item)
                                 .addToBackStack(null)
                                 .commit()
                         true
@@ -310,10 +316,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
     }
 
     class TouchscreenPreferenceFragment : GesturePreferenceFragment()
-    { init {  xmlResourceId = R.xml.pref_gesture_touch } }
+    { init {  xmlResourceId = R.xml.pref_gesture_touch; iconResource = R.drawable.icon_gesture_touch } }
 
     class KeyPreferenceFragment : GesturePreferenceFragment()
-    { init { xmlResourceId = R.xml.pref_gesture_keys }}
+    { init { xmlResourceId = R.xml.pref_gesture_keys; iconResource = R.drawable.icon_gesture_key }}
 
     companion object
     {
