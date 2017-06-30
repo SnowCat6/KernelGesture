@@ -83,8 +83,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 //  Run input event detector
                 ++ix
                 GestureDetect.SU.exec("while v$ix=$(getevent -c 2 -l $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
-//                ++ix
-//                GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+                ++ix
+                GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -l $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
             }
 
             GestureDetect.SU.exec("echo query$queryIx>&2")
