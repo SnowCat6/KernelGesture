@@ -59,17 +59,16 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         return true
     }
 
-    override fun onEvent(line:String):String?
+    override fun onEvent(ev:List<String>):String?
     {
-        val arg = line.replace(Regex("\\s+"), " ").split(" ")
-        if (arg[0] != "EV_KEY") return null
+        if (ev[0] != "EV_KEY") return null
 
-        when(arg[1]){
+        when(ev[1]){
             "KEY_PROG3" ->  return onEventHCT()
             "KEY_VOLUMEUP",
-            "KEY_VOLUMEDOWN" ->  return filter(arg[1])
+            "KEY_VOLUMEDOWN" ->  return filter(ev[1])
         }
-        return onEventOKK(arg[1])
+        return onEventOKK(ev[1])
     }
     //  HCT gesture give from file
     private fun onEventHCT():String?

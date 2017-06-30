@@ -117,24 +117,21 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 val splitLine = rawLine.split(']')
                 if (splitLine.size == 2) {
 
+                    line = splitLine[1].trim()
+                    //  Check only key events
+                    if (!line.contains("EV_KEY")) continue
+
                     val timeLine = splitLine[0].trim('[').trim().toDoubleOrNull() ?: continue
                     val timeout = timeLine - lastEventTime
                     if (timeout > 0) lastEventTime = timeLine
-
-                    if (timeout < 0.1) continue
-                    line = splitLine[1].trim()
+                    if (timeout <= 0.0) continue
                 }else{
                     line  = rawLine
-                }
-
-                //  Detect current input device
-                if (line.contains("/dev/input/")) {
-                    device = line
+                    //  Detect current input device
+                    if (line.contains("/dev/input/")) device = line
                     continue
                 }
 
-                //  Check only key events
-                if (!line.contains("EV_KEY")) continue
                 val splitEvent = line.split(' ').filter { it.isNotBlank() }
                 if (splitEvent.size != 3) continue
                 if (splitEvent[2] != "DOWN") continue
@@ -145,7 +142,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                     if (first != device) continue
 
                     //  Get gesture
-                    val gestureEvent = second.onEvent(line) ?: break
+                    val gestureEvent = second.onEvent(splitEvent) ?: break
 
                     if (BuildConfig.DEBUG) {
                         Log.d("SensorInput", line)

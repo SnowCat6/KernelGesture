@@ -17,7 +17,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     /**
      * Реакция на событие от устройства ввода
      */
-    abstract fun onEvent(line:String):String?
+    abstract fun onEvent(ev:List<String>):String?
 
     /**
      * Включить или выключить распознование жестов

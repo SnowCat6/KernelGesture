@@ -10,10 +10,9 @@ open class InputFT5x06_ts(gesture: GestureDetect) : InputHandler(gesture)
         return true
     }
 
-    override fun onEvent(line: String): String? {
-        val arg = line.replace(Regex("\\s+"), " ").split(" ")
-        if (arg[0] != "EV_KEY") return null
-        return filter(arg[1])
+    override fun onEvent(ev: List<String>): String? {
+        if (ev[0] != "EV_KEY") return null
+        return filter(ev[1])
     }
 
     override fun setEnable(enable: Boolean)
