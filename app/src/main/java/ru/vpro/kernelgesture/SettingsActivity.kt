@@ -249,10 +249,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         override fun onCreate(savedInstanceState: Bundle?)
         {
+            settingsFragment = this
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(xmlResourceId)
 
-            settingsFragment = this
             commonGestureItems.forEach {
 
                 findPreference(it.key)?.apply {
@@ -432,9 +432,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         fun updateControls(bShowAlert:Boolean)
         {
-            if (settingsFragment == null)
-                return
-
             val fragment = settingsFragment!!
             val bRootExists = GestureDetect.SU.hasRootProcess()
             val support = GestureDetect(fragment.activity).getSupport()
