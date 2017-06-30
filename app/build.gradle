@@ -30,8 +30,8 @@ dependencies {
     compile 'com.android.support:appcompat-v7:25.4.0'
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:support-v4:25.4.0'
-    releaseCompile 'com.google.firebase:firebase-crash:11.0.1'
-    implementation 'com.google.firebase:firebase-ads:11.0.1'
+    releaseCompile 'com.google.firebase:firebase-crash:11.0.2'
+    implementation 'com.google.firebase:firebase-ads:11.0.2'
 }
 
 

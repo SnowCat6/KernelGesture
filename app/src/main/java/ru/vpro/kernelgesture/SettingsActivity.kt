@@ -48,6 +48,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
+        thisActivity = this
+
         super.onCreate(savedInstanceState)
         commonGestureItems = gestureItems
         setupActionBar()
@@ -63,6 +65,17 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
         }
     }
+
+    override fun onStart() {
+        thisActivity = this
+        super.onStart()
+    }
+
+    override fun onStop() {
+        super.onStop()
+        thisActivity = null
+    }
+
     /**
      * Set up the [android.app.ActionBar], if the API is available.
      */
@@ -233,23 +246,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     open class GesturePreferenceFragment() : PreferenceFragment()
     {
-        constructor(xmlResourceId:Int) : this() { this.xmlResourceId = xmlResourceId}
         var xmlResourceId = R.xml.pref_gesture
-
-        override fun onStop() {
-            super.onStop()
-            settingsFragment = null
-        }
-
-        override fun onResume()
-        {
-            settingsFragment = this
-            super.onResume()
-        }
 
         override fun onCreate(savedInstanceState: Bundle?)
         {
-            settingsFragment = this
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(xmlResourceId)
 
@@ -279,7 +279,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         GestureDetect.SU.enable(true)
                         if (GestureDetect.SU.checkRootAccess()){
                             Handler(Looper.getMainLooper()).post {
-                                updateControls(true)
+                                updateControls(false)
                             }
                         }
                     }
@@ -306,12 +306,16 @@ class SettingsActivity : AppCompatPreferenceActivity()
             updateControls(false)
         }
     }
-    class TouchscreenPreferenceFragment : GesturePreferenceFragment( R.xml.pref_gesture_touch)
-    class KeyPreferenceFragment : GesturePreferenceFragment(R.xml.pref_gesture_keys)
+
+    class TouchscreenPreferenceFragment : GesturePreferenceFragment()
+    { init {  xmlResourceId = R.xml.pref_gesture_touch } }
+
+    class KeyPreferenceFragment : GesturePreferenceFragment()
+    { init { xmlResourceId = R.xml.pref_gesture_keys }}
 
     companion object
     {
-        var settingsFragment:PreferenceFragment? = null
+        var thisActivity:SettingsActivity? = null
 
         private var commonGestureItems = emptyArray<GestureItem>()
         fun getItemInstance(key:String): GestureItem?
@@ -432,49 +436,55 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         fun updateControls(bShowAlert:Boolean)
         {
-            val fragment = settingsFragment!!
-            val bRootExists = GestureDetect.SU.hasRootProcess()
-            val support = GestureDetect(fragment.activity).getSupport()
+            val activity = thisActivity!!
 
-            if (bRootExists) settingsFragment?.findPreference("pref_ROOT")?.apply {
-                settingsFragment?.preferenceScreen?.removePreference(this)
+            val fragment = activity.fragmentManager
+                    .findFragmentById(android.R.id.content) as PreferenceFragment? ?: return
+            val manager = fragment.preferenceScreen ?: return
+            val context = manager.context
+
+            val bRootExists = GestureDetect.SU.hasRootProcess()
+            val support = GestureDetect(context).getSupport()
+
+            if (bRootExists) manager.findPreference("pref_ROOT")?.apply {
+                manager.removePreference(this)
             }
 
             var titles = emptyArray<String>()
             var alertMessage:String? = null
-            val bAllEnable = GestureDetect.getAllEnable(fragment.activity)
+            val bAllEnable = GestureDetect.getAllEnable(context)
 
             val bGesture = support.contains("GESTURE")
-            fragment.findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
+            manager.findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
 
-            if (bGesture) titles += fragment.getString(R.string.ui_title_gestures)
+            if (bGesture) titles += context.getString(R.string.ui_title_gestures)
 
             val bKeys = support.contains("KEYS")
-            fragment.findPreference("KEY_GROUP")?.isEnabled = bKeys && bAllEnable
+            manager.findPreference("KEY_GROUP")?.isEnabled = bKeys && bAllEnable
 
-            if (bKeys) titles += fragment.getString(R.string.ui_title_keys)
+            if (bKeys) titles += context.getString(R.string.ui_title_keys)
 
             val bProximity = support.contains("PROXIMITY")
-            fragment.findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
+            manager.findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
 
-            if (bProximity) titles += fragment.getString(R.string.ui_title_gesture)
+            if (bProximity) titles += context.getString(R.string.ui_title_gesture)
 
             if (!titles.isEmpty()){
-                val actionBar = (fragment.activity as AppCompatPreferenceActivity).supportActionBar
+                val actionBar = activity.supportActionBar
                 actionBar.subtitle = titles.joinToString(", ")
             }
 
             if (titles.isEmpty())
-                alertMessage = fragment.getString(R.string.ui_alert_gs_message_wo_keys)
+                alertMessage = context.getString(R.string.ui_alert_gs_message_wo_keys)
             else
                 if (!support.contains("GESTURE"))
-                    alertMessage = fragment.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
+                    alertMessage = context.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
 
             if (alertMessage == null || !bShowAlert) return
 
-            with(AlertDialog.Builder(fragment.activity))
+            with(AlertDialog.Builder(context))
             {
-                setTitle(fragment.getString(R.string.ui_alert_gs_title))
+                setTitle(context.getString(R.string.ui_alert_gs_title))
                 setMessage(alertMessage)
                 create().show()
             }

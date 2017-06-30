@@ -5,7 +5,7 @@
 
     <FrameLayout
         android:id="@+id/splitter"
-        android:background="@android:color/holo_blue_light"
+        android:background="?android:attr/dividerHorizontal"
         android:layout_width="match_parent"
         android:layout_height="1dp" />
 </LinearLayout>
