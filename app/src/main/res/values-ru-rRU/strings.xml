@@ -13,7 +13,7 @@
     <string name="ui_draw_w">Рисовать букву W</string>
     <string name="ui_draw_s">Рисовать букву S</string>
     <string name="ui_draw_v">Рисовать букву V</string>
-    <string name="ui_use_gesture">Использовать жесты</string>
+    <string name="ui_use_gesture">Использовать жесты тачскрина</string>
     <string name="ui_gesture_enable">Включить жесты</string>
     <string name="ui_gesture_enabled">Жесты включены</string>
     <string name="ui_gesture_disabled">Жесты выключены</string>
@@ -59,7 +59,7 @@
     <string name="ui_adv_menu">Реклама</string>
     <string name="ui_service">Фоновый процесс</string>
     <string name="ui_draw_z">Рисовать букву Z</string>
-    <string name="ui_key_actions">Нажатие клавиш</string>
+    <string name="ui_key_actions">Действия нажатия клавиш</string>
     <string name="ui_sensor_actions">Сенсорные действия</string>
     <string name="ui_touchscreen_summ">Включение жестами тачскрина</string>
     <string name="ui_key_summ">Включение клавишами</string>

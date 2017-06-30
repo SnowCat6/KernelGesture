@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <SwitchPreference
-        android:defaultValue="false"
+        android:defaultValue="true"
         android:key="GESTURE_ENABLE"
         android:title="@string/ui_gesture_enable"
         android:summaryOn="@string/ui_gesture_enabled"
@@ -10,11 +10,20 @@
 
     <Preference
         android:key="pref_ROOT"
-        android:selectable="false"
-        android:persistent="false"
         android:title="@string/ui_root_title"
         android:summary="@string/ui_root_help"
         />
+
+    <PreferenceCategory
+        android:title="@string/ui_sensor_actions"
+        android:key="SENSOR_GROUP"
+        >
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="true"
+            android:key="KEY_PROXIMITY"
+            android:title="@string/ui_proximity_gesture"
+            />
+    </PreferenceCategory>
 
     <Preference
         android:key="TOUCH_PREFERENCE"
@@ -27,17 +36,6 @@
         android:title="@string/ui_key_actions"
         android:summary="@string/ui_key_summ"
         />
-
-    <PreferenceCategory
-        android:title="@string/ui_sensor_actions"
-        android:key="SENSOR_GROUP"
-        >
-        <ru.vpro.kernelgesture.GestureSwitchPreference
-            android:defaultValue="false"
-            android:key="KEY_PROXIMITY"
-            android:title="@string/ui_proximity_gesture"
-            />
-    </PreferenceCategory>
 
     <PreferenceCategory
         android:title="@string/ui_adv_settings"

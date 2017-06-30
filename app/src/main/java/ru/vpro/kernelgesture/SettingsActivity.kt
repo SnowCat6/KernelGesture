@@ -17,6 +17,7 @@ import android.content.DialogInterface
 import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
 import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -230,8 +231,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
      * activity is showing a two-pane settings UI.
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
-    open class GesturePreferenceFragment : PreferenceFragment()
+    open class GesturePreferenceFragment() : PreferenceFragment()
     {
+        constructor(xmlResourceId:Int) : this() { this.xmlResourceId = xmlResourceId}
         var xmlResourceId = R.xml.pref_gesture
 
         override fun onStop() {
@@ -243,11 +245,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             settingsFragment = this
             super.onResume()
-            if (GestureDetect.SU.hasRootProcess())
-            {
-                TOOLS.updateRootAccess(true)
-                TOOLS.updateGesturesDetect(GestureDetect(activity).getSupport(), false)
-            }
         }
 
         override fun onCreate(savedInstanceState: Bundle?)
@@ -276,6 +273,20 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 onPreferenceChangeListener.onPreferenceChange(this, null)
             }
 
+            findPreference("pref_ROOT")?.apply{
+                setOnPreferenceClickListener {
+                    thread {
+                        GestureDetect.SU.enable(true)
+                        if (GestureDetect.SU.checkRootAccess()){
+                            Handler(Looper.getMainLooper()).post {
+                                updateControls(true)
+                            }
+                        }
+                    }
+                    true
+                }
+            }
+
             arrayOf(
                     Pair("TOUCH_PREFERENCE", TouchscreenPreferenceFragment::class.java),
                     Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
@@ -291,20 +302,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
                 }
             }
+
+            updateControls(false)
         }
     }
-    class TouchscreenPreferenceFragment : GesturePreferenceFragment()
-    {
-        init{
-            xmlResourceId = R.xml.pref_gesture_touch
-        }
-    }
-    class KeyPreferenceFragment : GesturePreferenceFragment()
-    {
-        init{
-            xmlResourceId = R.xml.pref_gesture_keys
-        }
-    }
+    class TouchscreenPreferenceFragment : GesturePreferenceFragment( R.xml.pref_gesture_touch)
+    class KeyPreferenceFragment : GesturePreferenceFragment(R.xml.pref_gesture_keys)
 
     companion object
     {
@@ -338,38 +341,22 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             if (value) GestureDetect.SU.enable(true)
             GestureDetect.setAllEnable(context, value)
-/*
-            with( preference.preferenceManager)
-            {
-                findPreference("GESTURE_GROUP").isEnabled = value
-                findPreference("GESTURE_GROUP_ADD").isEnabled = value
-            }
-*/
-            val mainHandler = Handler(context.mainLooper)
-            val bHasRoot = GestureDetect.SU.hasRootProcess()
 
+            var bHasRoot = GestureDetect.SU.hasRootProcess()
             if (value == true && !bHasRoot)
             {
-                TOOLS.updateRootAccess(bHasRoot)
                 thread{
-                    val bRoot = GestureDetect.SU.checkRootAccess()
-                    val support = GestureDetect(context).getSupport()
-                    mainHandler.post {
-                        TOOLS.updateRootAccess(bRoot)
-                        TOOLS.updateGesturesDetect(support, true)
+                    bHasRoot = GestureDetect.SU.checkRootAccess()
+                    Handler(context.mainLooper).post {
+                        updateControls(true)
                     }
                 }
+            }else {
+                updateControls(false)
             }
 
-            val support = GestureDetect(context).getSupport()
-            TOOLS.updateRootAccess(bHasRoot)
-            TOOLS.updateGesturesDetect(support, false)
-
-            if (value) {
-                context.startService(Intent(context, GestureService::class.java))
-            }else{
-                context.stopService(Intent(context, GestureService::class.java))
-            }
+            if (value) context.startService(Intent(context, GestureService::class.java))
+            else context.stopService(Intent(context, GestureService::class.java))
 
             true
         }
@@ -397,6 +384,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             true
         }
+
         /**
          * Helper method to determine if the device has an extra-large screen. For
          * example, 10" tablets are extra-large.
@@ -439,6 +427,59 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 preference.isChecked = enable
                 preference.icon = icon
                 preference.onPreferenceChangeListener.onPreferenceChange(preference, enable)
+            }
+        }
+
+        fun updateControls(bShowAlert:Boolean)
+        {
+            if (settingsFragment == null)
+                return
+
+            val fragment = settingsFragment!!
+            val bRootExists = GestureDetect.SU.hasRootProcess()
+            val support = GestureDetect(fragment.activity).getSupport()
+
+            if (bRootExists) settingsFragment?.findPreference("pref_ROOT")?.apply {
+                settingsFragment?.preferenceScreen?.removePreference(this)
+            }
+
+            var titles = emptyArray<String>()
+            var alertMessage:String? = null
+            val bAllEnable = GestureDetect.getAllEnable(fragment.activity)
+
+            val bGesture = support.contains("GESTURE")
+            fragment.findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
+
+            if (bGesture) titles += fragment.getString(R.string.ui_title_gestures)
+
+            val bKeys = support.contains("KEYS")
+            fragment.findPreference("KEY_GROUP")?.isEnabled = bKeys && bAllEnable
+
+            if (bKeys) titles += fragment.getString(R.string.ui_title_keys)
+
+            val bProximity = support.contains("PROXIMITY")
+            fragment.findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
+
+            if (bProximity) titles += fragment.getString(R.string.ui_title_gesture)
+
+            if (!titles.isEmpty()){
+                val actionBar = (fragment.activity as AppCompatPreferenceActivity).supportActionBar
+                actionBar.subtitle = titles.joinToString(", ")
+            }
+
+            if (titles.isEmpty())
+                alertMessage = fragment.getString(R.string.ui_alert_gs_message_wo_keys)
+            else
+                if (!support.contains("GESTURE"))
+                    alertMessage = fragment.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
+
+            if (alertMessage == null || !bShowAlert) return
+
+            with(AlertDialog.Builder(fragment.activity))
+            {
+                setTitle(fragment.getString(R.string.ui_alert_gs_title))
+                setMessage(alertMessage)
+                create().show()
             }
         }
 
@@ -519,6 +560,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 return view
             }
         }
+
         object UI
         {
             fun action(context:Context, item:Any?):String
@@ -561,71 +603,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 return context.getDrawable(android.R.color.transparent)
             }
 
-        }
-    }
-    object TOOLS
-    {
-        fun updateGesturesDetect(support:Array<String>, bShowAlert:Boolean)
-        {
-            if (settingsFragment == null)
-                return
-
-            val fragment = settingsFragment!!
-
-            var titles = emptyArray<String>()
-            var alertMessage:String? = null
-            val bAllEnable = GestureDetect.getAllEnable(fragment.activity)
-
-            val bGesture = support.contains("GESTURE")
-            fragment.findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
-
-            if (bGesture){
-                titles += fragment.getString(R.string.ui_title_gestures)
-            }
-
-            val bKeys = support.contains("KEYS")
-            fragment.findPreference("KEY_GROUP")?.isEnabled = bKeys && bAllEnable
-
-            if (bKeys){
-                titles += fragment.getString(R.string.ui_title_keys)
-            }
-
-            val bProximity = support.contains("PROXIMITY")
-            fragment.findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
-
-            if (bProximity){
-                titles += fragment.getString(R.string.ui_title_gesture)
-            }
-            if (!titles.isEmpty()){
-                val actionBar = (fragment.activity as AppCompatPreferenceActivity).supportActionBar
-                actionBar.subtitle = titles.joinToString(", ")
-            }
-
-            if (titles.isEmpty())
-                alertMessage = fragment.getString(R.string.ui_alert_gs_message_wo_keys)
-            else
-                if (!support.contains("GESTURE"))
-                    alertMessage = fragment.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
-
-            if (alertMessage == null || !bShowAlert) return
-
-            with(AlertDialog.Builder(fragment.activity))
-            {
-                setTitle(fragment.getString(R.string.ui_alert_gs_title))
-                setMessage(alertMessage)
-                create().show()
-            }
-        }
-
-        fun updateRootAccess(bRootExists:Boolean)
-        {
- //           val actionBar = (fragment.activity as AppCompatPreferenceActivity).supportActionBar
-            //               actionBar.subtitle = ""
-            if (bRootExists) settingsFragment?.findPreference("pref_ROOT")?.apply {
-                settingsFragment?.preferenceScreen?.removePreference(this)
-            } else{
-                //               actionBar.subtitle = getString(R.string.ui_title_no_root)
-            }
         }
     }
 }
