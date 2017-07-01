@@ -508,17 +508,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
         class GestureItems(val context:Context)
         {
             fun getItemInstance(key:String):GestureItem?
-                = items.find { it.action == key }
+                = items.find { it.key == key }
 
             inner class GestureItem(val key:String, var defaultAction:String)
             {
                 var applicationInfo:ApplicationInfo? = null
-
-                init{
-                    if (action != null && applicationInfo == null) {
-                        applicationInfo = getAppInfo(action!!)
-                    }
-                }
 
                 var action:String?
                     get() {
@@ -532,7 +526,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     set(value) {
                         _actionName = ""
                         _icon = null
-                        applicationInfo = if (value != null) getAppInfo(value) else null
+                        applicationInfo = null
                         GestureDetect.setAction(context, key, value)
                     }
                 var enable:Boolean
@@ -546,19 +540,18 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 var _actionName:String = ""
                 val actionName:String
                     get() {
-                        if (_actionName.isEmpty())
-                        {
-                            if (applicationInfo != null) {
-                                _actionName = UI.name(context, applicationInfo)
-                            }else{
-                                if (action != null && action == "" && key == "GESTURE_DEFAULT_ACTION") {
+                        if (_actionName.isNotEmpty()) return _actionName
+
+                        if (getAppInfo() != null) {
+                            _actionName = UI.name(context, getAppInfo())
+                        }else{
+                            if (action != null && action == "" && key == "GESTURE_DEFAULT_ACTION") {
+                                _actionName = context.getString(R.string.ui_no_action)
+                            }else {
+                                if (action == null || (action == "" && !enable)){
                                     _actionName = context.getString(R.string.ui_no_action)
                                 }else {
-                                    if (action == null || (action == "" && !enable)){
-                                        _actionName = context.getString(R.string.ui_no_action)
-                                    }else {
-                                        _actionName = UI.name(context, action)
-                                    }
+                                    _actionName = UI.name(context, action)
                                 }
                             }
                         }
@@ -568,22 +561,23 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 var _icon:Drawable? = null
                 val icon:Drawable?
                     get(){
-                        if (_icon != null) return _icon
-                        if (applicationInfo != null){
-                            _icon = UI.icon(context, applicationInfo)
-                        }else{
-                            _icon = UI.icon(context, action)
+                        if (_icon == null) {
+                            if (getAppInfo() != null) _icon = UI.icon(context, getAppInfo())
+                            else _icon = UI.icon(context, action)
                         }
                         return _icon
                     }
 
-                private fun getAppInfo(action:String):ApplicationInfo?
+                private fun getAppInfo():ApplicationInfo?
                 {
+                    if (applicationInfo != null)
+                        return applicationInfo
+
                     try {
-                        return context.packageManager.getApplicationInfo(action, 0)
+                        applicationInfo = context.packageManager.getApplicationInfo(action, 0)
                     } catch (e: Exception) {}
 
-                    return null
+                    return applicationInfo
                 }
             }
 
