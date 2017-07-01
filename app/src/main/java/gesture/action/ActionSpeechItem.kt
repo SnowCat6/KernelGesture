@@ -20,10 +20,11 @@ abstract class ActionSpeechItem(action: GestureAction) :
         val bNotify = action.playNotifyToEnd()
 
         try {
-            tts?.language = Locale.getDefault()
-            tts?.speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
-
-            if (!bNotify) Thread.sleep(500)
+            tts?.apply {
+                language = Locale.getDefault()
+                speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
+                if (!bNotify) Thread.sleep(500)
+            }
         }catch (e:Exception){
             e.printStackTrace()
         }
@@ -61,8 +62,10 @@ abstract class ActionSpeechItem(action: GestureAction) :
         }
 
         try {
-            tts?.language = Locale.getDefault()
-            tts?.speak("", TextToSpeech.QUEUE_FLUSH, null, "")
+            tts?.apply {
+                language = Locale.getDefault()
+                speak("", TextToSpeech.QUEUE_FLUSH, null, "")
+            }
         }catch (e:Exception){
             e.printStackTrace()
         }

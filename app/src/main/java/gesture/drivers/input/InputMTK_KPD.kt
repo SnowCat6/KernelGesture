@@ -68,7 +68,25 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
             "KEY_VOLUMEUP",
             "KEY_VOLUMEDOWN" ->  return filter(ev[1])
         }
-        return onEventOKK(ev[1])
+
+        //  Many others device conversion
+        //  Oukitel K4000 device gesture
+        val keys = arrayOf(
+                Pair("BTN_PINKIE",  "KEY_UP"),
+                Pair("BTN_BASE",    "KEY_DOWN"),
+                Pair("BTN_BASE2",   "KEY_LEFT"),
+                Pair("BTN_BASE3",   "KEY_RIGHT"),
+                Pair("BTN_JOYSTICK","KEY_U"),
+                Pair("BTN_THUMB",   "KEY_C"),
+                Pair("BTN_THUMB2",  "KEY_E"),
+                Pair("BTN_TOP2",    "KEY_O"),
+                Pair("012c",        "KEY_S"),
+                Pair("BTN_BASE6",   "KEY_V"),
+                Pair("BTN_BASE4",   "KEY_W"),
+                Pair("BTN_TOP",     "KEY_M"),
+                Pair("BTN_BASE5",   "KEY_Z")
+        )
+        return filter(ev[1], keys)
     }
     //  HCT gesture give from file
     private fun onEventHCT():String?
@@ -93,25 +111,5 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         //  get gesture name
         val gs = GestureDetect.SU.getFileLine(HCT_GESTURE_IO!!.getGesture)
         return filter(gs, keys)
-    }
-    //  Oukitel K4000 device gesture
-    private fun onEventOKK(key:String):String?
-    {
-        val keys = arrayOf(
-                Pair("BTN_PINKIE",  "KEY_UP"),
-                Pair("BTN_BASE",    "KEY_DOWN"),
-                Pair("BTN_BASE2",   "KEY_LEFT"),
-                Pair("BTN_BASE3",   "KEY_RIGHT"),
-                Pair("BTN_JOYSTICK","KEY_U"),
-                Pair("BTN_THUMB",   "KEY_C"),
-                Pair("BTN_THUMB2",  "KEY_E"),
-                Pair("BTN_TOP2",    "KEY_O"),
-                Pair("012c",        "KEY_S"),
-                Pair("BTN_BASE6",   "KEY_V"),
-                Pair("BTN_BASE4",   "KEY_W"),
-                Pair("BTN_TOP",     "KEY_M"),
-                Pair("BTN_BASE5",   "KEY_Z")
-        )
-        return filter(key, keys)
     }
 }

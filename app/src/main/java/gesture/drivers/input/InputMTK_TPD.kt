@@ -12,7 +12,7 @@ open class InputMTK_TPD(gesture: GestureDetect) : InputHandler(gesture)
     }
     override fun onEvent(ev:List<String>):String?
     {
-        if (ev[0] == "EV_KEY") return filter(ev[1])
-        return null
+        if (ev[0] != "EV_KEY") return null
+        return filter(ev[1])
     }
 }

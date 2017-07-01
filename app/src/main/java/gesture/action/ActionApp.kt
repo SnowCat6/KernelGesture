@@ -16,7 +16,8 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
 
     fun getInfo():ApplicationInfo?
     {
-        if (applicationInfo == null) {
+        if (applicationInfo == null)
+        {
             try {
                 val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
                 applicationInfo = resolveInfo?.activityInfo?.applicationInfo
@@ -44,9 +45,10 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     {
         if (applicationInfo == null) return false
 
-        action.screenON()
-        action.screenUnlock()
-
-        return action.startNewActivity(applicationInfo!!.packageName)
+        with(action){
+            screenON()
+            screenUnlock()
+            return startNewActivity(applicationInfo!!.packageName)
+        }
     }
 }
