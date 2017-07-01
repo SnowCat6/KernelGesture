@@ -27,7 +27,7 @@ class GestureService : Service(), SensorEventListener {
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
 
-    private var gesture:GestureDetect? = null
+    private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
 
     /************************************/
@@ -38,7 +38,8 @@ class GestureService : Service(), SensorEventListener {
     {
         //  Disable run thread if gestures not use
         if (!GestureDetect.getAllEnable(this)){
-            gesture?.close()
+            gestureDetector?.close()
+            bRunning = false
             return
         }
         // If thread ruined return back
@@ -63,38 +64,41 @@ class GestureService : Service(), SensorEventListener {
             if (gestureActions == null)
                 gestureActions = GestureAction(this)
 
-            if (gesture == null)
-                gesture = GestureDetect(this)
+            if (gestureDetector == null)
+                gestureDetector = GestureDetect(this)
 
-            gestureActions?.onStart()
-            gesture?.lock = false
+            val actions = gestureActions!!
+            val gesture = gestureDetector!!
+
+            actions.onStart()
+            gesture.lock = false
 
             //  If proximity sensor used, register event
             val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
-            gesture?.isNear = false
+            gesture.isNear = false
             if (bProximityEnable) {
                 mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
             }
 
             //  Main gesture loop
             //  Wait gesture while live
-            while (gesture?.lock != true)
+            while (gesture.lock != true)
             {
-                val ev = gesture?.waitGesture() ?: break
+                val ev = gesture.waitGesture() ?: break
                 try {
-                    if (gestureActions?.onGestureEvent(ev) == true) break
+                    if (actions.onGestureEvent(ev) == true) break
                 }catch (e:Exception){
                     e.printStackTrace()
                 }
             }
 
-            gesture?.lock = true
+            gesture.lock = true
 
             //  Unregister even if this need
             if (bProximityEnable) {
                 mSensorManager?.unregisterListener(this)
             }
-            gestureActions?.onStop()
+            actions.onStop()
 
             if (bForeground) {
                 /*****************************/
@@ -117,7 +121,7 @@ class GestureService : Service(), SensorEventListener {
     {
         // If registered use proximity - change value detector
         if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
-        gesture?.isNear = event.values[0].toInt() == 0
+        gestureDetector?.isNear = event.values[0].toInt() == 0
     }
     /************************************/
     /*
@@ -169,7 +173,7 @@ class GestureService : Service(), SensorEventListener {
                     if (BuildConfig.DEBUG) {
                         Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
                     }
-                    gesture?.lock = true
+                    gestureDetector?.lock = true
                 }
             }
         }
@@ -177,8 +181,8 @@ class GestureService : Service(), SensorEventListener {
 
     override fun onDestroy()
     {
-        gesture?.close()
-        gesture = null
+        gestureDetector?.close()
+        gestureDetector = null
 
         gestureActions?.close()
         gestureActions = null
