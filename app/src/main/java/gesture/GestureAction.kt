@@ -160,7 +160,7 @@ class GestureAction(val context:Context)
             val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
             val wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                     "KernelGestureCPU")
-            wakeLock.acquire(500)
+            wakeLock.acquire(1000)
         }
         /*
         <uses-permission android:name="android.permission.VIBRATE"/>

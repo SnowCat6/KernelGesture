@@ -1,15 +1,8 @@
 package gesture
 
 import android.content.Context
-import android.hardware.display.DisplayManager
-import android.os.Handler
-import android.os.Looper
-import android.os.PowerManager
-import android.os.Vibrator
 import android.preference.PreferenceManager
 import android.util.Log
-import android.view.Display
-import android.widget.Toast
 import gesture.drivers.sensor.SensorHandler
 import gesture.drivers.sensor.SensorInput
 import gesture.drivers.sensor.SensorProximity
@@ -18,7 +11,7 @@ import java.io.BufferedReader
 import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.Semaphore
-
+import java.util.concurrent.TimeUnit
 
 class GestureDetect (val context:Context)
 {
@@ -47,7 +40,7 @@ class GestureDetect (val context:Context)
         get() = _bLock
         set(value) {
             _bLock = value
-            if (_bLock) closeEvents()
+            if (_bLock) eventMutex.unlock()
         }
 
     var delayEvents = emptyArray<Pair<String, String>>()
@@ -74,6 +67,8 @@ class GestureDetect (val context:Context)
                 timeNearChange = GregorianCalendar.getInstance().timeInMillis
             }
         }
+
+    val eventMutex = Mutex()
     /**
      * CODE
      */
@@ -84,8 +79,6 @@ class GestureDetect (val context:Context)
     fun close()
     {
         lock = true
-        sensorDevices.forEach { it.close() }
-        closeEvents()
         SU.close()
     }
 
@@ -98,8 +91,7 @@ class GestureDetect (val context:Context)
 
     private fun detectDevices()
     {
-        closeEvents()
-        sensorDevices.forEach { it.close() }
+        eventMutex.unlock()
 
         sensorDevices = emptyArray()
         sensorHandlers.forEach {
@@ -107,13 +99,9 @@ class GestureDetect (val context:Context)
         }
     }
 
-    var semaphore = Semaphore(0)
     var sensorEventGesture:String? = null
-
     fun waitGesture(): String?
-    {
-        return getEventThread()
-    }
+            = getEventThread()
 
     private fun getEventThread():String?
     {
@@ -124,59 +112,38 @@ class GestureDetect (val context:Context)
         }
 
         sensorEventGesture = null
-        bGetEvents = true
         sensorDevices.forEach { it.onStart() }
 
-        if (BuildConfig.DEBUG) {
-            Log.d("Lock", "Wait semaphore lock")
-        }
-
-        semaphore.acquire() // Wait unlock
+        eventMutex.lock() // Wait unlock
         var thisEvent = sensorEventGesture
-        sensorEventGesture = null
 
-        if (thisEvent != null) {
+        if (thisEvent != null)
+        {
+            if (BuildConfig.DEBUG) {
+                Log.d("Lock gesture", thisEvent)
+            }
+
             for ((first, second) in delayEvents) {
 
                 if (first != thisEvent) continue
                 if (!getEnable(context, second)) break
-
-                Thread.sleep(500)
-                if (sensorEventGesture != null && sensorEventGesture == thisEvent)
-                    thisEvent = second
+                if (eventMutex.lock(500)) thisEvent = second
                 break
             }
         }
 
-        closeEvents()
-
-        if (BuildConfig.DEBUG && thisEvent != null) {
-            Log.d("Lock gesture", thisEvent)
-        }
+        sensorDevices.forEach { it.onStop() }
 
         return thisEvent
     }
 
-    private fun closeEvents()
-    {
-        if (!bGetEvents) return
-        bGetEvents = false
-
-        if (BuildConfig.DEBUG) {
-            Log.d("Lock", "Unlock locked semaphore")
-        }
-
-        semaphore.release()
-
-        sensorDevices.forEach { it.onStop() }
-    }
     fun sensorEvent(value:String):Boolean
     {
         if (lock) return false
         if (!getEnable(context, value)) return false
 
         sensorEventGesture = value
-        closeEvents()
+        eventMutex.unlock()
 
         return true
     }
@@ -251,6 +218,48 @@ class GestureDetect (val context:Context)
                 e.putString("${key}_ACTION", value)
             }
             e.apply()
+        }
+    }
+    class Mutex
+    {
+        private var bLocked = false
+        private var semaphore = Semaphore(0)
+
+        fun lock()
+        {
+            if (bLocked) return
+            bLocked = true
+
+            if (BuildConfig.DEBUG) {
+                Log.d("Lock", "Wait semaphore lock")
+            }
+
+            semaphore.acquire()
+            bLocked = false
+        }
+        fun lock(timeout:Long):Boolean
+        {
+            if (bLocked) return false
+            bLocked = true
+
+            if (BuildConfig.DEBUG) {
+                Log.d("Lock", "Wait ${timeout}ms semaphore lock")
+            }
+
+            val bRet = semaphore.tryAcquire(1, timeout, TimeUnit.MILLISECONDS)
+
+            bLocked = false
+            return bRet
+        }
+        fun unlock()
+        {
+            if (!bLocked) return
+            bLocked = false
+
+            if (BuildConfig.DEBUG) {
+                Log.d("Lock", "Unlock locked semaphore")
+            }
+            semaphore.release()
         }
     }
     /**
