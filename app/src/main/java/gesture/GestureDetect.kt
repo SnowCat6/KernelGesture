@@ -304,12 +304,14 @@ class GestureDetect (val context:Context)
      */
     object SU
     {
-        var processSU: Process? = null
-        var errorSU: BufferedReader? = null
-        var readerSU: BufferedReader? = null
-        var writerSU: OutputStream? = null
-        var bEnableSU = false
-        var bEnableCheck = true
+        private var processSU: Process? = null
+        private var errorSU: BufferedReader? = null
+        private var readerSU: BufferedReader? = null
+        private var writerSU: OutputStream? = null
+        private var bEnableSU = false
+        private var bEnableCheck = true
+
+        val EVENT_UPDATE = "UPDATE-ROOT"
 
         fun checkRootAccess():Boolean
                 = SU.open() != null

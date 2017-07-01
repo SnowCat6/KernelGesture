@@ -18,6 +18,7 @@ import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
+import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import android.view.*
 import android.widget.*
@@ -46,10 +47,16 @@ class SettingsActivity : AppCompatPreferenceActivity()
 {
     private var mInterstitialAd: InterstitialAd? = null
 
+    private fun broadcastReceiver(activity: SettingsActivity): BroadcastReceiver {
+        return object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent?) {
+                updateControls(activity, intent)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
-        thisActivity = this
-
         super.onCreate(savedInstanceState)
         commonGestureItems = gestureItems
         setupActionBar()
@@ -64,16 +71,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 mInterstitialAd?.loadAd(AdRequest.Builder().build())
             }
         }
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(broadcastReceiver(this), IntentFilter(GestureDetect.SU.EVENT_UPDATE))
     }
 
-    override fun onStart() {
-        thisActivity = this
-        super.onStart()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        thisActivity = null
+    override fun onDestroy() {
+        LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(broadcastReceiver(this))
+        super.onDestroy()
     }
 
     /**
@@ -282,7 +287,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         GestureDetect.SU.enable(true)
                         if (GestureDetect.SU.checkRootAccess()){
                             Handler(Looper.getMainLooper()).post {
-                                updateControls(false)
+                                updateControls(context, false)
                             }
                         }
                     }
@@ -311,7 +316,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
             }
 
-            updateControls(false)
+            updateControls(activity, false)
         }
     }
 
@@ -323,8 +328,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
     companion object
     {
-        var thisActivity:SettingsActivity? = null
-
         private var commonGestureItems = emptyArray<GestureItem>()
         fun getItemInstance(key:String): GestureItem?
                 = commonGestureItems.find { it.key == key }
@@ -360,11 +363,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 thread{
                     bHasRoot = GestureDetect.SU.checkRootAccess()
                     Handler(context.mainLooper).post {
-                        updateControls(true)
+                        updateControls(context, true)
                     }
                 }
             }else {
-                updateControls(false)
+                updateControls(context, false)
             }
 
             if (value) context.startService(Intent(context, GestureService::class.java))
@@ -442,23 +445,28 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
         }
 
-        fun updateControls(bShowAlert:Boolean)
+        fun updateControls(context:Context, bShowAlert:Boolean)
         {
-            if (thisActivity == null){
-                return
-            }
-            val activity = thisActivity!!
+            val intent = Intent(GestureDetect.SU.EVENT_UPDATE)
+            intent.putExtra("bShowAlert", bShowAlert)
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+        }
+
+        fun updateControls(activity:AppCompatPreferenceActivity, intent:Intent?)
+        {
+            val bShowAlert = intent?.getBooleanExtra("bShowAlert", false) ?: false
 
             val fragment = activity.fragmentManager
-                    .findFragmentById(android.R.id.content) as PreferenceFragment? ?: return
-            val manager = fragment.preferenceScreen ?: return
-            val context = manager.context
+                    .findFragmentById(android.R.id.content) as PreferenceFragment
+
+            val preferenceScreen = fragment.preferenceScreen
+            val context = fragment.activity
 
             val bRootExists = GestureDetect.SU.hasRootProcess()
             val support = GestureDetect(context).getSupport()
 
-            if (bRootExists) manager.findPreference("pref_ROOT")?.apply {
-                manager.removePreference(this)
+            if (bRootExists) preferenceScreen.findPreference("pref_ROOT")?.apply {
+                preferenceScreen.removePreference(this)
             }
 
             var titles = emptyArray<String>()
@@ -466,24 +474,22 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val bAllEnable = GestureDetect.getAllEnable(context)
 
             val bGesture = support.contains("GESTURE")
-            manager.findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
+            preferenceScreen.findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ GestureDetect.SU.hasRootProcess() && bAllEnable
 
             if (bGesture) titles += context.getString(R.string.ui_title_gestures)
 
             val bKeys = support.contains("KEYS")
-            manager.findPreference("KEY_GROUP")?.isEnabled = bKeys && bAllEnable
+            preferenceScreen.findPreference("KEY_GROUP")?.isEnabled = bKeys && bAllEnable
 
             if (bKeys) titles += context.getString(R.string.ui_title_keys)
 
             val bProximity = support.contains("PROXIMITY")
-            manager.findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
+            preferenceScreen.findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
 
             if (bProximity) titles += context.getString(R.string.ui_title_gesture)
 
-            if (!titles.isEmpty()){
-                val actionBar = activity.supportActionBar
-                actionBar.subtitle = titles.joinToString(", ")
-            }
+            if (!titles.isEmpty())
+                activity.supportActionBar.subtitle = titles.joinToString(", ")
 
             if (titles.isEmpty())
                 alertMessage = context.getString(R.string.ui_alert_gs_message_wo_keys)
