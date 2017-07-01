@@ -127,6 +127,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
             create().show()
         }
     }
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode)
+        if (!isInMultiWindowMode) updateControls(null)
+    }
 
     /**
      * Set up the [android.app.ActionBar], if the API is available.
