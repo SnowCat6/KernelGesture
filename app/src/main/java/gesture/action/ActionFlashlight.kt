@@ -66,8 +66,17 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             }
         }
         if (!bIsDetected){
-            bHasFlash = action.context.applicationContext.packageManager
-                    .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH)
+            if (action.context.applicationContext.packageManager
+                    .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
+            {
+                try{
+                    camera = Camera.open()
+                    bHasFlash = true
+                    camera?.release()
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+            }
         }
         bIsDetected = true
     }

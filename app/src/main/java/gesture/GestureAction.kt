@@ -49,7 +49,7 @@ class GestureAction(val context:Context)
     }
 
     fun getAction(action: String): ActionItem?
-            = allActions.firstOrNull { it.isAction(action) }
+            = allActions.firstOrNull {  action.isNotEmpty() && it.isAction(action) }
 
     fun getActions(): Array<ActionItem>
             = allActions
