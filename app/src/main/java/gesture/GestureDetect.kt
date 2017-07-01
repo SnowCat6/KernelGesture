@@ -189,15 +189,6 @@ class GestureDetect (val context:Context)
     fun addSupport(value:Array<String>)
             = value.forEach { addSupport(it) }
 
-    private fun toast(value:String)
-    {
-        screenON(context)
-        vibrate(context)
-
-        Handler(Looper.getMainLooper()).post {
-            Toast.makeText(context, value, Toast.LENGTH_LONG).show()
-        }
-    }
     fun getSupport():Array<String>
     {
 /*
@@ -261,44 +252,6 @@ class GestureDetect (val context:Context)
             }
             e.apply()
         }
-
-        /*
-            <uses-permission android:name="android.permission.WAKE_LOCK" />
-        */
-        fun screenON(context:Context)
-        {
-            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            val wakeLock = pm.newWakeLock(
-                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
-                    PowerManager.FULL_WAKE_LOCK or
-                    PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                    "KernelGesture")
-            wakeLock.acquire(500)
-        }
-        fun powerON(context:Context)
-        {
-            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            val wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    "KernelGestureCPU")
-            wakeLock.acquire(500)
-        }
-        /*
-        <uses-permission android:name="android.permission.VIBRATE"/>
-         */
-        fun vibrate(context:Context){
-            // Vibrate for 500 milliseconds
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            vibrator.vibrate(200)
-        }
-
-        fun isScreenOn(context: Context): Boolean
-        {
-            val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-            return dm.displays.any { it.state != Display.STATE_OFF }
-        }
-        /*
-        <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
-         */
     }
     /**
      * SuperSU wrapper
@@ -329,16 +282,17 @@ class GestureDetect (val context:Context)
             if (!bEnableCheck)
                 return processSU
 
+
+            try{
+                val exit = processSU?.exitValue()
+                if (exit != null) close()
+            }catch (e:Exception){}
+
+            if (processSU != null)
+                return processSU
+
             synchronized(bEnableSU)
             {
-                try{
-                    val exit = processSU?.exitValue()
-                    if (exit != null) close()
-                }catch (e:Exception){}
-
-                if (processSU != null)
-                    return processSU
-
                 try {
                     processSU = Runtime.getRuntime().exec("su")
                     readerSU = processSU?.inputStream?.bufferedReader()
@@ -363,17 +317,14 @@ class GestureDetect (val context:Context)
         {
             SU.open()
 
-            synchronized(bEnableSU)
-            {
-                try {
-                    writerSU?.apply {
-                        write("$cmd\n".toByteArray())
-                        flush()
-                    }
-                }catch (e:Exception){
-                    e.printStackTrace()
-                    return false
+            try {
+                writerSU?.apply {
+                    write("$cmd\n".toByteArray())
+                    flush()
                 }
+            }catch (e:Exception){
+                e.printStackTrace()
+                return false
             }
 
             if (BuildConfig.DEBUG) {
@@ -385,37 +336,30 @@ class GestureDetect (val context:Context)
 
         fun close()
         {
-            synchronized(bEnableSU)
-            {
-                if (processSU == null) return
-                try {
-                    processSU?.destroy()
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                processSU = null
-                writerSU = null
-                readerSU = null
-                errorSU = null
-
-                bEnableSU = false
+            if (processSU == null) return
+            try {
+                processSU?.destroy()
+            }catch (e:Exception){
+                e.printStackTrace()
             }
+            processSU = null
+            writerSU = null
+            readerSU = null
+            errorSU = null
+
+            bEnableSU = false
         }
 
         fun getFileLine(name: String): String?
         {
-            synchronized(bEnableSU) {
-                if (exec("echo $(cat $name)")) return readExecLine()
-            }
+            if (exec("echo $(cat $name)")) return readExecLine()
             return null
         }
 
         fun isFileExists(name: String): Boolean
         {
-            synchronized(bEnableSU) {
-                if (exec("[ -f $name ] && echo 1 || echo 0")) {
-                    return readExecLine() == "1"
-                }
+            if (exec("[ -f $name ] && echo 1 || echo 0")) {
+                return readExecLine() == "1"
             }
             return false
         }

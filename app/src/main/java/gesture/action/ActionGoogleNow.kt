@@ -21,9 +21,9 @@ class ActionGoogleNow(action: GestureAction) : ActionItem(action)
 
     override fun run(): Boolean
     {
-        GestureAction.UI.screenON(action.context)
-        GestureAction.UI.screenUnlock(action.context)
+        action.screenON()
+        action.screenUnlock()
         val googleNowIntent = Intent("android.intent.action.VOICE_ASSIST")
-        return GestureAction.UI.startNewActivity(action.context, googleNowIntent)
+        return action.startNewActivity(googleNowIntent)
     }
 }

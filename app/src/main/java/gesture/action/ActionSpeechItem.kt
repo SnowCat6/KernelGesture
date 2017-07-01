@@ -16,9 +16,9 @@ abstract class ActionSpeechItem(action: GestureAction) :
 
     fun doSpeech(value: String): Boolean
     {
-        GestureDetect.powerON(action.context)
-        GestureAction.UI.vibrate(action.context)
-        val bNotify = GestureAction.UI.playNotifyToEnd(action.context)
+        GestureAction.HW.powerON(action.context)
+        action.vibrate()
+        val bNotify = action.playNotifyToEnd()
 
         try {
             tts?.language = Locale.getDefault()

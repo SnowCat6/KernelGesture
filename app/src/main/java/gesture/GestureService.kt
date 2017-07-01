@@ -145,7 +145,7 @@ class GestureService : Service(), SensorEventListener {
         keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
 
         //  If screen off - run thread
-        if (!GestureDetect.isScreenOn(this)){
+        if (!GestureAction.HW.isScreenOn(this)){
             startGesture()
         }
 

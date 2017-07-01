@@ -19,7 +19,7 @@ class ActionScreenOn(action: GestureAction) : ActionItem(action)
             = action.context.getDrawable(R.drawable.icon_screen_on)
 
     override fun run(): Boolean {
-        GestureAction.UI.screenON(action.context)
+        action.screenON()
         return true
     }
 }

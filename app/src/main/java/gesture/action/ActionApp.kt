@@ -44,9 +44,9 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     {
         if (applicationInfo == null) return false
 
-        GestureAction.UI.screenON(action.context)
-        GestureAction.UI.screenUnlock(action.context)
+        action.screenON()
+        action.screenUnlock()
 
-        return GestureAction.UI.startNewActivity(action.context, applicationInfo!!.packageName)
+        return action.startNewActivity(applicationInfo!!.packageName)
     }
 }

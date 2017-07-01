@@ -2,11 +2,15 @@ package gesture
 
 import android.content.Context
 import android.content.Intent
+import android.hardware.display.DisplayManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.PowerManager
+import android.os.Vibrator
 import android.preference.PreferenceManager
 import android.util.Log
+import android.view.Display
 import gesture.action.*
 import ru.vpro.kernelgesture.BuildConfig
 
@@ -25,11 +29,11 @@ class GestureAction(val context:Context)
     fun onStart() {
         //  Preload notify
         try {
-            UI.ringtone = null
+            ringtone = null
             val value = PreferenceManager.getDefaultSharedPreferences(context).getString("GESTURE_NOTIFY", null)
             if (value != null && !value.isEmpty()) {
                 val notify = Uri.parse(value)
-                if (notify != null) UI.ringtone = RingtoneManager.getRingtone(context, notify)
+                if (notify != null) ringtone = RingtoneManager.getRingtone(context, notify)
             }
         }catch (e:Exception){}
 
@@ -75,68 +79,105 @@ class GestureAction(val context:Context)
             "phone.call.#############"
 */
         try {
-            UI.screenON(context)
-            UI.screenUnlock(context)
+            screenON()
+            screenUnlock()
             val intent = context.packageManager.getLaunchIntentForPackage(action) ?: return false
-            return UI.startNewActivity(context, intent)
+            return startNewActivity(intent)
         }catch (e:Exception){}
         return false
     }
 
-    object UI
+    var ringtone: Ringtone? = null
+
+    fun startNewActivity(packageName: String):Boolean
     {
-        var ringtone: Ringtone? = null
-
-        fun startNewActivity(context: Context, packageName: String):Boolean
-        {
-            var intent = context.packageManager.getLaunchIntentForPackage(packageName)
-            if (intent == null) {
-                // Bring user to the market or let them choose an app?
-                intent = Intent(Intent.ACTION_VIEW)
-                intent.data = Uri.parse("market://details?id=$packageName")
-            }
-            return startNewActivity(context, intent)
+        var intent = context.packageManager.getLaunchIntentForPackage(packageName)
+        if (intent == null) {
+            // Bring user to the market or let them choose an app?
+            intent = Intent(Intent.ACTION_VIEW)
+            intent.data = Uri.parse("market://details?id=$packageName")
         }
-        fun startNewActivity(context: Context, intent: Intent):Boolean
-        {
-            try {
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(intent)
-            }catch (e:Exception){
-                return false
-            }
-            return true
-        }
-        fun screenUnlock(context: Context)
-        {
-            if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN"))
-                GestureService.keyguardLock?.disableKeyguard()
-        }
-        fun screenON(context: Context)
-        {
-            playNotify(context)
-            vibrate(context)
-            GestureDetect.screenON(context)
-        }
-        fun playNotify(context: Context):Boolean
-        {
-            if (ringtone == null) return false
-
-            ringtone?.play()
-            return true
-        }
-        fun playNotifyToEnd(context: Context):Boolean
-        {
-            ringtone?.apply {
-                play()
-                while(isPlaying) Thread.sleep(100)
-                return true
-            }
+        return startNewActivity(intent)
+    }
+    fun startNewActivity(intent: Intent):Boolean
+    {
+        try {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+        }catch (e:Exception){
             return false
         }
-        fun vibrate(context: Context){
-            if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))
-                GestureDetect.vibrate(context)
+        return true
+    }
+    fun screenUnlock()
+    {
+        if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN"))
+            GestureService.keyguardLock?.disableKeyguard()
+    }
+    fun screenON()
+    {
+        playNotify()
+        vibrate()
+        HW.screenON(context)
+    }
+    fun playNotify():Boolean
+    {
+        if (ringtone == null) return false
+
+        ringtone?.play()
+        return true
+    }
+    fun playNotifyToEnd():Boolean
+    {
+        ringtone?.apply {
+            play()
+            while(isPlaying) Thread.sleep(100)
+            return true
         }
+        return false
+    }
+    fun vibrate(){
+        if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))
+            HW.vibrate(context)
+    }
+
+    object HW{
+        /*
+            <uses-permission android:name="android.permission.WAKE_LOCK" />
+        */
+        fun screenON(context:Context)
+        {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val wakeLock = pm.newWakeLock(
+                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
+                            PowerManager.FULL_WAKE_LOCK or
+                            PowerManager.ACQUIRE_CAUSES_WAKEUP,
+                    "KernelGesture")
+            wakeLock.acquire(500)
+        }
+        fun powerON(context:Context)
+        {
+            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+            val wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
+                    "KernelGestureCPU")
+            wakeLock.acquire(500)
+        }
+        /*
+        <uses-permission android:name="android.permission.VIBRATE"/>
+         */
+        fun vibrate(context:Context){
+            // Vibrate for 500 milliseconds
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            vibrator.vibrate(200)
+        }
+
+        fun isScreenOn(context: Context): Boolean
+        {
+            val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
+            return dm.displays.any { it.state != Display.STATE_OFF }
+        }
+        /*
+        <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
+         */
     }
 }
