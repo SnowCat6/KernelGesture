@@ -66,8 +66,9 @@ class GestureAction(val context:Context)
             Log.d("Gesture action", gestureKey)
         }
 
-        val a = getAction(action)
-        if (a != null) return a.run()
+        getAction(action)?.apply {
+            return run()
+        }
 /*
             "screen.on"
             "player.next"
@@ -122,16 +123,17 @@ class GestureAction(val context:Context)
     }
     fun playNotify():Boolean
     {
-        if (ringtone == null) return false
-
-        ringtone?.play()
+        ringtone?.apply {
+            play()
+            return false
+        }
         return true
     }
     fun playNotifyToEnd():Boolean
     {
         ringtone?.apply {
             play()
-            while(isPlaying) Thread.sleep(100)
+            while(isPlaying) Thread.sleep(50)
             return true
         }
         return false
