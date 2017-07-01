@@ -1,6 +1,7 @@
 package gesture.drivers.input
 
 import gesture.GestureDetect
+import gesture.GestureAction
 
 /*
 MTK and QCOMM keyboard
@@ -39,7 +40,8 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         if (HCT_GESTURE_IO == null) return
 
         if (enable) GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
-        else GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
+//  PowerOFF freeze touchscreen!
+//       else GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
     }
 
     override fun onDetect(name:String): Boolean

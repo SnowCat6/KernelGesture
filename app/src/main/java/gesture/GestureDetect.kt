@@ -111,26 +111,28 @@ class GestureDetect (val context:Context)
             if (lock) return null
         }
 
-        sensorEventGesture = null
         sensorDevices.forEach { it.onStart() }
 
-        eventMutex.lock() // Wait unlock
-        var thisEvent = sensorEventGesture
+        var thisEvent:String? = null
+        do{
+            sensorEventGesture = null
+            eventMutex.lock() // Wait unlock
+            thisEvent = sensorEventGesture
 
-        if (thisEvent != null)
-        {
-            if (BuildConfig.DEBUG) {
-                Log.d("Lock gesture", thisEvent)
+            if (thisEvent != null) {
+                if (BuildConfig.DEBUG) {
+                    Log.d("Lock gesture", thisEvent)
+                }
+
+                for ((first, second) in delayEvents) {
+
+                    if (first != thisEvent) continue
+                    if (!getEnable(context, second)) break
+                    if (eventMutex.lock(500)) thisEvent = second
+                    break
+                }
             }
-
-            for ((first, second) in delayEvents) {
-
-                if (first != thisEvent) continue
-                if (!getEnable(context, second)) break
-                if (eventMutex.lock(500)) thisEvent = second
-                break
-            }
-        }
+        }while (!lock && !getEnable(context, thisEvent))
 
         sensorDevices.forEach { it.onStop() }
 
@@ -140,7 +142,7 @@ class GestureDetect (val context:Context)
     fun sensorEvent(value:String):Boolean
     {
         if (lock) return false
-        if (!getEnable(context, value)) return false
+//        if (!getEnable(context, value)) return false
 
         sensorEventGesture = value
         eventMutex.unlock()
@@ -187,7 +189,9 @@ class GestureDetect (val context:Context)
             val gs = GestureDetect(context)
             gs.enable(value)
         }
-        fun getEnable(context: Context, key: String): Boolean {
+        fun getEnable(context: Context, key: String?): Boolean
+        {
+            if (key == null) return false
             val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
             return sharedPreferences.getBoolean(key, false)
         }

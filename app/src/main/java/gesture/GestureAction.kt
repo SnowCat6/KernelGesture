@@ -22,6 +22,7 @@ class GestureAction(val context:Context)
             ActionGoogleNow(this),
             ActionSpeechTime(this),
             ActionSpeechBattery(this),
+            ActionFlashlight(this),
             ActionWebBrowser(this),
             ActionCamera(this)
     )

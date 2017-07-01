@@ -3,6 +3,7 @@ package gesture.action
 import android.graphics.drawable.Drawable
 import android.util.Log
 import gesture.GestureAction
+import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 import java.text.MessageFormat
 import java.util.*
@@ -23,7 +24,9 @@ class ActionSpeechTime(action: GestureAction) : ActionSpeechItem(action)
 
     override fun run(): Boolean {
         val result = MessageFormat.format("{0,time,short}", Date())
-        Log.d("Time is", result)
+        if (BuildConfig.DEBUG) {
+            Log.d("Time is", result)
+        }
         return doSpeech(result)
     }
 }

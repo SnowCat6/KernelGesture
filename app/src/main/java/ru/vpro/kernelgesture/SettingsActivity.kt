@@ -27,6 +27,7 @@ import gesture.GestureAction
 import gesture.GestureDetect
 import gesture.GestureService
 import gesture.action.ActionItem
+import java.io.File
 import kotlin.concurrent.thread
 
 
@@ -350,7 +351,29 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             if (value) context.startService(Intent(context, GestureService::class.java))
             else context.stopService(Intent(context, GestureService::class.java))
-
+/*
+            if (value){
+                val fileName = "/dev/input/event5"
+                Log.d("Read IO", fileName)
+                try{
+                    val f = File(fileName)
+                    f.setReadOnly()
+                    f.readBytes()
+                    Log.d("Read IO", "$fileName read OK")
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+                Log.d("Read IO", "exec shell")
+                try{
+                    val sh = Runtime.getRuntime().exec("getevent -p")
+                    sh.waitFor()
+                    val line = sh.inputStream.bufferedReader().readLine()
+                    Log.d("Read IO", "exec shell result: $line")
+                }catch (e:Exception){
+                    e.printStackTrace()
+                }
+            }
+*/
             true
         }
 
