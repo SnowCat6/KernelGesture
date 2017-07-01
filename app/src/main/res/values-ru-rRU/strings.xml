@@ -29,8 +29,6 @@
     <string name="ui_no_notify">Без звука</string>
     <string name="iu_choose_action">Выберите действие</string>
     <string name="ui_screen_on">Включить экран</string>
-    <string name="ui_phone">Телефон</string>
-    <string name="ui_contacts">Контакты</string>
     <string name="ui_icon">Иконка</string>
     <string name="ui_proximity_off">Датчик не используется</string>
     <string name="ui_proximity_on">Использовать датчик</string>
@@ -40,10 +38,8 @@
     <string name="ui_alert_gs_title">Жесты не найдены</string>
     <string name="ui_alert_gs_message_keys">Возможно ваше устройство не поддерживает жесты, только:</string>
     <string name="ui_alert_gs_message_wo_keys">Возможно ваше устройство не поддерживает жесты</string>
-    <string name="ui_title_support">"Поддержка: "</string>
     <string name="ui_title_gestures">жесты</string>
     <string name="ui_title_keys">клавиши</string>
-    <string name="ui_title_no_root">Нет ROOT доступа</string>
     <string name="ui_wait_app">Чтение списка программ</string>
     <string name="ui_proximity_gesture">Жест датчика приближения</string>
     <string name="ui_title_gesture">приближение</string>
@@ -65,4 +61,5 @@
     <string name="ui_key_summ">Включение клавишами</string>
     <string name="ui_volume_down_delay">Двойное УМЕНЬШЕНИЕ громкости</string>
     <string name="ui_volume_up_delay">Двойное УВЕЛИЧЕНИЕ  громкости</string>
+    <string name="ui_title_no_any_support">Ничто не поддерживается</string>
 </resources>

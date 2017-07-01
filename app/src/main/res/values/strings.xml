@@ -29,8 +29,6 @@
     <string name="ui_no_notify">No notify on gesture</string>
     <string name="iu_choose_action">Action for gesture</string>
     <string name="ui_screen_on">Screen on</string>
-    <string name="ui_phone">Dialer</string>
-    <string name="ui_contacts">Contacts</string>
     <string name="ui_icon">Icon</string>
     <string name="ui_proximity_off">Sensor not useed</string>
     <string name="ui_proximity_on">Use sensor</string>
@@ -40,10 +38,8 @@
     <string name="ui_alert_gs_title">Gesture not detected</string>
     <string name="ui_alert_gs_message_keys">Possibly your device not support gestures, only:</string>
     <string name="ui_alert_gs_message_wo_keys">Possibly your device not support gestures</string>
-    <string name="ui_title_support">Support:</string>
     <string name="ui_title_gestures">gestures</string>
     <string name="ui_title_keys">keys</string>
-    <string name="ui_title_no_root">No ROOT access</string>
     <string name="ui_wait_app">Reading app list</string>
     <string name="ui_proximity_gesture">Proximity gesture</string>
     <string name="ui_title_gesture">proximity</string>
@@ -65,6 +61,7 @@
     <string name="ui_key_summ">Wakeup with key action</string>
     <string name="ui_volume_down_delay">Double volume DOWN key</string>
     <string name="ui_volume_up_delay">Double volume UP key</string>
+    <string name="ui_title_no_any_support">No any supported</string>
 
     <!-- Strings related to Settings -->
 

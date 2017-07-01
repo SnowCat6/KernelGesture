@@ -6,7 +6,6 @@ import gesture.drivers.input.*
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.FileReader
-import java.util.*
 import kotlin.concurrent.thread
 
 /**

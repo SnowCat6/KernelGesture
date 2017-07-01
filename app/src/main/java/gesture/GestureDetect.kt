@@ -18,7 +18,6 @@ import java.io.BufferedReader
 import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.Semaphore
-import java.util.concurrent.TimeUnit
 
 
 class GestureDetect (val context:Context)
@@ -54,7 +53,9 @@ class GestureDetect (val context:Context)
     var delayEvents = emptyArray<Pair<String, String>>()
     fun registerDelayEvents(event:String, delayEvent:String)
     {
-        for(it in delayEvents) if (it.first.contains(event)) return
+        delayEvents
+                .filter { (first) -> first.contains(event) }
+                .forEach { return }
         delayEvents += Pair(event, delayEvent)
     }
     /**
@@ -135,14 +136,14 @@ class GestureDetect (val context:Context)
         sensorEventGesture = null
 
         if (thisEvent != null) {
-            for (it in delayEvents) {
+            for ((first, second) in delayEvents) {
 
-                if (it.first != thisEvent) continue
-                if (!getEnable(context, it.second)) break
+                if (first != thisEvent) continue
+                if (!getEnable(context, second)) break
 
                 Thread.sleep(500)
                 if (sensorEventGesture != null && sensorEventGesture == thisEvent)
-                    thisEvent = it.second
+                    thisEvent = second
                 break
             }
         }

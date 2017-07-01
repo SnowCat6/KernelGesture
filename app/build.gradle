@@ -9,8 +9,8 @@ android {
         applicationId "ru.vpro.kernelgesture"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 60
-        versionName "1.1.6 (alpha)"
+        versionCode 61
+        versionName "1.1.7 (alpha)"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -33,7 +33,5 @@ dependencies {
     releaseCompile 'com.google.firebase:firebase-crash:11.0.2'
     implementation 'com.google.firebase:firebase-ads:11.0.2'
 }
-
-
 
 apply plugin: 'com.google.gms.google-services'

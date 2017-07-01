@@ -1,7 +1,6 @@
 package gesture.drivers.input
 
 import gesture.GestureDetect
-import java.util.*
 
 
 /**
