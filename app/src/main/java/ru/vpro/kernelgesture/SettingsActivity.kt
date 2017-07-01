@@ -594,13 +594,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     GestureItem("KEY_W",       "application.browser"),
                     GestureItem("KEY_S",       "application.camera"),
                     GestureItem("KEY_V",       ""),
-                    GestureItem("KEY_Z",       ""),
-                    GestureItem("KEY_VOLUMEUP",            ""),
-                    GestureItem("KEY_VOLUMEUP_DELAY",      ""),
-                    GestureItem("KEY_VOLUMEDOWN",          ""),
-                    GestureItem("KEY_VOLUMEDOWN_DELAY",    ""),
-                    GestureItem("KEY_PROXIMITY",          "speech.time"),
-                    GestureItem("GESTURE_DEFAULT_ACTION",  "")
+                    GestureItem("KEY_Z",       "speech.battery"),
+                    GestureItem("KEY_VOLUMEUP",             ""),
+                    GestureItem("KEY_VOLUMEUP_DELAY",       ""),
+                    GestureItem("KEY_VOLUMEDOWN",           ""),
+                    GestureItem("KEY_VOLUMEDOWN_DELAY",     ""),
+                    GestureItem("KEY_PROXIMITY",            "speech.time"),
+                    GestureItem("GESTURE_DEFAULT_ACTION",   "")
             )
         }
 
