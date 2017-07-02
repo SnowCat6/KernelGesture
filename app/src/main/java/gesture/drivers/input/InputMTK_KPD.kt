@@ -21,17 +21,17 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
             //  Android 5.x HCT gestures
             GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
                     "on > /sys/devices/platform/mtk-tpd/tpgesture_status",
-                    "off > /sys/devices/platform/mtk-tpd/tpgesture_status",
+                    "",
                     "/sys/devices/platform/mtk-tpd/tpgesture"),
             // Android 6.x HCT gestures
             GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
                     "on > /sys/devices/bus/bus\\:touch@/tpgesture_status",
-                    "off > /sys/devices/bus/bus\\:touch@/tpgesture_status",
+                    "",
                     "/sys/devices/bus/bus\\:touch@/tpgesture"),
             //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
             GS("/sys/class/syna/gesenable",
                     "1 > /sys/class/syna/gesenable",
-                    "0 > /sys/class/syna/gesenable",
+                    "",
                     "")
     )
 
@@ -41,8 +41,8 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 //  Change state when screen is off cause freeze!! Touchscreen driver BUG!!
         if (!GestureAction.HW.isScreenOn(context)) return
 
-        if (enable) GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
-        else GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
+        val io = if (enable) HCT_GESTURE_IO!!.setPowerON else HCT_GESTURE_IO!!.setPowerOFF
+        if (io.isNotEmpty()) GestureDetect.SU.exec("echo $io")
     }
 
     override fun onDetect(name:String): Boolean

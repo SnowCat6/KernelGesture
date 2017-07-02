@@ -39,6 +39,7 @@ class GestureService : Service(), SensorEventListener {
         //  Disable run thread if gestures not use
         if (!GestureDetect.getAllEnable(this)){
             gestureDetector?.close()
+            gestureDetector = null
             bRunning = false
             return
         }
@@ -69,6 +70,8 @@ class GestureService : Service(), SensorEventListener {
 
             val actions = gestureActions!!
             val gesture = gestureDetector!!
+
+            gesture.enable(true)
 
             actions.onStart()
             gesture.lock = false
@@ -180,8 +183,6 @@ class GestureService : Service(), SensorEventListener {
                         Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
                     }
                     gestureDetector?.lock = true
-                    //  Enable/disable gestures on start service
-                    gestureDetector?.enable(GestureDetect.getAllEnable(context))
                 }
             }
         }

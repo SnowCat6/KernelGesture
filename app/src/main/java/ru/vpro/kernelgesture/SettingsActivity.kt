@@ -340,6 +340,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             {
                 thread{
                     bHasRoot = GestureDetect.SU.checkRootAccess()
+                    GestureDetect.setAllEnable(context, value)
                     Handler(context.mainLooper).post {
                         updateControls(context, true)
                     }

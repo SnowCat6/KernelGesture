@@ -82,10 +82,11 @@ class GestureDetect (val context:Context)
         SU.close()
     }
 
-    fun enable(powerOn: Boolean)
+    fun enable(bEnable: Boolean)
     {
+        if (bEnable) detectDevices()
         sensorDevices.forEach {
-            it.enable(powerOn)
+            it.enable(bEnable)
         }
     }
 

@@ -11,8 +11,8 @@ import ru.vpro.kernelgesture.R
 class ActionDialer(action: GestureAction) : ActionApp(action)
 {
     init{
-        intent = Intent(Intent.ACTION_CALL)
-        intent?.data = Uri.parse("tel:123456789")
+        intent = Intent(Intent.ACTION_DIAL)
+//        intent?.data = Uri.parse("tel:123456789")
     }
 
     override fun action(): String

@@ -47,7 +47,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
     override fun onDetect(): Boolean
     {
-        if (!GestureDetect.SU.hasRootProcess()) return false
+        if (!GestureDetect.SU.hasRootProcess())
+            return false
 
         getInputEvents().forEach { (input, name) ->
             inputHandlers.forEach {
@@ -62,7 +63,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
     override fun onStart()
     {
-        if (bRunning) return
+        if (bRunning || !GestureDetect.SU.checkRootAccess()) return
         bRunning = true
 
         thread{

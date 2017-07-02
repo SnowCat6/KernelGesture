@@ -73,7 +73,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
         {
             try{
-                camera = Camera.open()
+                val camera = Camera.open()
                 bHasFlash = true
                 camera?.release()
             }catch (e:Exception){
