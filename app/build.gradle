@@ -11,6 +11,7 @@ android {
         targetSdkVersion 25
         versionCode 67
         versionName "1.1.11 (alpha)"
+        setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
