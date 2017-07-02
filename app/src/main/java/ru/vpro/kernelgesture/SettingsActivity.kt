@@ -486,7 +486,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     items += AppListItem(preference.context, "none")
 
                     GestureAction(context).getActions()
-                            .filter { it.action()!="" }
                             .forEach { items += AppListItem(context, it) }
 
                     items += "-"

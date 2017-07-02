@@ -15,6 +15,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     )
 
     override fun action(): String {
+        flashLightDetect()
         return if (bHasFlash) "application.flashlight" else ""
     }
 
@@ -55,27 +56,29 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             else flashlightCamera()
         }
 
-    init{
-        if (!bIsDetected && GestureDetect.SU.hasRootProcess())
+    fun flashLightDetect()
+    {
+        if (bIsDetected) return
+        if (GestureDetect.SU.hasRootProcess())
         {
             for (it in devices) {
                 if (!GestureDetect.SU.isFileExists(it)) continue
-                    flashlightDirect = it
-                    bIsDetected = true
-                break
+                flashlightDirect = it
+                bHasFlash = true
+                bIsDetected = true
+                return
             }
         }
-        if (!bIsDetected){
-            if (action.context.applicationContext.packageManager
-                    .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
-            {
-                try{
-                    camera = Camera.open()
-                    bHasFlash = true
-                    camera?.release()
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
+
+        if (action.context.applicationContext.packageManager
+                .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
+        {
+            try{
+                camera = Camera.open()
+                bHasFlash = true
+                camera?.release()
+            }catch (e:Exception){
+                e.printStackTrace()
             }
         }
         bIsDetected = true

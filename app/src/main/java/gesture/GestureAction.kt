@@ -49,10 +49,10 @@ class GestureAction(val context:Context)
     }
 
     fun getAction(action: String): ActionItem?
-            = allActions.firstOrNull {  action.isNotEmpty() && it.isAction(action) }
+            = allActions.find {  action.isNotEmpty() && it.isAction(action) }
 
-    fun getActions(): Array<ActionItem>
-            = allActions
+    fun getActions(): List<ActionItem>
+            = allActions.filter { it.action().isNotEmpty() }
 
     fun onGestureEvent(gestureKey:String):Boolean
     {
