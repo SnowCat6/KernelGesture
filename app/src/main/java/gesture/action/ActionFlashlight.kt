@@ -20,10 +20,10 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
 
     override fun name(): String
-            = action.context.getString(R.string.ui_flashlight)
+            = context.getString(R.string.ui_flashlight)
 
     override fun icon(): Drawable
-            = action.context.getDrawable(R.drawable.icon_flashlight)
+            = context.getDrawable(R.drawable.icon_flashlight)
 
     override fun run(): Boolean
     {

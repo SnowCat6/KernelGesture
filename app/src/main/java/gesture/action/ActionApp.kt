@@ -14,12 +14,12 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     var applicationInfo: ApplicationInfo? = null
     var intent:Intent? = null
 
-    fun getInfo():ApplicationInfo?
+    open fun getInfo():ApplicationInfo?
     {
         if (applicationInfo == null)
         {
             try {
-                val resolveInfo = action.context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
                 applicationInfo = resolveInfo?.activityInfo?.applicationInfo
             }catch (e:Exception){
                 e.printStackTrace()
@@ -31,14 +31,18 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     override fun action(): String
             = getInfo()?.packageName ?: ""
 
+    fun action(appAction:String): String
+            = if (getInfo() != null) appAction else ""
+
+
     override fun name(): String {
         if (getInfo() == null) return super.name()
-        return action.context.packageManager.getApplicationLabel(getInfo()).toString()
+        return context.packageManager.getApplicationLabel(getInfo()).toString()
     }
 
     override fun icon(): Drawable {
         if (getInfo() == null) return super.icon()
-        return action.context.packageManager.getApplicationIcon(getInfo())
+        return context.packageManager.getApplicationIcon(getInfo())
     }
 
     override fun run(): Boolean

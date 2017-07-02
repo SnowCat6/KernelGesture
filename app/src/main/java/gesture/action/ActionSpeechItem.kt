@@ -35,7 +35,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
     override fun onStart()
     {
         if (tts != null) return
-        tts = TextToSpeech(action.context, this)
+        tts = TextToSpeech(context, this)
     }
 
     override fun close()

@@ -14,10 +14,10 @@ class ActionGoogleNow(action: GestureAction) : ActionItem(action)
             = "google.ok"
 
     override fun name(): String
-            = action.context.getString(R.string.ui_ok_google)
+            = context.getString(R.string.ui_ok_google)
 
     override fun icon(): Drawable
-            = action.context.getDrawable(R.drawable.icon_ok_google)
+            = context.getDrawable(R.drawable.icon_ok_google)
 
     override fun run(): Boolean
     {

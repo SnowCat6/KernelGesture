@@ -63,6 +63,9 @@
     <string name="ui_volume_up_delay">Double volume UP key</string>
     <string name="ui_title_no_any_support">No any supported</string>
     <string name="ui_flashlight">Flashlight</string>
+    <string name="ui_action_dialer">Dialer</string>
+    <string name="ui_action_contacts">Contacts</string>
+    <string name="ui_action_mail">Mail</string>
 
     <!-- Strings related to Settings -->
 

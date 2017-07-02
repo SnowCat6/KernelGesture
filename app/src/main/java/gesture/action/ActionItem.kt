@@ -9,6 +9,7 @@ import gesture.GestureAction
 
 abstract class ActionItem(val action: GestureAction)
 {
+    val context = action.context
     /**
      * Начало процесса ожидание жеста
      */

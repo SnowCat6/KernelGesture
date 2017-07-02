@@ -609,13 +609,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val items = arrayOf(
                     GestureItem("KEY_U",       "screen.on"),
-                    GestureItem("KEY_UP",      "com.android.dialer"),
-                    GestureItem("KEY_DOWN",    "com.android.contacts"),
+                    GestureItem("KEY_UP",      "application.dialer"),
+                    GestureItem("KEY_DOWN",    "application.contacts"),
                     GestureItem("KEY_LEFT",    ""),
                     GestureItem("KEY_RIGHT",   ""),
                     GestureItem("KEY_O",       ""),
                     GestureItem("KEY_E",       ""),
-                    GestureItem("KEY_M",       "com.android.email"),
+                    GestureItem("KEY_M",       "application.email"),
                     GestureItem("KEY_L",       ""),
                     GestureItem("KEY_W",       "application.browser"),
                     GestureItem("KEY_S",       "application.camera"),

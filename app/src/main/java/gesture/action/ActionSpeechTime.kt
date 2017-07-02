@@ -17,10 +17,10 @@ class ActionSpeechTime(action: GestureAction) : ActionSpeechItem(action)
             = "speech.time"
 
     override fun name(): String
-            = action.context.getString(R.string.ui_speech_time)
+            = context.getString(R.string.ui_speech_time)
 
     override fun icon(): Drawable
-            = action.context.getDrawable(R.drawable.icon_speech_time)
+            = context.getDrawable(R.drawable.icon_speech_time)
 
     override fun run(): Boolean {
         val result = MessageFormat.format("{0,time,short}", Date())

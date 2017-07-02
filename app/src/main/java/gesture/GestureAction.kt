@@ -23,7 +23,10 @@ class GestureAction(val context:Context)
             ActionSpeechTime(this),
             ActionSpeechBattery(this),
             ActionFlashlight(this),
+            ActionDialer(this),
+            ActionContacts(this),
             ActionWebBrowser(this),
+            ActionMail(this),
             ActionCamera(this)
     )
 

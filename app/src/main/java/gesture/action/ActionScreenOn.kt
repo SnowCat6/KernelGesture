@@ -13,10 +13,10 @@ class ActionScreenOn(action: GestureAction) : ActionItem(action)
             = "screen.on"
 
     override fun name(): String
-            = action.context.getString(R.string.ui_screen_on)
+            = context.getString(R.string.ui_screen_on)
 
     override fun icon(): Drawable
-            = action.context.getDrawable(R.drawable.icon_screen_on)
+            = context.getDrawable(R.drawable.icon_screen_on)
 
     override fun run(): Boolean {
         action.screenON()
