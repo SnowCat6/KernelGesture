@@ -38,9 +38,11 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
     override fun setEnable(enable:Boolean)
     {
         if (HCT_GESTURE_IO == null) return
+//  Change state when screen is off cause freeze???
+        if (!GestureAction.HW.isScreenOn(context)) return
 
         if (enable) GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerON}")
-//  PowerOFF freeze touchscreen!
+//  PowerOFF freeze touchscreen?
 //       else GestureDetect.SU.exec("echo ${HCT_GESTURE_IO!!.setPowerOFF}")
     }
 

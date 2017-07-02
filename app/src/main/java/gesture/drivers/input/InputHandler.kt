@@ -8,6 +8,7 @@ import gesture.GestureDetect
  */
 abstract class InputHandler(val gesture:GestureDetect)
 {
+    val context = gesture.context
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */

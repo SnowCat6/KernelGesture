@@ -8,6 +8,7 @@ import gesture.GestureDetect
 
 abstract class SensorHandler(val gesture:GestureDetect)
 {
+    val context = gesture.context
     /**
      * Определить доступность сенсора для работы
      */

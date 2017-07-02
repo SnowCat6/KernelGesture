@@ -32,7 +32,7 @@ open class SensorProximity(gesture: GestureDetect) :
 
     override fun onDetect(): Boolean
     {
-        mSensorManager = gesture.context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mSensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         if (mProximity == null) return false
 
@@ -42,7 +42,7 @@ open class SensorProximity(gesture: GestureDetect) :
 
     override fun onStart()
     {
-        if (!GestureDetect.getEnable(gesture.context, "KEY_PROXIMITY"))
+        if (!GestureDetect.getEnable(context, "KEY_PROXIMITY"))
             return
 
         bRegisterEvent = true

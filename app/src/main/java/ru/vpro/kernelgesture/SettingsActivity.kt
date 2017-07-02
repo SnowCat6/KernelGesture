@@ -469,11 +469,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
         class BoxAdapter internal constructor(
                 internal val preference: Preference) : BaseAdapter()
         {
-            internal var objects = listOf<Any>("wait")
+            internal var objects = emptyList<Any>()
             internal val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             internal val context = preference.context
 
             init{
+                objects += AppListItem(preference.context, "none")
+
+                GestureAction(context).getActions()
+                        .forEach { objects += AppListItem(context, it) }
 
                 thread{
                     val pm =  preference.context.packageManager
@@ -482,20 +486,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
                     val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
 
-                    var items:List<Any> = emptyList()
-                    items += AppListItem(preference.context, "none")
-
-                    GestureAction(context).getActions()
-                            .forEach { items += AppListItem(context, it) }
-
-                    items += "-"
-
+                    var items = listOf<Any>("-")
                     pkgAppsList.forEach {
                         items += AppListItem(context, it.activityInfo.applicationInfo)
                     }
 
                     Handler(context.mainLooper).post {
-                        objects = items
+                        objects += items
                         notifyDataSetChanged()
                     }
                 }
@@ -653,7 +650,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     "" ->  return context.getString(R.string.ui_default_action)
                     "none"  -> return context.getString(R.string.ui_no_action)
-                    "wait" -> return context.getString(R.string.ui_wait_app)
                     is ActionItem -> return item.name()
                     is String -> return GestureAction(context)
                             .getAction(item)?.name() ?: ""
