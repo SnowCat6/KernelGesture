@@ -3,7 +3,6 @@ package gesture.action
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
-import android.util.Log
 import gesture.GestureAction
 import gesture.GestureDetect
 import ru.vpro.kernelgesture.R
@@ -85,7 +84,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
 
     fun flashlightDirect(){
-        GestureDetect.SU.exec("echo ${if (bEnable) 255 else 0} > ${flashlightDirect}" )
+        GestureDetect.SU.exec("echo ${if (bEnable) 255 else 0} > $flashlightDirect" )
     }
     fun flashlightCamera()
     {
@@ -104,13 +103,13 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         }
 
         if (bEnable) {
-            params?.flashMode = Camera.Parameters.FLASH_MODE_TORCH;
-            camera?.parameters = params;
-            camera?.startPreview();
+            params?.flashMode = Camera.Parameters.FLASH_MODE_TORCH
+            camera?.parameters = params
+            camera?.startPreview()
         }else{
-            params?.flashMode = Camera.Parameters.FLASH_MODE_OFF;
-            camera?.parameters = params;
-            camera?.stopPreview();
+            params?.flashMode = Camera.Parameters.FLASH_MODE_OFF
+            camera?.parameters = params
+            camera?.stopPreview()
         }
     }
     fun closeCamera(){

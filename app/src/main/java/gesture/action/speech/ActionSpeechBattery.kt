@@ -1,4 +1,4 @@
-package gesture.action
+package gesture.action.speech
 
 import android.content.Context.BATTERY_SERVICE
 import android.graphics.drawable.Drawable

@@ -1,4 +1,4 @@
-package gesture.action
+package gesture.action.speech
 
 import android.graphics.drawable.Drawable
 import android.util.Log

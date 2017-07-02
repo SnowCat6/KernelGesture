@@ -12,6 +12,9 @@ import android.preference.PreferenceManager
 import android.util.Log
 import android.view.Display
 import gesture.action.*
+import gesture.action.application.*
+import gesture.action.speech.ActionSpeechBattery
+import gesture.action.speech.ActionSpeechTime
 import ru.vpro.kernelgesture.BuildConfig
 
 

@@ -1,8 +1,6 @@
-package gesture.action
+package gesture.action.application
 
 import android.content.Intent
-import android.content.pm.ApplicationInfo
-import android.content.pm.PackageManager
 import android.net.Uri
 import gesture.GestureAction
 import ru.vpro.kernelgesture.R

@@ -1,4 +1,4 @@
-package gesture.action
+package gesture.action.application
 
 import android.content.Intent
 import gesture.GestureAction

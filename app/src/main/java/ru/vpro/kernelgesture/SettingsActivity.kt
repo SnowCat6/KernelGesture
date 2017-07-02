@@ -27,7 +27,6 @@ import gesture.GestureAction
 import gesture.GestureDetect
 import gesture.GestureService
 import gesture.action.ActionItem
-import java.io.File
 import kotlin.concurrent.thread
 
 
