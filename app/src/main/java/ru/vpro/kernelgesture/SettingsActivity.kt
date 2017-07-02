@@ -218,6 +218,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             GestureItems(activity).items.forEach {
 
+                it.action
                 findPreference(it.key)?.apply {
                     icon = it.icon
                     onPreferenceChangeListener = sBindGestureChangeListener
@@ -318,17 +319,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             var applicationInfo:ApplicationInfo? = null
 
-            var _action = String()
-            var action:String?
+            var action:String
                 get() {
-                    var a = GestureDetect.getAction(context, key)
-                    if (a == null) {
-                        action = defaultAction
-                        if (defaultAction.isNotEmpty()) enable = true
-                        a = defaultAction
-                    }
-                    if (ui.gestureAction.getAction(a) == null) a = null
-                    return a
+                    val a = GestureDetect.getAction(context, key)
+                    if (ui.gestureAction.getAction(a) != null) return a!!
+                    if (ui.gestureAction.getAction(defaultAction) == null) return ""
+                    action = defaultAction
+                    enable = true
+                    return defaultAction
                 }
                 set(value) {
                     _actionName = ""
@@ -352,14 +350,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     if (getAppInfo() != null) {
                         _actionName = ui.name(getAppInfo())
                     }else{
-                        if (action != null && action == "" && key == "GESTURE_DEFAULT_ACTION") {
+                        if (action == "" && key == "GESTURE_DEFAULT_ACTION") {
                             _actionName = context.getString(R.string.ui_no_action)
                         }else {
-                            if (action == null || (action == "" && !enable)){
-                                _actionName = context.getString(R.string.ui_no_action)
-                            }else {
-                                _actionName = ui.name(action)
-                            }
+                            if (action == "" && !enable) _actionName = context.getString(R.string.ui_no_action)
+                            else _actionName = ui.name(action)
                         }
                     }
                     return _actionName

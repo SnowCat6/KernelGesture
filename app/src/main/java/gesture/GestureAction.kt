@@ -54,8 +54,8 @@ class GestureAction(val context:Context)
         allActions.forEach { it.close() }
     }
 
-    fun getAction(action: String): ActionItem?
-            = allActions.find {  action.isNotEmpty() && it.isAction(action) }
+    fun getAction(action: String?): ActionItem?
+            = if (action == null) null else allActions.find {  action.isNotEmpty() && it.isAction(action) }
 
     fun getActions(): List<ActionItem>
             = allActions.filter { it.action().isNotEmpty() }
