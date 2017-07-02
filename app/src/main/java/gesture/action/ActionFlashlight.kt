@@ -26,10 +26,9 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
 
     override fun run(): Boolean
     {
-        action.vibrate()
-        action.playNotify()
-
         enable = !enable
+        action.vibrate()
+        if (enable) action.playNotify()
         return false
     }
 

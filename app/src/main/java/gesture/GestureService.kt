@@ -71,6 +71,7 @@ class GestureService : Service(), SensorEventListener {
             val actions = gestureActions!!
             val gesture = gestureDetector!!
 
+            GestureDetect.SU.checkRootAccess()
             gesture.enable(true)
 
             actions.onStart()

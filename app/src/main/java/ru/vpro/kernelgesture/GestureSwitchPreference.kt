@@ -14,8 +14,7 @@ class GestureSwitchPreference : SwitchPreference
     constructor(context:Context, attrs:AttributeSet, defStyleAttr:Int) : super(context, attrs, defStyleAttr)
     constructor(context:Context, attrs:AttributeSet, defStyleAttr:Int, defStyleRes:Int) : super(context, attrs, defStyleAttr, defStyleRes)
 
-    init
-    {
+    init {
         widgetLayoutResource = R.layout.preference_switch_item
     }
 
