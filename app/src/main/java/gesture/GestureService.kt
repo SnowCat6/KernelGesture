@@ -148,6 +148,12 @@ class GestureService : Service(), SensorEventListener {
         val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
 
+        if (gestureDetector == null)
+            gestureDetector = GestureDetect(this)
+
+        //  Enable/disable gestures on start service
+        gestureDetector?.enable(GestureDetect.getAllEnable(this))
+
         //  If screen off - run thread
         if (!GestureAction.HW.isScreenOn(this)){
             startGesture()
@@ -174,6 +180,8 @@ class GestureService : Service(), SensorEventListener {
                         Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
                     }
                     gestureDetector?.lock = true
+                    //  Enable/disable gestures on start service
+                    gestureDetector?.enable(GestureDetect.getAllEnable(context))
                 }
             }
         }

@@ -67,9 +67,6 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
         thread{
 
-            //  Power on gesture if available, many drivers not set this value if screen off
-            enable(true)
-
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Start")
             }
