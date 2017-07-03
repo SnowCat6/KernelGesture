@@ -1,5 +1,6 @@
 package gesture
 
+import SuperSU.ShellSU
 import android.content.Context
 import android.preference.PreferenceManager
 import android.util.Log
@@ -7,8 +8,6 @@ import gesture.drivers.sensor.SensorHandler
 import gesture.drivers.sensor.SensorInput
 import gesture.drivers.sensor.SensorProximity
 import ru.vpro.kernelgesture.BuildConfig
-import java.io.BufferedReader
-import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -30,8 +29,8 @@ class GestureDetect (val context:Context)
     private var supported = emptyArray<String>()
     //  Detected sensor devices
     private var sensorDevices = emptyArray<SensorHandler>()
-    //  Get events in process
-    private var bGetEvents = false
+    //  SuperSU
+    val su = ShellSU()
     /**
      * Internal variables
      */
@@ -79,7 +78,8 @@ class GestureDetect (val context:Context)
     fun close()
     {
         lock = true
-        SU.close()
+        sensorDevices.forEach{ it.close() }
+        eventMutex.unlock()
     }
 
     fun enable(bEnable: Boolean)
@@ -106,7 +106,7 @@ class GestureDetect (val context:Context)
 
     private fun getEventThread():String?
     {
-        if (!SU.hasRootProcess() && SU.checkRootAccess())
+        if (!su.hasRootProcess() && su.checkRootAccess())
         {
             detectDevices()
             if (lock) return null
@@ -114,7 +114,7 @@ class GestureDetect (val context:Context)
 
         sensorDevices.forEach { it.onStart() }
 
-        var thisEvent:String? = null
+        var thisEvent:String?
         do{
             sensorEventGesture = null
             eventMutex.lock() // Wait unlock
@@ -265,136 +265,6 @@ class GestureDetect (val context:Context)
                 Log.d("Lock", "Unlock locked semaphore")
             }
             semaphore.release()
-        }
-    }
-    /**
-     * SuperSU wrapper
-     */
-    object SU
-    {
-        private var processSU: Process? = null
-        private var errorSU: BufferedReader? = null
-        private var readerSU: BufferedReader? = null
-        private var writerSU: OutputStream? = null
-        private var bEnableSU = false
-        private var bEnableCheck = true
-
-        val EVENT_UPDATE = "UPDATE-ROOT"
-
-        fun checkRootAccess():Boolean
-                = SU.open() != null
-
-        fun hasRootProcess():Boolean
-                = bEnableSU
-
-        fun enable(bEnable:Boolean) {
-            bEnableCheck = bEnable
-        }
-
-        fun open(): Process?
-        {
-            if (!bEnableCheck)
-                return processSU
-
-
-            try{
-                val exit = processSU?.exitValue()
-                if (exit != null) close()
-            }catch (e:Exception){}
-
-            if (processSU != null)
-                return processSU
-
-            synchronized(bEnableSU)
-            {
-                try {
-                    processSU = Runtime.getRuntime().exec("su")
-                    readerSU = processSU?.inputStream?.bufferedReader()
-                    errorSU = processSU?.errorStream?.bufferedReader()
-                    writerSU = processSU?.outputStream
-
-                    exec("id")
-                    val id = readExecLine()?.contains("root")
-                    if (id == null || id == false) close()
-
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    close()
-                }
-                bEnableSU = processSU != null
-                bEnableCheck = bEnableSU
-            }
-            return processSU
-        }
-
-        fun exec(cmd: String): Boolean
-        {
-            SU.open()
-
-            try {
-                writerSU?.apply {
-                    write("$cmd\n".toByteArray())
-                    flush()
-                }
-            }catch (e:Exception){
-                e.printStackTrace()
-                return false
-            }
-
-            if (BuildConfig.DEBUG) {
-                Log.d("GestureDetect exec", "$cmd\n")
-            }
-
-            return true
-        }
-
-        fun close()
-        {
-            if (processSU == null) return
-            try {
-                processSU?.destroy()
-            }catch (e:Exception){
-                e.printStackTrace()
-            }
-            processSU = null
-            writerSU = null
-            readerSU = null
-            errorSU = null
-
-            bEnableSU = false
-        }
-
-        fun getFileLine(name: String): String?
-        {
-            if (exec("echo $(cat $name)")) return readExecLine()
-            return null
-        }
-
-        fun isFileExists(name: String): Boolean
-        {
-            if (exec("[ -f $name ] && echo 1 || echo 0")) {
-                return readExecLine() == "1"
-            }
-            return false
-        }
-
-        fun readExecLine(): String?
-        {
-            try {
-                return  readerSU?.readLine()
-            }catch (e:Exception){
-                e.printStackTrace()
-            }
-            return null
-        }
-
-        fun readErrorLine() : String? {
-            try {
-                return  errorSU?.readLine()
-            }catch (e:Exception){
-                e.printStackTrace()
-            }
-            return null
         }
     }
 }

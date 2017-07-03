@@ -1,5 +1,6 @@
 package gesture.drivers.input
 
+import SuperSU.ShellSU
 import gesture.GestureDetect
 import gesture.GestureAction
 
@@ -34,6 +35,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                     "",
                     "")
     )
+    val su = ShellSU()
 
     override fun setEnable(enable:Boolean)
     {
@@ -42,7 +44,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         if (!GestureAction.HW.isScreenOn(context)) return
 
         val io = if (enable) HCT_GESTURE_IO!!.setPowerON else HCT_GESTURE_IO!!.setPowerOFF
-        if (io.isNotEmpty()) GestureDetect.SU.exec("echo $io")
+        if (io.isNotEmpty()) su.exec("echo $io")
     }
 
     override fun onDetect(name:String): Boolean
@@ -52,7 +54,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 
         if (HCT_GESTURE_IO == null) {
             for (it in HCT_GESTURE_PATH) {
-                if (!GestureDetect.SU.isFileExists(it.detectFile)) continue
+                if (!su.isFileExists(it.detectFile)) continue
                 HCT_GESTURE_IO = it
                 gesture.addSupport("GESTURE")
                 gesture.addSupport(allowGestures)
@@ -112,7 +114,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 
         if (HCT_GESTURE_IO == null) return null
         //  get gesture name
-        val gs = GestureDetect.SU.getFileLine(HCT_GESTURE_IO!!.getGesture)
+        val gs = su.getFileLine(HCT_GESTURE_IO!!.getGesture)
         return filter(gs, keys)
     }
 }

@@ -1,5 +1,6 @@
 package gesture
 
+import SuperSU.ShellSU
 import android.app.KeyguardManager
 import android.app.Notification
 import android.app.Service
@@ -29,6 +30,7 @@ class GestureService : Service(), SensorEventListener {
 
     private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
+    private val su = ShellSU()
 
     /************************************/
     /*
@@ -71,7 +73,7 @@ class GestureService : Service(), SensorEventListener {
             val actions = gestureActions!!
             val gesture = gestureDetector!!
 
-            GestureDetect.SU.checkRootAccess()
+            su.checkRootAccess()
             gesture.enable(true)
 
             actions.onStart()

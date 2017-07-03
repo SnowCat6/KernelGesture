@@ -1,5 +1,6 @@
 package gesture.drivers.sensor
 
+import SuperSU.ShellSU
 import android.util.Log
 import gesture.GestureDetect
 import gesture.drivers.input.*
@@ -19,6 +20,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
     }
 
     var bRunning = false
+    val su = ShellSU()
 
     /**
      * Input devices
@@ -40,14 +42,14 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
         if (!bRunning) return
         bRunning = false
 
-        GestureDetect.SU.exec("kill -s SIGINT %%")
+        su.exec("kill -s SIGINT %%")
         //  Many execute for flush process buffer
-        for(ix in 0..15) GestureDetect.SU.exec("echo CLOSE_EVENTS>&2")
+        for(ix in 0..15) su.exec("echo CLOSE_EVENTS>&2")
     }
 
     override fun onDetect(): Boolean
     {
-        if (!GestureDetect.SU.hasRootProcess())
+        if (!su.hasRootProcess())
             return false
 
         getInputEvents().forEach { (input, name) ->
@@ -63,7 +65,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
     override fun onStart()
     {
-        if (bRunning || !GestureDetect.SU.checkRootAccess()) return
+        if (bRunning || !su.checkRootAccess()) return
         bRunning = true
 
         thread{
@@ -82,17 +84,17 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
                 //  Run input event detector
                 ++ix
-                GestureDetect.SU.exec("while v$ix=$(getevent -c 2 -tl $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+                su.exec("while v$ix=$(getevent -c 2 -tl $inputName)  ; do for i in 1 2 3 4 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
                 ++ix
-                GestureDetect.SU.exec("while v$ix=$(getevent -c 4 -tl $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+                su.exec("while v$ix=$(getevent -c 4 -tl $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
             }
 
             var lastEventTime:Double = 0.0
-            GestureDetect.SU.exec("echo query$queryIx>&2")
+            su.exec("echo query$queryIx>&2")
             while(bRunning)
             {
                 //  Read line from input
-                val rawLine = GestureDetect.SU.readErrorLine() ?: break
+                val rawLine = su.readErrorLine() ?: break
 
                 //  Stop if gesture need stop run
                 if (!bRunning) break

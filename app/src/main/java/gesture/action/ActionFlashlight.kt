@@ -1,10 +1,10 @@
 package gesture.action
 
+import SuperSU.ShellSU
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
 import gesture.GestureAction
-import gesture.GestureDetect
 import ru.vpro.kernelgesture.R
 
 class ActionFlashlight(action: GestureAction) : ActionItem(action)
@@ -45,6 +45,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
     var camera:Camera? = null
     var params: Camera.Parameters? = null
+    val su = ShellSU()
 
     var enable:Boolean
         get() = bEnable
@@ -57,10 +58,10 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     fun flashLightDetect()
     {
         if (bIsDetected) return
-        if (GestureDetect.SU.hasRootProcess())
+        if (su.hasRootProcess())
         {
             for (it in devices) {
-                if (!GestureDetect.SU.isFileExists(it)) continue
+                if (!su.isFileExists(it)) continue
                 flashlightDirect = it
                 bHasFlash = true
                 bIsDetected = true
@@ -83,7 +84,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
 
     fun flashlightDirect(){
-        GestureDetect.SU.exec("echo ${if (bEnable) 255 else 0} > $flashlightDirect" )
+        su.exec("echo ${if (bEnable) 255 else 0} > $flashlightDirect" )
     }
     fun flashlightCamera()
     {
