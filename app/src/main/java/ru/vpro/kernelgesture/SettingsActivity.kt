@@ -46,10 +46,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
     private var mInterstitialAd: InterstitialAd? = null
 
     var mReceiver:BroadcastReceiver? = null
-    private fun broadcastReceiver(activity: SettingsActivity): BroadcastReceiver {
+    private fun broadcastReceiver(): BroadcastReceiver {
         return object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent?) {
-                activity.updateControls(intent)
+                updateControls(intent)
             }
         }
     }
@@ -70,7 +70,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
         }
 
-        mReceiver = broadcastReceiver(this)
+        mReceiver = broadcastReceiver()
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mReceiver, IntentFilter(GestureDetect.SU.EVENT_UPDATE))
     }
@@ -204,186 +204,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     open class GesturePreferenceFragment : PreferenceFragment()
     {
-        var xmlResourceId = R.xml.pref_gesture
-        var iconResource = 0
-
-        override fun onCreate(savedInstanceState: Bundle?)
-        {
-            super.onCreate(savedInstanceState)
-            addPreferencesFromResource(xmlResourceId)
-
-            mReceiver = broadcastReceiver(this)
-            LocalBroadcastManager.getInstance(activity)
-                    .registerReceiver(mReceiver, IntentFilter(GestureDetect.SU.EVENT_UPDATE))
-
-            findPreference("GESTURE_ENABLE")?.apply{
-                onPreferenceChangeListener = sBindAllEnableListener
-                onPreferenceChangeListener.onPreferenceChange(this, GestureDetect.getAllEnable(activity))
-            }
-
-            findPreference("GESTURE_NOTIFY")?.apply{
-                onPreferenceChangeListener = sBindNotifyListener
-                onPreferenceChangeListener.onPreferenceChange(this, null)
-            }
-
-            findPreference("pref_ROOT")?.apply{
-                setOnPreferenceClickListener {
-                    thread {
-                        GestureDetect.SU.enable(true)
-                        if (GestureDetect.SU.checkRootAccess()){
-                            Handler(Looper.getMainLooper()).post {
-                                updateControls(context, false)
-                            }
-                        }
-                    }
-                    true
-                }
-            }
-
-            arrayOf(
-                    Pair("TOUCH_PREFERENCE", TouchscreenPreferenceFragment::class.java),
-                    Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
-            ).forEach { (preferenceName, preferenceClass) ->
-                findPreference(preferenceName)?.apply {
-
-                    val item = preferenceClass.newInstance()
-                    if (item.iconResource > 0)
-                        icon = context.getDrawable(item.iconResource)
-
-                    setOnPreferenceClickListener {
-                        fragmentManager
-                                .beginTransaction()
-                                .replace(android.R.id.content, item)
-                                .addToBackStack(null)
-                                .commit()
-                        true
-                    }
-                }
-            }
-
-            updateControls(activity, false)
-        }
-
-        override fun onDestroy() {
-            LocalBroadcastManager.getInstance(activity)
-                    .unregisterReceiver(mReceiver)
-            mReceiver = null
-            super.onDestroy()
-        }
-
-        var mReceiver:BroadcastReceiver? = null
-        private fun broadcastReceiver(fragment: GesturePreferenceFragment): BroadcastReceiver {
-            return object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent?) {
-                    fragment.updateControls(intent)
-                }
-            }
-        }
-
-        fun updateControls(intent:Intent?)
-        {
-            val preferenceScreen = preferenceScreen
-
-            val bRootExists = GestureDetect.SU.hasRootProcess()
-            if (bRootExists) preferenceScreen.findPreference("pref_ROOT")?.apply {
-                preferenceScreen.removePreference(this)
-            }
-
-            GestureItems(activity).items.forEach {
-
-                it.action
-                findPreference(it.key)?.apply {
-                    icon = it.icon
-                    onPreferenceChangeListener = sBindGestureChangeListener
-                    onPreferenceClickListener = sBindGestureActionListener
-                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
-                }
-            }
-        }
-    }
-
-    class TouchscreenPreferenceFragment : GesturePreferenceFragment()
-    { init {  xmlResourceId = R.xml.pref_gesture_touch; iconResource = R.drawable.icon_gesture_touch } }
-
-    class KeyPreferenceFragment : GesturePreferenceFragment()
-    { init { xmlResourceId = R.xml.pref_gesture_keys; iconResource = R.drawable.icon_gesture_key }}
-
-    class GestureItems(val context:Context)
-    {
-        val ui = UI(context)
-
-        fun getItemInstance(key:String):GestureItem?
-                = items.find { it.key == key }
-
-        inner class GestureItem(val key:String, var defaultAction:String)
-        {
-            var applicationInfo:ApplicationInfo? = null
-
-            var action:String
-                get() {
-                    val a = GestureDetect.getAction(context, key)
-                    if (ui.gestureAction.getAction(a) != null) return a!!
-                    if (ui.gestureAction.getAction(defaultAction) == null) return ""
-                    action = defaultAction
-                    enable = true
-                    return defaultAction
-                }
-                set(value) {
-                    _actionName = ""
-                    _icon = null
-                    applicationInfo = null
-                    GestureDetect.setAction(context, key, value)
-                }
-            var enable:Boolean
-                get() = GestureDetect.getEnable(context, key)
-                set(value){
-                    _actionName = ""
-                    _icon = null
-                    GestureDetect.setEnable(context, key, value)
-                }
-
-            var _actionName:String = ""
-            val actionName:String
-                get() {
-                    if (_actionName.isNotEmpty()) return _actionName
-
-                    if (getAppInfo() != null) {
-                        _actionName = ui.name(getAppInfo())
-                    }else{
-                        if (action == "" && key == "GESTURE_DEFAULT_ACTION") {
-                            _actionName = context.getString(R.string.ui_no_action)
-                        }else {
-                            if (action == "" && !enable) _actionName = context.getString(R.string.ui_no_action)
-                            else _actionName = ui.name(action)
-                        }
-                    }
-                    return _actionName
-                }
-
-            var _icon:Drawable? = null
-            val icon:Drawable?
-                get(){
-                    if (_icon == null) {
-                        if (getAppInfo() != null) _icon = ui.icon(getAppInfo())
-                        else _icon = ui.icon(action)
-                    }
-                    return _icon
-                }
-
-            private fun getAppInfo():ApplicationInfo?
-            {
-                if (applicationInfo != null)
-                    return applicationInfo
-
-                try {
-                    applicationInfo = context.packageManager.getApplicationInfo(action, 0)
-                } catch (e: Exception) {}
-
-                return applicationInfo
-            }
-        }
-
-        val items = arrayOf(
+        val preferenceItems = arrayOf(
                 GestureItem("KEY_U",       "screen.on"),
                 GestureItem("KEY_UP",      "application.dialer"),
                 GestureItem("KEY_DOWN",    "application.contacts"),
@@ -404,182 +225,118 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 GestureItem("KEY_PROXIMITY",            "speech.time"),
                 GestureItem("GESTURE_DEFAULT_ACTION",   "")
         )
-    }
 
-    class AppListItem(val action:String, val name:String, val icon:Drawable)
-    {
-        constructor(ui:UI, action:Any) :
-                this(ui.action( action),
-                        ui.name(action),
-                        ui.icon(action))
+        var xmlResourceId = R.xml.pref_gesture
+        var iconResource = 0
 
-        constructor(ui:UI, applicationInfo: ApplicationInfo) :
-                this(ui.action(applicationInfo.packageName),
-                        ui.name(applicationInfo),
-                        ui.icon(applicationInfo))
-    }
+        var _ui:UI? = null
+        val ui:UI get() {
+            if (_ui == null) _ui = UI(activity)
+            return _ui!!
+        }
 
-    class BoxAdapter internal constructor(
-            internal val preference: Preference) : BaseAdapter()
-    {
-        private var objects = emptyList<Any>()
-        private val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        private val context = preference.context
-        private val ui = UI(context)
-        private val currentAction = GestureDetect.getAction(context, preference.key)
+        override fun onCreate(savedInstanceState: Bundle?)
+        {
+            super.onCreate(savedInstanceState)
+            addPreferencesFromResource(xmlResourceId)
 
-        init{
-            objects += AppListItem(ui, "none")
+            mReceiver = broadcastReceiver()
+            LocalBroadcastManager.getInstance(activity)
+                    .registerReceiver(mReceiver, IntentFilter(GestureDetect.SU.EVENT_UPDATE))
 
-            GestureAction(context).getActions()
-                    .forEach { objects += AppListItem(ui, it) }
+            findPreference("GESTURE_ENABLE")?.apply{
+                onPreferenceChangeListener = enableAllListener()
+                onPreferenceChangeListener.onPreferenceChange(this, GestureDetect.getAllEnable(activity))
+            }
 
-            thread{
-                val pm =  preference.context.packageManager
+            findPreference("GESTURE_NOTIFY")?.apply{
+                onPreferenceChangeListener = notifyListener()
+                onPreferenceChangeListener.onPreferenceChange(this, null)
+            }
 
-                val mainIntent = Intent(Intent.ACTION_MAIN, null)
-                mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-                val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
-
-                var items = listOf<Any>("-")
-                pkgAppsList.forEach {
-                    items += AppListItem(ui, it.activityInfo.applicationInfo)
-                }
-
-                Handler(context.mainLooper).post {
-                    objects += items
-                    notifyDataSetChanged()
+            findPreference("pref_ROOT")?.apply{
+                setOnPreferenceClickListener {
+                    thread {
+                        GestureDetect.SU.enable(true)
+                        if (GestureDetect.SU.checkRootAccess()){
+                            GestureDetect.setAllEnable(context, true)
+                            Handler(Looper.getMainLooper()).post {
+                                updateControls(context, false)
+                            }
+                        }
+                    }
+                    true
                 }
             }
-        }
 
-        //  Количество объектов
-        override fun getCount(): Int = objects.size
-        //  Объект
-        override fun getItem(position: Int): Any = objects[position]
-        // id по позиции
-        override fun getItemId(position: Int): Long = position.toLong()
-        // пункт списка
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
-        {
-            val thisItem = getItem(position)
-            if (thisItem is String && thisItem == "-") {
-                if (convertView != null && convertView.findViewById(R.id.splitter) != null)
-                    return convertView
-                return lInflater.inflate(R.layout.adapter_splitter, parent, false)
-            }
-            // используем созданные, но не используемые view
-            val view: View
-            if (convertView == null || convertView.findViewById(R.id.splitter) != null) {
-                view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
-            }else view = convertView
+            arrayOf(
+                    Pair("TOUCH_PREFERENCE", TouchscreenPreferenceFragment::class.java),
+                    Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
+            ).forEach { (preferenceName, preferenceClass) ->
 
-            (view.findViewById(R.id.title) as TextView).text = ui.name(thisItem)
+                findPreference(preferenceName)?.apply {
 
-            val icon = ui.icon(thisItem)
-            (view.findViewById(R.id.icon) as ImageView).setImageDrawable(icon)
+                    val item = preferenceClass.newInstance()
+                    if (item.iconResource > 0)
+                        icon = context.getDrawable(item.iconResource)
 
-            if (currentAction != null && currentAction.isNotEmpty() &&
-                    currentAction == ui.action(thisItem))
-            {
-                view.background = context.getDrawable(android.R.color.holo_orange_light)
-            }else{
-                view.background = null
-            }
-
-            return view
-        }
-    }
-
-    class UI(val context:Context)
-    {
-        val gestureAction = GestureAction(context)
-
-        fun action(item:Any?):String
-        {
-            when(item)
-            {
-                "none" -> return ""
-                is AppListItem -> return item.action
-                is ApplicationInfo -> return item.packageName
-                is ActionItem -> return item.action()
-                is String -> return item
-            }
-            return ""
-        }
-
-        fun name(item:Any?):String
-        {
-            when(item){
-                is AppListItem -> return item.name
-                is ApplicationInfo -> return context.packageManager
-                        .getApplicationLabel(item).toString()
-
-                "" ->  return context.getString(R.string.ui_default_action)
-                "none"  -> return context.getString(R.string.ui_no_action)
-                is ActionItem -> return item.name()
-                is String -> return gestureAction.getAction(item)?.name() ?: ""
-            }
-            return ""
-        }
-        fun icon(item:Any?): Drawable
-        {
-            when(item){
-                is AppListItem -> return item.icon
-                is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
-                is ActionItem -> return item.icon()
-                is String -> return gestureAction.getAction(item)?.icon() ?: context.getDrawable(android.R.color.transparent)
-            }
-            return context.getDrawable(android.R.color.transparent)
-        }
-
-    }
-
-    companion object
-    {
-        /**
-         * A preference value change listener that updates the preference's summary
-         * to reflect its new value.
-         */
-        private val sBindGestureChangeListener = Preference.OnPreferenceChangeListener { preference, value ->
-
-            value as Boolean
-
-            GestureItems(preference.context)
-                .getItemInstance(preference.key)?.apply {
-                    enable = value
-                    preference.summary = actionName
-                }
-
-            true
-        }
-
-        /** A preference value change all gestures work */
-        private val sBindAllEnableListener = Preference.OnPreferenceChangeListener { preference, value ->
-
-            value as Boolean
-            preference as TwoStatePreference
-            val context = preference.context
-
-            if (value) GestureDetect.SU.enable(true)
-            GestureDetect.setAllEnable(context, value)
-
-            var bHasRoot = GestureDetect.SU.hasRootProcess()
-            if (value == true && !bHasRoot)
-            {
-                thread{
-                    bHasRoot = GestureDetect.SU.checkRootAccess()
-                    GestureDetect.setAllEnable(context, value)
-                    Handler(context.mainLooper).post {
-                        updateControls(context, true)
+                    setOnPreferenceClickListener {
+                        fragmentManager
+                                .beginTransaction()
+                                .replace(android.R.id.content, item)
+                                .addToBackStack(null)
+                                .commit()
+                        true
                     }
                 }
-            }else {
-                updateControls(context, false)
             }
 
-            if (value) context.startService(Intent(context, GestureService::class.java))
-            else context.stopService(Intent(context, GestureService::class.java))
+            updateControls()
+        }
+
+        override fun onDestroy() {
+            LocalBroadcastManager.getInstance(activity)
+                    .unregisterReceiver(mReceiver)
+            mReceiver = null
+            super.onDestroy()
+        }
+
+        var mReceiver:BroadcastReceiver? = null
+        private fun broadcastReceiver(): BroadcastReceiver {
+            return object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent?) {
+                    updateControls(intent)
+                }
+            }
+        }
+
+        private fun enableAllListener(): Preference.OnPreferenceChangeListener {
+            return Preference.OnPreferenceChangeListener { preference, value ->
+
+                value as Boolean
+                preference as TwoStatePreference
+                val context = preference.context
+
+                if (value) GestureDetect.SU.enable(true)
+                GestureDetect.setAllEnable(context, value)
+
+                if (value == true && !GestureDetect.SU.hasRootProcess())
+                {
+                    thread{
+                        if (GestureDetect.SU.checkRootAccess())
+                        {
+                            GestureDetect.setAllEnable(context, value)
+                            Handler(context.mainLooper).post {
+                                updateControls(context, true)
+                            }
+                        }
+                    }
+                }else {
+                    updateControls(context, false)
+                }
+
+                if (value) context.startService(Intent(context, GestureService::class.java))
+                else context.stopService(Intent(context, GestureService::class.java))
 /*
             if (value){
                 val fileName = "/dev/input/event5"
@@ -603,74 +360,77 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
             }
 */
-            true
-        }
-
-        /** Notify sound change */
-        private val sBindNotifyListener = Preference.OnPreferenceChangeListener { preference, value ->
-
-            var notify:String? = value as String?
-
-            try {
-                if (notify == null) {
-                    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(preference.context)
-                    notify = sharedPreferences.getString("GESTURE_NOTIFY", null)
-                }
-            }catch (e:Exception){}
-
-            if (notify == null || notify.isEmpty()) {
-                preference.summary = preference.context.getString(R.string.ui_no_notify)
-            }else{
-                val ringtone = RingtoneManager.getRingtone(preference.context, Uri.parse(notify))
-                when (ringtone) {
-                    null -> preference.summary = preference.context.getString(R.string.ui_sound_default)
-                    else -> preference.summary = ringtone.getTitle(preference.context)
-                }
+                true
             }
-
-            true
         }
 
-        /**
-         * Helper method to determine if the device has an extra-large screen. For
-         * example, 10" tablets are extra-large.
-         */
-        private fun isXLargeTablet(context: Context): Boolean {
-            return context.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
-        }
+        private fun changeListener(): Preference.OnPreferenceChangeListener {
+            return Preference.OnPreferenceChangeListener { preference, value ->
 
-        /** Select action for property */
-        private val sBindGestureActionListener = Preference.OnPreferenceClickListener { preference ->
+                value as Boolean
 
-            val adapter = BoxAdapter(preference)
+                getItemInstance(preference.key)?.apply {
+                    enable = value
+                    preference.summary = actionName
+                }
 
-            with(AlertDialog.Builder(preference.context))
-            {
-                setTitle(preference.context.getString(R.string.iu_choose_action))
-                setAdapter(adapter, onClickListener)
-//                setSingleChoiceItems(adapter, 0, onClickListener)
-                create().show()
+                true
             }
-
-            true
         }
+        private fun actionListener(): Preference.OnPreferenceClickListener {
+            return Preference.OnPreferenceClickListener { preference ->
 
+                val adapter = BoxAdapter(preference)
+
+                with(AlertDialog.Builder(activity))
+                {
+                    setTitle(getString(R.string.iu_choose_action))
+                    setAdapter(adapter, onClickListener)
+                    create().show()
+                }
+
+                true
+            }
+        }
+        private fun notifyListener() : Preference.OnPreferenceChangeListener {
+            return Preference.OnPreferenceChangeListener { preference, value ->
+
+                var notify:String? = value as String?
+
+                try {
+                    if (notify == null) {
+                        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
+                        notify = sharedPreferences.getString("GESTURE_NOTIFY", null)
+                    }
+                }catch (e:Exception){}
+
+                if (notify == null || notify.isEmpty()) {
+                    preference.summary = getString(R.string.ui_no_notify)
+                }else{
+                    val ringtone = RingtoneManager.getRingtone(activity, Uri.parse(notify))
+                    when (ringtone) {
+                        null -> preference.summary = getString(R.string.ui_sound_default)
+                        else -> preference.summary = ringtone.getTitle(activity)
+                    }
+                }
+
+                true
+            }
+        }
         val onClickListener = DialogInterface.OnClickListener { dialogInterface: DialogInterface, i: Int ->
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
             val item = adapter.getItem(i) as? AppListItem ?: return@OnClickListener
 
             val preference = adapter.preference as TwoStatePreference
-            val context = preference.context
 
-            val gestureItems = GestureItems(context)
-            val itemAction =  gestureItems.ui.action(item)
+            val itemAction =  ui.action(item)
 
             if (BuildConfig.DEBUG) {
                 Log.d("Set gesture action", itemAction)
             }
 
-            gestureItems.getItemInstance(preference.key)?.apply {
+            getItemInstance(preference.key)?.apply {
 
                 action = itemAction
                 enable = itemAction.isNotEmpty()
@@ -679,6 +439,244 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 preference.icon = icon
                 preference.onPreferenceChangeListener.onPreferenceChange(preference, enable)
             }
+        }
+
+        fun getItemInstance(key:String):GestureItem?
+                = preferenceItems.find { it.key == key }
+
+        inner class GestureItem(val key:String, var defaultAction:String)
+        {
+            var applicationInfo:ApplicationInfo? = null
+
+            var action:String
+                get() {
+                    val a = GestureDetect.getAction(activity, key)
+                    if (ui.gestureAction.getAction(a) != null) return a!!
+                    if (ui.gestureAction.getAction(defaultAction) == null) return ""
+                    action = defaultAction
+                    enable = true
+                    return defaultAction
+                }
+                set(value) {
+                    _actionName = ""
+                    _icon = null
+                    applicationInfo = null
+                    GestureDetect.setAction(activity, key, value)
+                }
+            var enable:Boolean
+                get() = GestureDetect.getEnable(activity, key)
+                set(value){
+                    _actionName = ""
+                    _icon = null
+                    GestureDetect.setEnable(activity, key, value)
+                }
+
+            var _actionName:String = ""
+            val actionName:String
+                get() {
+                    if (_actionName.isNotEmpty()) return _actionName
+
+                    if (getAppInfo() != null) {
+                        _actionName = ui.name(getAppInfo())
+                    }else{
+                        if (action == "" && key == "GESTURE_DEFAULT_ACTION") {
+                            _actionName = getString(R.string.ui_no_action)
+                        }else {
+                            if (action == "" && !enable) _actionName = getString(R.string.ui_no_action)
+                            else _actionName = ui.name(action)
+                        }
+                    }
+                    return _actionName
+                }
+
+            var _icon:Drawable? = null
+            val icon:Drawable?
+                get(){
+                    if (_icon == null) {
+                        if (getAppInfo() != null) _icon = ui.icon(getAppInfo())
+                        else _icon = ui.icon(action)
+                    }
+                    return _icon
+                }
+
+            private fun getAppInfo():ApplicationInfo?
+            {
+                if (applicationInfo != null)
+                    return applicationInfo
+
+                try {
+                    applicationInfo = activity.packageManager.getApplicationInfo(action, 0)
+                } catch (e: Exception) {}
+
+                return applicationInfo
+            }
+        }
+
+        fun updateControls(intent:Intent? = null)
+        {
+            val preferenceScreen = preferenceScreen
+
+            val bRootExists = GestureDetect.SU.hasRootProcess()
+            if (bRootExists) preferenceScreen.findPreference("pref_ROOT")?.apply {
+                preferenceScreen.removePreference(this)
+            }
+
+            preferenceItems.forEach {
+
+                it.action
+                findPreference(it.key)?.apply {
+                    icon = it.icon
+                    onPreferenceChangeListener = changeListener()
+                    onPreferenceClickListener = actionListener()
+                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
+                }
+            }
+        }
+
+        inner class AppListItem(val action:String, val name:String, val icon:Drawable)
+        {
+            constructor(ui:UI, action:Any) :
+                    this(ui.action( action),
+                            ui.name(action),
+                            ui.icon(action))
+
+            constructor(ui:UI, applicationInfo: ApplicationInfo) :
+                    this(ui.action(applicationInfo.packageName),
+                            ui.name(applicationInfo),
+                            ui.icon(applicationInfo))
+        }
+
+        inner class BoxAdapter internal constructor(
+                internal val preference: Preference) : BaseAdapter()
+        {
+            private var objects = emptyList<Any>()
+            private val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            private val context = preference.context
+            private val currentAction = GestureDetect.getAction(context, preference.key)
+
+            init{
+                objects += AppListItem(ui, "none")
+
+                ui.gestureAction.getActions()
+                        .forEach { objects += AppListItem(ui, it) }
+
+                thread{
+                    val pm =  preference.context.packageManager
+
+                    val mainIntent = Intent(Intent.ACTION_MAIN, null)
+                    mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+                    val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
+
+                    var items = listOf<Any>("-")
+                    pkgAppsList.forEach {
+                        items += AppListItem(ui, it.activityInfo.applicationInfo)
+                    }
+
+                    Handler(context.mainLooper).post {
+                        objects += items
+                        notifyDataSetChanged()
+                    }
+                }
+            }
+
+            //  Количество объектов
+            override fun getCount(): Int = objects.size
+            //  Объект
+            override fun getItem(position: Int): Any = objects[position]
+            // id по позиции
+            override fun getItemId(position: Int): Long = position.toLong()
+            // пункт списка
+            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
+            {
+                val thisItem = getItem(position)
+                if (thisItem is String && thisItem == "-") {
+                    if (convertView != null && convertView.findViewById(R.id.splitter) != null)
+                        return convertView
+                    return lInflater.inflate(R.layout.adapter_splitter, parent, false)
+                }
+                // используем созданные, но не используемые view
+                val view: View
+                if (convertView == null || convertView.findViewById(R.id.splitter) != null) {
+                    view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
+                }else view = convertView
+
+                (view.findViewById(R.id.title) as TextView).text = ui.name(thisItem)
+
+                val icon = ui.icon(thisItem)
+                (view.findViewById(R.id.icon) as ImageView).setImageDrawable(icon)
+
+                if (currentAction != null && currentAction.isNotEmpty() &&
+                        currentAction == ui.action(thisItem))
+                {
+                    view.background = context.getDrawable(android.R.color.holo_orange_light)
+                }else{
+                    view.background = null
+                }
+
+                return view
+            }
+        }
+
+        class UI(val context:Context)
+        {
+            val gestureAction = GestureAction(context)
+
+            fun action(item:Any?):String
+            {
+                when(item)
+                {
+                    "none" -> return ""
+                    is AppListItem -> return item.action
+                    is ApplicationInfo -> return item.packageName
+                    is ActionItem -> return item.action()
+                    is String -> return item
+                }
+                return ""
+            }
+
+            fun name(item:Any?):String
+            {
+                when(item){
+                    is AppListItem -> return item.name
+                    is ApplicationInfo -> return context.packageManager
+                            .getApplicationLabel(item).toString()
+
+                    "" ->  return context.getString(R.string.ui_default_action)
+                    "none"  -> return context.getString(R.string.ui_no_action)
+                    is ActionItem -> return item.name()
+                    is String -> return gestureAction.getAction(item)?.name() ?: ""
+                }
+                return ""
+            }
+            fun icon(item:Any?): Drawable
+            {
+                when(item){
+                    is AppListItem -> return item.icon
+                    is ApplicationInfo -> return context.packageManager.getApplicationIcon(item)
+                    is ActionItem -> return item.icon()
+                    is String -> return gestureAction.getAction(item)?.icon() ?: context.getDrawable(android.R.color.transparent)
+                }
+                return context.getDrawable(android.R.color.transparent)
+            }
+
+        }
+    }
+
+    class TouchscreenPreferenceFragment : GesturePreferenceFragment()
+    { init {  xmlResourceId = R.xml.pref_gesture_touch; iconResource = R.drawable.icon_gesture_touch } }
+
+    class KeyPreferenceFragment : GesturePreferenceFragment()
+    { init { xmlResourceId = R.xml.pref_gesture_keys; iconResource = R.drawable.icon_gesture_key }}
+
+
+    companion object
+    {
+        /**
+         * Helper method to determine if the device has an extra-large screen. For
+         * example, 10" tablets are extra-large.
+         */
+        private fun isXLargeTablet(context: Context): Boolean {
+            return context.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
         }
 
         fun updateControls(context:Context, bShowAlert:Boolean)
