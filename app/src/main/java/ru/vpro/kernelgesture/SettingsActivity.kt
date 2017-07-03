@@ -521,6 +521,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 preferenceScreen.removePreference(this)
             }
 
+            gestureAction.onDetect()
+
             preferenceItems.forEach {
 
                 it.action
@@ -561,8 +563,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
 
                     var items = listOf<Any>("-")
+                    var filterMap = listOf<String>()
                     pkgAppsList.forEach {
-                        items += ActionListItem(it.activityInfo.applicationInfo)
+                        if (!filterMap.contains(it.activityInfo.applicationInfo.packageName)) {
+                            items += ActionListItem(it.activityInfo.applicationInfo)
+                            filterMap += it.activityInfo.applicationInfo.packageName
+                        }
                     }
 
                     Handler(context.mainLooper).post {

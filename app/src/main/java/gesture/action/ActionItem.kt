@@ -10,6 +10,11 @@ import gesture.GestureAction
 abstract class ActionItem(val action: GestureAction)
 {
     val context = action.context
+
+    /**
+     * Определить доступность действий
+     */
+    open fun onDetect():Boolean = true
     /**
      * Начало процесса ожидание жеста
      */

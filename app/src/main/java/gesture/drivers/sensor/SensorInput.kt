@@ -108,9 +108,9 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 if (rawLine == "CLOSE_EVENTS")
                     break
 
-                if (gesture.lock) continue
+                if (gesture.disabled) continue
                 //  Check device is near screen
-                if (gesture.isNear) continue
+                if (gesture.isNearProximity) continue
 
                 val line:String
                 val splitLine = rawLine.split(']')

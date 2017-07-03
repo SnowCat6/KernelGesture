@@ -32,14 +32,14 @@ class GestureDetect (val context:Context)
     //  SuperSU
     val su = ShellSU()
     /**
-     * Internal variables
+     * Disable event detection
      */
-    private var _bLock = false
-    var lock: Boolean
-        get() = _bLock
+    private var _disabled = false
+    var disabled: Boolean
+        get() = _disabled
         set(value) {
-            _bLock = value
-            if (_bLock) eventMutex.unlock()
+            _disabled = value
+            if (_disabled) eventMutex.unlock()
         }
 
     var delayEvents = emptyArray<Pair<String, String>>()
@@ -54,15 +54,15 @@ class GestureDetect (val context:Context)
      *
      */
     private var timeNearChange = GregorianCalendar.getInstance().timeInMillis
-    private var _bIsNear:Boolean = false
-    var isNear: Boolean
+    private var _bIsNearProximity:Boolean = false
+    var isNearProximity: Boolean
         get() {
             val timeDiff = GregorianCalendar.getInstance().timeInMillis - timeNearChange
-            return _bIsNear || timeDiff < 1*1000
+            return _bIsNearProximity || timeDiff < 1*1000
         }
         set(value) {
-            if (_bIsNear != value) {
-                _bIsNear = value
+            if (_bIsNearProximity != value) {
+                _bIsNearProximity = value
                 timeNearChange = GregorianCalendar.getInstance().timeInMillis
             }
         }
@@ -77,7 +77,7 @@ class GestureDetect (val context:Context)
 
     fun close()
     {
-        lock = true
+        disabled = true
         sensorDevices.forEach{ it.close() }
         eventMutex.unlock()
     }
@@ -109,7 +109,7 @@ class GestureDetect (val context:Context)
         if (!su.hasRootProcess() && su.checkRootAccess())
         {
             detectDevices()
-            if (lock) return null
+            if (disabled) return null
         }
 
         sensorDevices.forEach { it.onStart() }
@@ -133,7 +133,7 @@ class GestureDetect (val context:Context)
                     break
                 }
             }
-        }while (!lock && !getEnable(context, thisEvent))
+        }while (!disabled && !getEnable(context, thisEvent))
 
         sensorDevices.forEach { it.onStop() }
 
@@ -142,7 +142,7 @@ class GestureDetect (val context:Context)
 
     fun sensorEvent(value:String):Boolean
     {
-        if (lock) return false
+        if (disabled) return false
 //        if (!getEnable(context, value)) return false
 
         sensorEventGesture = value

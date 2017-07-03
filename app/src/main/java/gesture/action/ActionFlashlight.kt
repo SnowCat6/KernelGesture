@@ -12,9 +12,35 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     val devices = arrayOf(
             "/sys/class/leds/flashlight/brightness"
     )
+    override fun onDetect():Boolean
+    {
+        bHasFlash = false
+
+        if (su.hasRootProcess())
+        {
+            for (it in devices) {
+                if (!su.isFileExists(it)) continue
+                flashlightDirect = it
+                bHasFlash = true
+                return bHasFlash
+            }
+        }
+
+        if (action.context.applicationContext.packageManager
+                .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
+        {
+            try{
+                val camera = Camera.open()
+                bHasFlash = true
+                camera?.release()
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
+        }
+        return bHasFlash
+    }
 
     override fun action(): String {
-        flashLightDetect()
         return if (bHasFlash) "application.flashlight" else ""
     }
 
@@ -37,12 +63,11 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         closeCamera()
     }
 
-    companion object {
-        var bIsDetected = false
-        var flashlightDirect:String? = null
-        var bEnable = false
-        var bHasFlash = false
-    }
+
+    var flashlightDirect:String? = null
+    var bEnable = false
+    var bHasFlash = false
+
     var camera:Camera? = null
     var params: Camera.Parameters? = null
     val su = ShellSU()
@@ -54,34 +79,6 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             if (flashlightDirect != null) flashlightDirect()
             else flashlightCamera()
         }
-
-    fun flashLightDetect()
-    {
-        if (bIsDetected) return
-        if (su.hasRootProcess())
-        {
-            for (it in devices) {
-                if (!su.isFileExists(it)) continue
-                flashlightDirect = it
-                bHasFlash = true
-                bIsDetected = true
-                return
-            }
-        }
-
-        if (action.context.applicationContext.packageManager
-                .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
-        {
-            try{
-                val camera = Camera.open()
-                bHasFlash = true
-                camera?.release()
-            }catch (e:Exception){
-                e.printStackTrace()
-            }
-        }
-        bIsDetected = true
-    }
 
     fun flashlightDirect(){
         su.exec("echo ${if (bEnable) 255 else 0} > $flashlightDirect" )

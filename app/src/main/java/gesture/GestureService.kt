@@ -77,18 +77,18 @@ class GestureService : Service(), SensorEventListener {
             gesture.enable(true)
 
             actions.onStart()
-            gesture.lock = false
+            gesture.disabled = false
 
             //  If proximity sensor used, register event
             val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
-            gesture.isNear = false
+            gesture.isNearProximity = false
             if (bProximityEnable) {
                 mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
             }
 
             //  Main gesture loop
             //  Wait gesture while live
-            while (gesture.lock != true)
+            while (gesture.disabled != true)
             {
                 val ev = gesture.waitGesture() ?: break
                 try {
@@ -98,7 +98,7 @@ class GestureService : Service(), SensorEventListener {
                 }
             }
 
-            gesture.lock = true
+            gesture.disabled = true
 
             //  Unregister even if this need
             if (bProximityEnable) {
@@ -127,7 +127,7 @@ class GestureService : Service(), SensorEventListener {
     {
         // If registered use proximity - change value detector
         if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
-        gestureDetector?.isNear = event.values[0].toInt() == 0
+        gestureDetector?.isNearProximity = event.values[0].toInt() == 0
     }
     /************************************/
     /*
@@ -185,7 +185,7 @@ class GestureService : Service(), SensorEventListener {
                     if (BuildConfig.DEBUG) {
                         Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
                     }
-                    gestureDetector?.lock = true
+                    gestureDetector?.disabled = true
                 }
             }
         }

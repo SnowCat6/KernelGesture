@@ -32,6 +32,13 @@ class GestureAction(val context:Context)
             ActionMail(this),
             ActionCamera(this)
     )
+    init {
+        onDetect()
+    }
+
+    fun onDetect(){
+        allActions.forEach { it.onDetect() }
+    }
 
     fun onStart() {
         //  Preload notify
