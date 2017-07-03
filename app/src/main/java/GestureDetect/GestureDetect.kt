@@ -26,9 +26,9 @@ class GestureDetect (val context:Context)
      * Devices control
      */
     //  Supported devices and keys
-    private var supported = emptyArray<String>()
+    private var supported = emptyList<String>()
     //  Detected sensor devices
-    private var sensorDevices = emptyArray<SensorHandler>()
+    private var sensorDevices = emptyList<SensorHandler>()
     //  SuperSU
     val su = ShellSU()
     /**
@@ -45,7 +45,7 @@ class GestureDetect (val context:Context)
     /**
      * Events with wait 500ms for wtice
      */
-    private var delayEvents = emptyArray<Pair<String, String>>()
+    private var delayEvents = emptyList<Pair<String, String>>()
     fun registerDelayEvents(event:String, delayEvent:String)
     {
         delayEvents
@@ -83,7 +83,7 @@ class GestureDetect (val context:Context)
         disabled = true
         eventMutex.unlock()
         sensorDevices.forEach{ it.close() }
-        delayEvents = emptyArray()
+        delayEvents = emptyList()
     }
 
     fun enable(bEnable: Boolean)
@@ -95,14 +95,12 @@ class GestureDetect (val context:Context)
     private fun detectDevices()
     {
         eventMutex.unlock()
-        delayEvents = emptyArray()
         val prevSensor = sensorDevices
 
-        supported = emptyArray()
-        sensorDevices = emptyArray()
-        sensorHandlers.forEach {
-            if (it.onDetect()) sensorDevices += it
-        }
+        delayEvents = emptyList()
+        supported = emptyList()
+
+        sensorDevices = sensorHandlers.filter { it.onDetect() }
         prevSensor
                 .filter { !sensorDevices.contains(it) }
                 .forEach { it.close() }
@@ -170,7 +168,7 @@ class GestureDetect (val context:Context)
     fun addSupport(value:Array<String>)
             = value.forEach { addSupport(it) }
 
-    fun getSupport():Array<String>
+    fun getSupport():List<String>
     {
 /*
         if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
