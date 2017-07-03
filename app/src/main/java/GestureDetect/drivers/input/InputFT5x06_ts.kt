@@ -13,10 +13,8 @@ open class InputFT5x06_ts(gesture: GestureDetect) : InputHandler(gesture)
         return true
     }
 
-    override fun onEvent(ev: List<String>): String? {
-        if (ev[0] != "EV_KEY") return null
-        return filter(ev[1])
-    }
+    override fun onEvent(ev: List<String>): String?
+            = filter(ev[1])
 
     override fun setEnable(enable: Boolean){
         su.exec("echo ${if (enable) 1 else 0} > sys/class/gesture/gesture_ft5x06/enable")

@@ -15,8 +15,6 @@ open class InputQCOMM_KPD(gesture: GestureDetect) : InputHandler(gesture)
         return true
     }
 
-    override fun onEvent(ev: List<String>): String? {
-        if (ev[0] != "EV_KEY") return null
-        return filter(ev[1])
-    }
+    override fun onEvent(ev: List<String>): String?
+            = filter(ev[1])
 }

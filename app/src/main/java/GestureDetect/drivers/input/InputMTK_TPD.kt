@@ -11,8 +11,5 @@ open class InputMTK_TPD(gesture: GestureDetect) : InputHandler(gesture)
         return name.toLowerCase() == "mtk-tpd"
     }
     override fun onEvent(ev:List<String>):String?
-    {
-        if (ev[0] != "EV_KEY") return null
-        return filter(ev[1])
-    }
+            = filter(ev[1])
 }

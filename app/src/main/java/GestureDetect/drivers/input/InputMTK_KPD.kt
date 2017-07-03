@@ -66,8 +66,6 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 
     override fun onEvent(ev:List<String>):String?
     {
-        if (ev[0] != "EV_KEY") return null
-
         when(ev[1]){
             "KEY_PROG3" ->  return onEventHCT()
             "KEY_VOLUMEUP",
@@ -112,9 +110,9 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                 Pair("s",           "KEY_S")
         )
 
-        if (HCT_GESTURE_IO == null) return null
-        //  get gesture name
-        val gs = su.getFileLine(HCT_GESTURE_IO!!.getGesture)
-        return filter(gs, keys)
+        HCT_GESTURE_IO?.apply {
+            return filter(su.getFileLine(this.getGesture), keys)
+        }
+        return null
     }
 }
