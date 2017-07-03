@@ -30,14 +30,14 @@
         </activity>
 
         <service
-            android:name="gesture.GestureService"
+            android:name="GestureDetect.GestureService"
             android:enabled="true"
             android:exported="false">
         </service>
 
         <!-- Declaring broadcast receiver for BOOT_COMPLETED event. -->
         <receiver
-            android:name="gesture.OnBootGestureReceiver"
+            android:name="GestureDetect.OnBootGestureReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

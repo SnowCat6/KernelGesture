@@ -23,11 +23,11 @@ import android.widget.TextView
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
-import gesture.GestureAction
-import gesture.GestureDetect
-import gesture.GestureService
+import GestureDetect.GestureAction
+import GestureDetect.GestureDetect
+import GestureDetect.GestureService
 import SuperSU.ShellSU
-import gesture.action.ActionItem
+import GestureDetect.action.ActionItem
 import java.io.Serializable
 import kotlin.concurrent.thread
 
