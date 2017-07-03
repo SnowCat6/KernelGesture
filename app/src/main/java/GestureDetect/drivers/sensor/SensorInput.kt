@@ -30,7 +30,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
             InputQCOMM_KPD(gesture), InputFT5x06_ts(gesture),
             InputSunXi_KPD(gesture)
     )
-    private var inputDevices = emptyArray<Pair<String, InputHandler>>()
+    private var inputDevices = emptyList<Pair<String, InputHandler>>()
 
     override fun enable(bEnable: Boolean)
     {
@@ -49,16 +49,19 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
     override fun onDetect(): Boolean
     {
-        inputDevices = emptyArray()
+        inputDevices = emptyList()
 
-        if (!su.hasRootProcess())
+        if (!su.hasRootProcess()){
+            close()
             return false
+        }
 
         getInputEvents().forEach { (input, name) ->
             inputHandlers.forEach {
                 if (it.onDetect(name)) inputDevices += Pair(input, it)
             }
         }
+
         gesture.registerDelayEvents("KEY_VOLUMEUP", "KEY_VOLUMEUP_DELAY")
         gesture.registerDelayEvents("KEY_VOLUMEDOWN", "KEY_VOLUMEDOWN_DELAY")
 
