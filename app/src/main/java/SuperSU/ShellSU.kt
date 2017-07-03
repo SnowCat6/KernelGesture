@@ -106,18 +106,10 @@ class ShellSU
     }
 
     fun getFileLine(name: String): String?
-    {
-        if (exec("echo $(cat $name)")) return readExecLine()
-        return null
-    }
+            = if (exec("echo $(cat $name)")) readExecLine() else null
 
     fun isFileExists(name: String): Boolean
-    {
-        if (exec("[ -f $name ] && echo 1 || echo 0")) {
-            return readExecLine() == "1"
-        }
-        return false
-    }
+            = exec("[ -f $name ] && echo 1 || echo 0") && readExecLine() == "1"
 
     fun readExecLine(): String?
     {
