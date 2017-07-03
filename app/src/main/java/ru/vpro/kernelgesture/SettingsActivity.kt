@@ -425,7 +425,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val preference = adapter.preference as TwoStatePreference
 
-            val itemAction =  getUInaction(item)
+            val itemAction =  uiAction(item)
 
             if (BuildConfig.DEBUG) {
                 Log.d("Set gesture action", itemAction)
@@ -452,8 +452,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
             var action:String
                 get() {
                     val a = GestureDetect.getAction(activity, key)
-                    if (gestureAction.getAction(a) != null) return a!!
-                    if (gestureAction.getAction(defaultAction) == null) return ""
+                    if (uiAction(a).isNotEmpty()) return a!!
+                    if (uiAction(defaultAction).isEmpty()) return ""
+
                     action = defaultAction
                     enable = true
                     return defaultAction
@@ -478,13 +479,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     if (_actionName.isNotEmpty()) return _actionName
 
                     if (getAppInfo() != null) {
-                        _actionName = getUIname(getAppInfo())
+                        _actionName = uiName(getAppInfo())
                     }else{
                         if (action == "" && key == "GESTURE_DEFAULT_ACTION") {
                             _actionName = getString(R.string.ui_no_action)
                         }else {
                             if (action == "" && !enable) _actionName = getString(R.string.ui_no_action)
-                            else _actionName = getUIname(action)
+                            else _actionName = uiName(action)
                         }
                     }
                     return _actionName
@@ -494,23 +495,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val icon:Drawable?
                 get(){
                     if (_icon == null) {
-                        if (getAppInfo() != null) _icon = getUIicon(getAppInfo())
-                        else _icon = getUIicon(action)
+                        if (getAppInfo() != null) _icon = uiIcon(getAppInfo())
+                        else _icon = uiIcon(action)
                     }
                     return _icon
                 }
 
             private fun getAppInfo():ApplicationInfo?
-            {
-                if (applicationInfo != null)
-                    return applicationInfo
-
-                try {
-                    applicationInfo = activity.packageManager.getApplicationInfo(action, 0)
-                } catch (e: Exception) {}
-
-                return applicationInfo
-            }
+                    = if (applicationInfo != null)
+                        applicationInfo else uiAppInfo(action)
         }
 
         private fun updateControls(intent:Intent? = null)
@@ -537,14 +530,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
         inner class AppListItem(val action:String, val name:String, val icon:Drawable)
         {
             constructor(action:Any) :
-                    this(getUInaction( action),
-                            getUIname(action),
-                            getUIicon(action))
+                    this(uiAction( action),
+                            uiName(action),
+                            uiIcon(action))
 
             constructor(applicationInfo: ApplicationInfo) :
-                    this(getUInaction(applicationInfo.packageName),
-                            getUIname(applicationInfo),
-                            getUIicon(applicationInfo))
+                    this(uiAction(applicationInfo.packageName),
+                            uiName(applicationInfo),
+                            uiIcon(applicationInfo))
         }
 
         inner class BoxAdapter internal constructor(
@@ -601,13 +594,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
                 }else view = convertView
 
-                (view.findViewById(R.id.title) as TextView).text = getUIname(thisItem)
+                (view.findViewById(R.id.title) as TextView).text = uiName(thisItem)
 
-                val icon = getUIicon(thisItem)
+                val icon = uiIcon(thisItem)
                 (view.findViewById(R.id.icon) as ImageView).setImageDrawable(icon)
 
                 if (currentAction != null && currentAction.isNotEmpty() &&
-                        currentAction == getUInaction(thisItem))
+                        currentAction == uiAction(thisItem))
                 {
                     view.background = context.getDrawable(android.R.color.holo_orange_light)
                 }else{
@@ -618,7 +611,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
         }
 
-        fun getUInaction(item:Any?):String
+        fun uiAction(item:Any?):String
         {
             when(item)
             {
@@ -626,12 +619,16 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 is AppListItem -> return item.action
                 is ApplicationInfo -> return item.packageName
                 is ActionItem -> return item.action()
-                is String -> return item
+                is String -> {
+                    if (gestureAction.getAction(item) != null) return item
+                    val appInfo = uiAppInfo(item)
+                    if (appInfo != null) return item
+                }
             }
             return ""
         }
 
-        fun getUIname(item:Any?):String
+        fun uiName(item:Any?):String
         {
             when(item){
                 is AppListItem -> return item.name
@@ -645,7 +642,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
             return ""
         }
-        fun getUIicon(item:Any?): Drawable
+        fun uiIcon(item:Any?): Drawable
         {
             when(item){
                 is AppListItem -> return item.icon
@@ -654,6 +651,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 is String -> return gestureAction.getAction(item)?.icon() ?: activity.getDrawable(android.R.color.transparent)
             }
             return activity.getDrawable(android.R.color.transparent)
+        }
+        fun uiAppInfo(action:String):ApplicationInfo?
+        {
+            try {
+                return activity.packageManager.getApplicationInfo(action, 0)
+            } catch (e: Exception) {}
+            return null
         }
     }
 
