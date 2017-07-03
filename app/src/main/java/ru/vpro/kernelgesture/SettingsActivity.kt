@@ -216,17 +216,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
             LocalBroadcastManager.getInstance(activity)
                     .registerReceiver(mReceiver, IntentFilter(GestureDetect.SU.EVENT_UPDATE))
 
-            GestureItems(activity).items.forEach {
-
-                it.action
-                findPreference(it.key)?.apply {
-                    icon = it.icon
-                    onPreferenceChangeListener = sBindGestureChangeListener
-                    onPreferenceClickListener = sBindGestureActionListener
-                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
-                }
-            }
-
             findPreference("GESTURE_ENABLE")?.apply{
                 onPreferenceChangeListener = sBindAllEnableListener
                 onPreferenceChangeListener.onPreferenceChange(this, GestureDetect.getAllEnable(activity))
@@ -298,6 +287,17 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val bRootExists = GestureDetect.SU.hasRootProcess()
             if (bRootExists) preferenceScreen.findPreference("pref_ROOT")?.apply {
                 preferenceScreen.removePreference(this)
+            }
+
+            GestureItems(activity).items.forEach {
+
+                it.action
+                findPreference(it.key)?.apply {
+                    icon = it.icon
+                    onPreferenceChangeListener = sBindGestureChangeListener
+                    onPreferenceClickListener = sBindGestureActionListener
+                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
+                }
             }
         }
     }
@@ -648,6 +648,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             {
                 setTitle(preference.context.getString(R.string.iu_choose_action))
                 setAdapter(adapter, onClickListener)
+//                setSingleChoiceItems(adapter, 0, onClickListener)
                 create().show()
             }
 
