@@ -15,8 +15,9 @@ import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 
-class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
-
+class GestureService : IntentService("AllKernelGesture"),
+        SensorEventListener
+{
     companion object {
         var keyguardLock: KeyguardManager.KeyguardLock? = null
     }
@@ -24,15 +25,14 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
 
+    private val su = ShellSU()
     private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
-    private val su = ShellSU()
 
     /************************************/
     /*
     GESTURE DETECT
      */
-
     override fun onHandleIntent(intent: Intent?)
     {
         setServiceForeground(!GestureAction.HW.isScreenOn(this))
@@ -79,7 +79,6 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
 
         setServiceForeground(false)
     }
-
     var bForeground = false
     fun setServiceForeground(bSetForeground:Boolean)
     {
@@ -108,32 +107,15 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
     }
     /************************************/
     /*
-    SENSOR
-     */
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-    }
-    override fun onSensorChanged(event: SensorEvent)
-    {
-        // If registered use proximity - change value detector
-        if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
-        gestureDetector?.isNearProximity = event.values[0].toInt() == 0
-    }
-    /************************************/
-    /*
     SERVICE
      */
-    override fun onBind(intent: Intent): IBinder? {
+    override fun onBind(intent: Intent): IBinder?
+    {
         // TODO: Return the communication channel to the service.
         throw UnsupportedOperationException("Not yet implemented")
     }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
-        //  Register screen activity event
-        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-        registerReceiver(onScreenIntent, intentFilter)
-
         //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
@@ -148,41 +130,22 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
         gestureDetector?.enable(GestureDetect.getAllEnable(this))
         gestureDetector?.screenOnMode = GestureAction.HW.isScreenOn(this)
 
-        mReceiver = broadcastReceiver()
         LocalBroadcastManager.getInstance(this)
-                .registerReceiver(mReceiver, IntentFilter(GestureDetect.EVENT_ENABLE))
+                .registerReceiver(onEventIntent, IntentFilter(GestureDetect.EVENT_ENABLE))
+
+        //  Register screen activity event
+        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
+        registerReceiver(onEventIntent, intentFilter)
 
         return super.onStartCommand(intent, flags, startId)
     }
-
-    val onScreenIntent = object : BroadcastReceiver()
-    {
-        //  Events for screen on and screen off
-        override fun onReceive(context: Context, intent: Intent)
-        {
-            when (intent.action) {
-                Intent.ACTION_SCREEN_OFF -> {
-                    keyguardLock?.reenableKeyguard()
-                    setServiceForeground(true)
-                    gestureDetector?.screenOnMode = false
-                    gestureActions?.screenOnMode = false
-                }
-                Intent.ACTION_SCREEN_ON -> {
-                    setServiceForeground(false)
-                    gestureDetector?.screenOnMode = true
-                    gestureActions?.screenOnMode = true
-                }
-            }
-        }
-    }
-
-
-
     override fun onDestroy()
     {
         LocalBroadcastManager.getInstance(this)
-                .unregisterReceiver(mReceiver)
-        mReceiver = null
+                .unregisterReceiver(onEventIntent)
+
+        unregisterReceiver(onEventIntent)
 
         gestureDetector?.close()
         gestureDetector = null
@@ -190,21 +153,50 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
         gestureActions?.close()
         gestureActions = null
 
-        unregisterReceiver(onScreenIntent)
-
         super.onDestroy()
     }
+    /************************************/
+    /*
+    SENSOR events
+     */
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
+    override fun onSensorChanged(event: SensorEvent)
+    {
+        // If registered use proximity - change value detector
+        if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
+        gestureDetector?.isNearProximity = event.values[0].toInt() == 0
+    }
+    /**
+     * SCREEN Events
+     */
+    val onEventIntent = object : BroadcastReceiver()
+    {
+        //  Events for screen on and screen off
+        override fun onReceive(context: Context, intent: Intent)
+        {
+            when (intent.action) {
+                //  Screen ON
+                Intent.ACTION_SCREEN_OFF -> {
+                    keyguardLock?.reenableKeyguard()
+                    setServiceForeground(true)
+                    gestureDetector?.screenOnMode = false
+                    gestureActions?.screenOnMode = false
+                }
+                //  Screen OFF
+                Intent.ACTION_SCREEN_ON -> {
+                    setServiceForeground(false)
+                    gestureDetector?.screenOnMode = true
+                    gestureActions?.screenOnMode = true
+                }
+                //  Enable gestures
+                GestureDetect.EVENT_ENABLE ->{
+                    val key = intent.getSerializableExtra("key") as String
+                    if (key != "GESTURE_ENABLE") return
 
-    var mReceiver:BroadcastReceiver? = null
-    private fun broadcastReceiver(): BroadcastReceiver {
-        return object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent?)
-            {
-                val key = intent?.getSerializableExtra("key") as String
-                if (key != "GESTURE_ENABLE") return
-
-                val bEnable = intent.getSerializableExtra("value") as Boolean?
-                gestureDetector?.enable(bEnable == true)
+                    val bEnable = intent.getSerializableExtra("value") as Boolean?
+                    if (bEnable == true) gestureDetector?.enable(bEnable == true)
+                    else stopSelf()
+                }
             }
         }
     }

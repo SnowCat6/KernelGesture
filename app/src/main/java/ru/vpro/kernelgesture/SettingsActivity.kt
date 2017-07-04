@@ -48,14 +48,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
     private var mInterstitialAd: InterstitialAd? = null
     val su = ShellSU()
 
-    var mReceiver:BroadcastReceiver? = null
-    private fun broadcastReceiver(): BroadcastReceiver {
-        return object : BroadcastReceiver() {
+    var mReceiver:BroadcastReceiver =  object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent?) {
                 updateControls(intent)
             }
         }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -73,7 +70,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
         }
 
-        mReceiver = broadcastReceiver()
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
     }
@@ -81,7 +77,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
     override fun onDestroy() {
         LocalBroadcastManager.getInstance(this)
                 .unregisterReceiver(mReceiver)
-        mReceiver = null
         super.onDestroy()
     }
     fun updateControls(intent:Intent?)
@@ -251,7 +246,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(xmlResourceId)
 
-            mReceiver = broadcastReceiver()
             LocalBroadcastManager.getInstance(activity)
                     .registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
 
@@ -308,18 +302,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
         override fun onDestroy() {
             LocalBroadcastManager.getInstance(activity)
                     .unregisterReceiver(mReceiver)
-            mReceiver = null
             super.onDestroy()
         }
 
-        private var mReceiver:BroadcastReceiver? = null
-        private fun broadcastReceiver(): BroadcastReceiver {
-            return object : BroadcastReceiver() {
+        private var mReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent?) {
                     updateControls(intent)
                 }
             }
-        }
 
         private fun enableAllListener(): Preference.OnPreferenceChangeListener {
             return Preference.OnPreferenceChangeListener { preference, value ->
@@ -346,7 +336,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
 
                 if (value) context.startService(Intent(context, GestureService::class.java))
-                else context.stopService(Intent(context, GestureService::class.java))
 /*
             if (value){
                 val fileName = "/dev/input/event5"

@@ -183,7 +183,7 @@ class GestureDetect (val context:Context)
                     val evON = if (screenOnMode) screenEvents.firstOrNull { (first, second) -> it.second == first }?.second else null
                     it.first == thisEvent && (getEnable(context, it.second) || getEnable(context, evON))
                 }?.apply {
-                    val evDelay = getCurrentEvent(500)
+                    val evDelay = getCurrentEvent(350)
                     if (evDelay == first) thisEvent = second
                 }
                 if (screenOnMode){
