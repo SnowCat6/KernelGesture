@@ -34,8 +34,7 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
 
     override fun onHandleIntent(intent: Intent?)
     {
-        if (GestureAction.HW.isScreenOn(this))
-            setServiceForeground(true)
+        setServiceForeground(!GestureAction.HW.isScreenOn(this))
 
         if (gestureActions == null)
             gestureActions = GestureAction(this)

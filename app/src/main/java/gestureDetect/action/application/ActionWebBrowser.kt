@@ -16,5 +16,5 @@ class ActionWebBrowser(action: GestureAction) : ActionApp(action)
     override fun action(): String
             = super.action("application.browser")
 
-    override fun name(): String = context.getString(R.string.ui_web_browser)
+    override fun name(): String = context.getString(R.string.ui_action_web_browser)
 }

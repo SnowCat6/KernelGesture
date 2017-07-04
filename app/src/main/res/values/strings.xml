@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">Any Kernel Gesture</string>
     <string name="ui_no_action">No action</string>
-    <string name="ui_dblclick">Double click screen</string>
+    <string name="ui_dblclick">Double tap screen</string>
     <string name="ui_swipe_up">Swipe to UP</string>
     <string name="ui_swipe_down">Swipe to DOWN</string>
     <string name="ui_swipe_left">Swipe to LEFT</string>
@@ -32,7 +32,7 @@
     <string name="ui_icon">Icon</string>
     <string name="ui_proximity_off">Sensor not useed</string>
     <string name="ui_proximity_on">Use sensor</string>
-    <string name="ui_gesture_use">Use proximity sensor</string>
+    <string name="ui_proximity_use">Use proximity sensor</string>
     <string name="ui_root_title">ROOT access not exists</string>
     <string name="ui_root_help">To fully work this application need ROOT access</string>
     <string name="ui_alert_gs_title">Gesture not detected</string>
@@ -45,27 +45,28 @@
     <string name="ui_unlock_screen">Screen lock</string>
     <string name="ui_unlock_screen_off">Do not unlock after action</string>
     <string name="ui_unlock_screen_on">Auto unlock screen after action</string>
-    <string name="ui_speech_time">Speech time</string>
-    <string name="ui_ok_google">OK Google</string>
-    <string name="ui_web_browser">Browser</string>
-    <string name="ui_action_battery">Charged</string>
-    <string name="ui_action_speech_battery">Speech battery level</string>
-    <string name="ui_action_camera">Camera</string>
     <string name="ui_adv_menu">Adv</string>
     <string name="ui_service">Background service</string>
     <string name="ui_draw_z">Draw Z letter</string>
-    <string name="ui_key_actions">Keystroke actions</string>
+    <string name="ui_key_actions">Screen off actions</string>
     <string name="ui_sensor_actions">Sensor actions</string>
     <string name="ui_touchscreen_summ">Wakeup with touchscreen gestures</string>
     <string name="ui_key_summ">Wakeup with key action</string>
     <string name="ui_volume_down_delay">Double volume DOWN key</string>
     <string name="ui_volume_up_delay">Double volume UP key</string>
     <string name="ui_title_no_any_support">No any supported</string>
-    <string name="ui_flashlight">Flashlight</string>
+    <string name="ui_action_flashlight">Flashlight</string>
     <string name="ui_action_dialer">Dialer</string>
     <string name="ui_action_contacts">Contacts</string>
     <string name="ui_action_mail">Mail</string>
-    <string name="ui_title_screen_on">Screen on actions</string>
+    <string name="ui_action_speech_time">Speech time</string>
+    <string name="ui_action_ok_google">OK Google</string>
+    <string name="ui_action_web_browser">Browser</string>
+    <string name="ui_action_battery">Charged</string>
+    <string name="ui_action_speech_battery">Speech battery level</string>
+    <string name="ui_action_camera">Camera</string>
+    <string name="ui_title_screen_on">Screen on</string>
+    <string name="ui_title_screen_off">Screen off</string>
 
     <!-- Strings related to Settings -->
 

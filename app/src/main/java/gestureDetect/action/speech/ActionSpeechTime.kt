@@ -17,7 +17,7 @@ class ActionSpeechTime(action: GestureAction) : ActionSpeechItem(action)
             = "speech.time"
 
     override fun name(): String
-            = context.getString(R.string.ui_speech_time)
+            = context.getString(R.string.ui_action_speech_time)
 
     override fun icon(): Drawable
             = context.getDrawable(R.drawable.icon_speech_time)

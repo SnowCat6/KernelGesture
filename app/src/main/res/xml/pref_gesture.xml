@@ -51,7 +51,7 @@
     <SwitchPreference
         android:defaultValue="true"
         android:key="GESTURE_PROXIMITY"
-        android:title="@string/ui_gesture_use"
+        android:title="@string/ui_proximity_use"
         android:summaryOff="@string/ui_proximity_off"
         android:summaryOn="@string/ui_proximity_on"
         />

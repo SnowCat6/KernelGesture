@@ -1,7 +1,7 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory
-        android:title="@string/ui_key_actions"
+        android:title="@string/ui_title_screen_off"
         android:key="KEY_GROUP"
         >
         <ru.vpro.kernelgesture.GestureSwitchPreference
@@ -24,7 +24,6 @@
             android:key="KEY_VOLUMEDOWN_DELAY"
             android:title="@string/ui_volume_down_delay"
             />
-
     </PreferenceCategory>
 
     <PreferenceCategory

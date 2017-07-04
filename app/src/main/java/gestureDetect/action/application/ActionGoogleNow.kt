@@ -17,7 +17,7 @@ class ActionGoogleNow(action: GestureAction) : ActionApp(action)
             = super.action("google.ok")
 
     override fun name(): String
-            = context.getString(R.string.ui_ok_google)
+            = context.getString(R.string.ui_action_ok_google)
 
     override fun icon(): Drawable
             = context.getDrawable(R.drawable.icon_ok_google)

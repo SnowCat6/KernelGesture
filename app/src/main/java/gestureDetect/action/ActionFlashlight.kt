@@ -45,7 +45,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
 
     override fun name(): String
-            = context.getString(R.string.ui_flashlight)
+            = context.getString(R.string.ui_action_flashlight)
 
     override fun icon(): Drawable
             = context.getDrawable(R.drawable.icon_flashlight)
