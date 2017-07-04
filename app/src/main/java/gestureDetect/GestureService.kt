@@ -35,6 +35,7 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
     override fun onHandleIntent(intent: Intent?)
     {
         setServiceForeground(!GestureAction.HW.isScreenOn(this))
+        su.checkRootAccess()
 
         if (gestureActions == null)
             gestureActions = GestureAction(this)
@@ -45,7 +46,6 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
         val actions = gestureActions!!
         val gesture = gestureDetector!!
 
-        su.checkRootAccess()
         gesture.enable(true)
 
         actions.onStart()

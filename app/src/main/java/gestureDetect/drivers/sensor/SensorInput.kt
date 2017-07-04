@@ -75,6 +75,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
     {
         if (bRunning || !su.checkRootAccess()) return
         bRunning = true
+        enable(true)
 
         thread{
 
