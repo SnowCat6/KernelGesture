@@ -27,6 +27,7 @@ import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.GestureService
 import SuperSU.ShellSU
+import gestureDetect.GestureSettings
 import gestureDetect.action.ActionItem
 import java.io.Serializable
 import kotlin.concurrent.thread
@@ -89,10 +90,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
         val preferenceScreen = fragment.preferenceScreen
         val context = fragment.activity
         val support = GestureDetect(context).getSupport()
+        val settings = GestureSettings(context)
 
         var titles = emptyArray<String>()
         var alertMessage:String? = null
-        val bAllEnable = GestureDetect.getAllEnable(context)
+        val bAllEnable = settings.getAllEnable()
 
         val bGesture = support.contains("GESTURE")
         if (bGesture) titles += context.getString(R.string.ui_title_gestures)
@@ -234,6 +236,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
         var iconResource = 0
         val su = ShellSU()
 
+        var _settings:GestureSettings? = null
+        val settings:GestureSettings get() {
+            if (_settings == null) _settings = GestureSettings(activity)
+            return _settings!!
+        }
+
         var _gestureAction:GestureAction? = null
         val gestureAction:GestureAction
         get(){
@@ -251,7 +259,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             findPreference("GESTURE_ENABLE")?.apply{
                 onPreferenceChangeListener = enableAllListener()
-                onPreferenceChangeListener.onPreferenceChange(this, GestureDetect.getAllEnable(activity))
+                onPreferenceChangeListener.onPreferenceChange(this, settings.getAllEnable())
             }
 
             findPreference("GESTURE_NOTIFY")?.apply{
@@ -264,7 +272,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     thread {
                         su.enable(true)
                         if (su.checkRootAccess()){
-                            GestureDetect.setAllEnable(context, true)
+                            settings.setAllEnable(true)
                             Handler(Looper.getMainLooper()).post {
                                 updateControls(context, false)
                             }
@@ -319,13 +327,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 val context = preference.context
 
                 if (value) su.enable(true)
-                GestureDetect.setAllEnable(context, value)
+                settings.setAllEnable(value)
 
                 if (value == true && !su.hasRootProcess())
                 {
                     thread{
                         if (su.checkRootAccess()) {
-                            GestureDetect.setAllEnable(context, value)
+                            settings.setAllEnable(value)
                         }
                         Handler(context.mainLooper).post {
                             updateControls(context, true)
@@ -448,7 +456,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             var action:String
                 get() {
-                    val a = GestureDetect.getAction(activity, key)
+                    val a = settings.getAction(key)
                     if (uiAction(a).isNotEmpty()) return a!!
                     if (uiAction(defaultAction).isEmpty()) return ""
 
@@ -460,14 +468,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     _actionName = ""
                     _icon = null
                     applicationInfo = null
-                    GestureDetect.setAction(activity, key, value)
+                    settings.setAction(key, value)
                 }
             var enable:Boolean
-                get() = GestureDetect.getEnable(activity, key)
+                get() = settings.getEnable(key)
                 set(value){
                     _actionName = ""
                     _icon = null
-                    GestureDetect.setEnable(activity, key, value)
+                    settings.setEnable(key, value)
                 }
 
             var _actionName:String = ""
@@ -538,7 +546,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             private var objects = emptyList<Any>()
             private val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             private val context = preference.context
-            private val currentAction = GestureDetect.getAction(context, preference.key)
+            private val currentAction = settings.getAction(preference.key)
 
             init{
                 objects += ActionListItem("none")

@@ -2,7 +2,7 @@ package gestureDetect.drivers.input
 
 import SuperSU.ShellSU
 import gestureDetect.GestureDetect
-import gestureDetect.GestureAction
+import gestureDetect.GestureHW
 
 /*
 MTK and QCOMM keyboard
@@ -15,6 +15,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
             val setPowerOFF: String,
             val getGesture: String
     )
+    val hw = GestureHW(context)
 
     private var HCT_GESTURE_IO: GS? = null
     //  HCT version gesture for Android 5x and Android 6x
@@ -41,7 +42,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
     {
         if (HCT_GESTURE_IO == null) return
 //  Change state when screen is off cause freeze!! Touchscreen driver BUG!!
-        if (!GestureAction.HW.isScreenOn(context)) return
+        if (!hw.isScreenOn()) return
 
         val io = if (enable) HCT_GESTURE_IO!!.setPowerON else HCT_GESTURE_IO!!.setPowerOFF
         if (io.isNotEmpty()) su.exec("echo $io")

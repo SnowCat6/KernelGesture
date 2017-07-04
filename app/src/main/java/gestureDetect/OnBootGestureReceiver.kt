@@ -10,7 +10,8 @@ import android.content.Intent
 class OnBootGestureReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent)
     {
-        if (!GestureDetect.getAllEnable(context)) return
+        val settings = GestureSettings(context)
+        if (!settings.getAllEnable()) return
         context.startService(Intent(context, GestureService::class.java))
     }
 }

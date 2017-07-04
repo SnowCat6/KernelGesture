@@ -7,8 +7,8 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
 import gestureDetect.GestureDetect
+import gestureDetect.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
-import java.util.*
 
 /**
  * Класс для определение жеста сенсором приближения
@@ -17,6 +17,7 @@ import java.util.*
 open class SensorProximity(gesture: GestureDetect) :
         SensorHandler(gesture), SensorEventListener
 {
+    val settings = GestureSettings(context)
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
     private var bRegisterEvent = false
@@ -45,10 +46,10 @@ open class SensorProximity(gesture: GestureDetect) :
     override fun onStart()
     {
         if (gesture.screenOnMode){
-            if (!GestureDetect.getEnable(context, "KEY_PROXIMITY_ON"))
+            if (!settings.getEnable("KEY_PROXIMITY_ON"))
                 return
         }else{
-            if (!GestureDetect.getEnable(context, "KEY_PROXIMITY"))
+            if (!settings.getEnable("KEY_PROXIMITY"))
                 return
         }
 

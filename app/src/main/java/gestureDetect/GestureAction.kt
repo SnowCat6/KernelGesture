@@ -2,15 +2,11 @@ package gestureDetect
 
 import android.content.Context
 import android.content.Intent
-import android.hardware.display.DisplayManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.PowerManager
-import android.os.Vibrator
 import android.preference.PreferenceManager
 import android.util.Log
-import android.view.Display
 import gestureDetect.action.*
 import gestureDetect.action.application.*
 import gestureDetect.action.speech.ActionSpeechBattery
@@ -32,6 +28,9 @@ class GestureAction(val context:Context)
             ActionMail(this),
             ActionCamera(this)
     )
+    val hw = GestureHW(context)
+    val settings = GestureSettings(context)
+
     init {
         onDetect()
     }
@@ -84,10 +83,10 @@ class GestureAction(val context:Context)
             Log.d("Gesture action", gestureKey)
         }
 
-        var action:String? = GestureDetect.getAction(context, gestureKey)
+        var action:String? = settings.getAction(gestureKey)
 
-        if ((action == null || action.isEmpty()) && GestureDetect.getEnable(context, "GESTURE_DEFAULT_ACTION")){
-            action = GestureDetect.getAction(context, "GESTURE_DEFAULT_ACTION")
+        if ((action == null || action.isEmpty()) && settings.getEnable("GESTURE_DEFAULT_ACTION")){
+            action = settings.getAction("GESTURE_DEFAULT_ACTION")
         }
         if (action == null || action.isEmpty()) return false
 
@@ -137,7 +136,7 @@ class GestureAction(val context:Context)
     }
     fun screenUnlock()
     {
-        if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN")) {
+        if (settings.getEnable("GESTURE_UNLOCK_SCREEN")) {
             GestureService.keyguardLock?.disableKeyguard()
         }
     }
@@ -145,7 +144,7 @@ class GestureAction(val context:Context)
     {
         playNotify()
         vibrate()
-        HW.screenON(context)
+        hw.screenON()
     }
     fun playNotify():Boolean
     {
@@ -165,47 +164,8 @@ class GestureAction(val context:Context)
         return false
     }
     fun vibrate(){
-        if (GestureDetect.getEnable(context, "GESTURE_VIBRATION"))
-            HW.vibrate(context)
+        if (settings.getEnable("GESTURE_VIBRATION"))
+            hw.vibrate()
     }
 
-    object HW{
-        /*
-            <uses-permission android:name="android.permission.WAKE_LOCK" />
-        */
-        fun screenON(context:Context)
-        {
-            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            val wakeLock = pm.newWakeLock(
-                    PowerManager.SCREEN_BRIGHT_WAKE_LOCK or
-                            PowerManager.FULL_WAKE_LOCK or
-                            PowerManager.ACQUIRE_CAUSES_WAKEUP,
-                    "KernelGesture")
-            wakeLock.acquire(500)
-        }
-        fun powerON(context:Context)
-        {
-            val pm = context.getSystemService(Context.POWER_SERVICE) as PowerManager
-            val wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
-                    "KernelGestureCPU")
-            wakeLock.acquire(1000)
-        }
-        /*
-        <uses-permission android:name="android.permission.VIBRATE"/>
-         */
-        fun vibrate(context:Context){
-            // Vibrate for 500 milliseconds
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            vibrator.vibrate(200)
-        }
-
-        fun isScreenOn(context: Context): Boolean
-        {
-            val dm = context.getSystemService(Context.DISPLAY_SERVICE) as DisplayManager
-            return dm.displays.any { it.state != Display.STATE_OFF }
-        }
-        /*
-        <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
-         */
-    }
 }

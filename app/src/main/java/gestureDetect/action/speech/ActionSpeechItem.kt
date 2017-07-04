@@ -2,6 +2,7 @@ package gestureDetect.action.speech
 
 import android.speech.tts.TextToSpeech
 import gestureDetect.GestureAction
+import gestureDetect.GestureHW
 import gestureDetect.action.ActionItem
 import java.util.*
 
@@ -16,7 +17,6 @@ abstract class ActionSpeechItem(action: GestureAction) :
 
     fun doSpeech(value: String): Boolean
     {
-        GestureAction.HW.powerON(action.context)
         action.vibrate()
         val bNotify = action.playNotifyToEnd()
 

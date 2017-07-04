@@ -116,7 +116,6 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                //  Stop if gesture need stop run
                 if (!bRunning) break
 
-//                GestureAction.HW.vibrate(context)
                 //  Check query number for skip old events output
                 if (!bQueryFound){
                     bQueryFound = rawLine == "query$queryIx"

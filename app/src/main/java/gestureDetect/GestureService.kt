@@ -29,14 +29,16 @@ class GestureService : IntentService("AllKernelGesture"),
     private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
 
+    val hw = GestureHW(this)
     /************************************/
     /*
     GESTURE DETECT
      */
     override fun onHandleIntent(intent: Intent?)
     {
-        setServiceForeground(!GestureAction.HW.isScreenOn(this))
+        setServiceForeground(!hw.isScreenOn())
         su.checkRootAccess()
+        val settings = GestureSettings(this)
 
         if (gestureActions == null)
             gestureActions = GestureAction(this)
@@ -53,7 +55,7 @@ class GestureService : IntentService("AllKernelGesture"),
         gesture.disabled = false
 
         //  If proximity sensor used, register event
-        val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
+        val bProximityEnable = settings.getEnable( "GESTURE_PROXIMITY")
         gesture.isNearProximity = false
         if (bProximityEnable) {
             mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
@@ -116,6 +118,8 @@ class GestureService : IntentService("AllKernelGesture"),
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
+        val settings = GestureSettings(this)
+
         //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
@@ -127,11 +131,11 @@ class GestureService : IntentService("AllKernelGesture"),
             gestureDetector = GestureDetect(this)
 
         //  Enable/disable gestures on start service
-        gestureDetector?.enable(GestureDetect.getAllEnable(this))
-        gestureDetector?.screenOnMode = GestureAction.HW.isScreenOn(this)
+        gestureDetector?.enable(settings.getAllEnable())
+        gestureDetector?.screenOnMode = hw.isScreenOn()
 
         LocalBroadcastManager.getInstance(this)
-                .registerReceiver(onEventIntent, IntentFilter(GestureDetect.EVENT_ENABLE))
+                .registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
 
         //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
@@ -189,7 +193,7 @@ class GestureService : IntentService("AllKernelGesture"),
                     gestureActions?.screenOnMode = true
                 }
                 //  Enable gestures
-                GestureDetect.EVENT_ENABLE ->{
+                GestureSettings.EVENT_ENABLE ->{
                     val key = intent.getSerializableExtra("key") as String
                     if (key != "GESTURE_ENABLE") return
 

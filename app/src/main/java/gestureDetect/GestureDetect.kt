@@ -2,15 +2,11 @@ package gestureDetect
 
 import SuperSU.ShellSU
 import android.content.Context
-import android.content.Intent
-import android.preference.PreferenceManager
-import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import gestureDetect.drivers.sensor.SensorHandler
 import gestureDetect.drivers.sensor.SensorInput
 import gestureDetect.drivers.sensor.SensorProximity
 import ru.vpro.kernelgesture.BuildConfig
-import java.io.Serializable
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -25,6 +21,8 @@ class GestureDetect (val context:Context)
             SensorInput(this)
     )
 
+    val hw = GestureHW(context)
+    val settings = GestureSettings(context)
     /**
      * Devices control
      */
@@ -181,18 +179,18 @@ class GestureDetect (val context:Context)
 
                 delayEvents.firstOrNull {
                     val evON = if (screenOnMode) screenEvents.firstOrNull { (first, second) -> it.second == first }?.second else null
-                    it.first == thisEvent && (getEnable(context, it.second) || getEnable(context, evON))
+                    it.first == thisEvent && (settings.getEnable(it.second) || settings.getEnable(evON))
                 }?.apply {
                     val evDelay = getCurrentEvent(350)
                     if (evDelay == first) thisEvent = second
                 }
                 if (screenOnMode){
                     thisEvent = screenEvents.firstOrNull {
-                        it.first == thisEvent && getEnable(context, it.second)
+                        it.first == thisEvent && settings.getEnable(it.second)
                     }?.second
                 }
             }
-        }while (!disabled && !getEnable(context, thisEvent))
+        }while (!disabled && !settings.getEnable(thisEvent))
 
         onStop()
         bWaitEvent = false
@@ -233,7 +231,7 @@ class GestureDetect (val context:Context)
         if (BuildConfig.DEBUG){
             Log.d("SensorEvent", value)
         }
-        GestureAction.HW.powerON(context)
+        hw.powerON()
         synchronized(sensorEventGesture){
             sensorEventGesture.push(value)
             eventMutex.unlock()
@@ -270,56 +268,6 @@ class GestureDetect (val context:Context)
         return supported
     }
 
-    companion object
-    {
-        val EVENT_ENABLE = "EVENT_ENABLE"
-
-        fun getAllEnable(context: Context): Boolean
-                = getEnable(context, "GESTURE_ENABLE")
-
-        fun setAllEnable(context: Context, value: Boolean) {
-            setEnable(context, "GESTURE_ENABLE", value)
-        }
-        fun getEnable(context: Context, key: String?): Boolean
-        {
-            if (key == null) return false
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            return sharedPreferences.getBoolean(key, false)
-        }
-        fun setEnable(context: Context, key: String, value: Boolean)
-        {
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            val e = sharedPreferences.edit()
-            e.putBoolean(key, value)
-            e.apply()
-
-            val intent = Intent(GestureDetect.EVENT_ENABLE)
-            intent.putExtra("key", key as Serializable)
-            intent.putExtra("value", value as Serializable)
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-        }
-
-        fun getAction(context: Context, key: String): String? {
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-
-            try {
-                return sharedPreferences.getString("${key}_ACTION", null)
-            } catch (e: Exception) { }
-            return null
-        }
-
-        fun setAction(context: Context, key: String, value: String?)
-        {
-            val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
-            val e = sharedPreferences.edit()
-            if (value == null){
-                e.remove(key)
-            }else {
-                e.putString("${key}_ACTION", value)
-            }
-            e.apply()
-        }
-    }
     class Mutex
     {
         private var bLocked = false
