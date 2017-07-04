@@ -10,6 +10,7 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
+import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
@@ -78,6 +79,7 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
 
         setServiceForeground(false)
     }
+
     var bForeground = false
     fun setServiceForeground(bSetForeground:Boolean)
     {
@@ -146,6 +148,10 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
         gestureDetector?.enable(GestureDetect.getAllEnable(this))
         gestureDetector?.screenOnMode = GestureAction.HW.isScreenOn(this)
 
+        mReceiver = broadcastReceiver()
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver(mReceiver, IntentFilter(GestureDetect.EVENT_ENABLE))
+
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -174,6 +180,10 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
 
     override fun onDestroy()
     {
+        LocalBroadcastManager.getInstance(this)
+                .unregisterReceiver(mReceiver)
+        mReceiver = null
+
         gestureDetector?.close()
         gestureDetector = null
 
@@ -183,5 +193,19 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
         unregisterReceiver(onScreenIntent)
 
         super.onDestroy()
+    }
+
+    var mReceiver:BroadcastReceiver? = null
+    private fun broadcastReceiver(): BroadcastReceiver {
+        return object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent?)
+            {
+                val key = intent?.getSerializableExtra("key") as String
+                if (key != "GESTURE_ENABLE") return
+
+                val bEnable = intent.getSerializableExtra("value") as Boolean?
+                gestureDetector?.enable(bEnable == true)
+            }
+        }
     }
 }

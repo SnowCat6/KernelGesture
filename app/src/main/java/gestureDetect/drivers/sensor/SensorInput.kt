@@ -2,6 +2,7 @@ package gestureDetect.drivers.sensor
 
 import SuperSU.ShellSU
 import android.util.Log
+import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import ru.vpro.kernelgesture.BuildConfig
@@ -15,10 +16,7 @@ import kotlin.concurrent.thread
 
 class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 {
-    companion object{
-        var queryIx = 0
-    }
-
+    var queryIx = 0
     var bRunning = false
     val su = ShellSU()
 
@@ -89,17 +87,17 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
             //  For each device
             var ix = 0
+            val CR = "\\\\n"
             inputDevices.forEach { (inputName, device) ->
 
                 //  Run input event detector
                 ++ix
-                su.exec("while v$ix=$(getevent -c 2 -tl $inputName)  ; do for i in 1 2 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+                su.exec("while v$ix=$(getevent -c 2 -tl $inputName) ; do for i in 1 2 3 4; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
                 ++ix
-                su.exec("while v$ix=$(getevent -c 4 -tl $inputName)  ; do for i in 1 ; do echo $inputName\\\\n\"\$v$ix\">&2 ; done ; done &")
+                su.exec("while v$ix=$(getevent -c 4 -tl $inputName) ; do for i in 1 ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
             }
 
             var lastEventTime:Double = 0.0
-            su.exec("echo query$queryIx>&2")
             while(bRunning)
             {
                 //  Read line from input
@@ -108,7 +106,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 //  Stop if gesture need stop run
                 if (!bRunning) break
 
-                //  Check query number for prevent old events output
+                //  Check query number for skip old events output
                 if (!bQueryFound){
                     bQueryFound = rawLine == "query$queryIx"
                     continue

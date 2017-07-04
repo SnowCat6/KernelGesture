@@ -2,12 +2,15 @@ package gestureDetect
 
 import SuperSU.ShellSU
 import android.content.Context
+import android.content.Intent
 import android.preference.PreferenceManager
+import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import gestureDetect.drivers.sensor.SensorHandler
 import gestureDetect.drivers.sensor.SensorInput
 import gestureDetect.drivers.sensor.SensorProximity
 import ru.vpro.kernelgesture.BuildConfig
+import java.io.Serializable
 import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
@@ -135,19 +138,25 @@ class GestureDetect (val context:Context)
     private fun onStart(){
         if (bStart) return
         bStart = true
+        if (BuildConfig.DEBUG){
+            Log.d("GestureDetect", "start")
+        }
         sensorDevices.forEach { it.onStart() }
     }
     private fun onStop(){
         if (!bStart) return
         bStart = false
+        if (BuildConfig.DEBUG){
+            Log.d("GestureDetect", "stop")
+        }
         sensorDevices.forEach { it.onStop() }
     }
 
-    private  var sensorEventGesture:String? = null
+    private  var sensorEventGesture = Stack<String>()
     fun waitGesture(): String?
             = getEventThread()
 
-    private var bWaitEvent = false
+    var bWaitEvent = false
     private fun getEventThread():String?
     {
         if (!su.hasRootProcess() && su.checkRootAccess()) {
@@ -156,16 +165,14 @@ class GestureDetect (val context:Context)
         }
 
         bWaitEvent = true
+        sensorEventGesture.clear()
         onStart()
 
         var thisEvent:String?
         do{
-            thisEvent = null
-            sensorEventGesture = null
-            eventMutex.lock() // Wait unlock
+            thisEvent = getCurrentEvent()
             if (disabled) break
 
-            thisEvent = sensorEventGesture
             thisEvent?.apply {
 
                 if (BuildConfig.DEBUG) {
@@ -176,7 +183,8 @@ class GestureDetect (val context:Context)
                     val evON = if (screenOnMode) screenEvents.firstOrNull { (first, second) -> it.second == first }?.second else null
                     it.first == thisEvent && (getEnable(context, it.second) || getEnable(context, evON))
                 }?.apply {
-                    if (eventMutex.lock(500)) thisEvent = second
+                    val evDelay = getCurrentEvent(500)
+                    if (evDelay == first) thisEvent = second
                 }
                 if (screenOnMode){
                     thisEvent = screenEvents.firstOrNull {
@@ -191,12 +199,31 @@ class GestureDetect (val context:Context)
 
         return thisEvent
     }
+    private fun getCurrentEvent():String?
+    {
+        with(sensorEventGesture){
+            if (isNotEmpty()) return pop()
+            eventMutex.lock()
+            return if (isNotEmpty()) pop() else null
+        }
+    }
+    private fun getCurrentEvent(timeout:Long):String?
+    {
+        with(sensorEventGesture){
+            if (isNotEmpty()) return pop()
+            eventMutex.lock(timeout)
+            return if (isNotEmpty()) pop() else null
+        }
+    }
 
     fun sensorEvent(value:String):Boolean
     {
         if (disabled) return false
 
-        sensorEventGesture = value
+        if (BuildConfig.DEBUG){
+            Log.d("SensorEvent", value)
+        }
+        sensorEventGesture.push(value)
         eventMutex.unlock()
 
         return true
@@ -232,14 +259,13 @@ class GestureDetect (val context:Context)
 
     companion object
     {
+        val EVENT_ENABLE = "EVENT_ENABLE"
+
         fun getAllEnable(context: Context): Boolean
                 = getEnable(context, "GESTURE_ENABLE")
 
         fun setAllEnable(context: Context, value: Boolean) {
             setEnable(context, "GESTURE_ENABLE", value)
-
-            val gs = GestureDetect(context)
-            gs.enable(value)
         }
         fun getEnable(context: Context, key: String?): Boolean
         {
@@ -253,6 +279,11 @@ class GestureDetect (val context:Context)
             val e = sharedPreferences.edit()
             e.putBoolean(key, value)
             e.apply()
+
+            val intent = Intent(GestureDetect.EVENT_ENABLE)
+            intent.putExtra("key", key as Serializable)
+            intent.putExtra("value", value as Serializable)
+            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
         }
 
         fun getAction(context: Context, key: String): String? {
