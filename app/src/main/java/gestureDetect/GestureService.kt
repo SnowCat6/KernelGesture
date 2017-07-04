@@ -65,7 +65,7 @@ class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
         {
             val ev = gesture.waitGesture() ?: break
             try {
-                if (actions.onGestureEvent(ev)) break
+                actions.onGestureEvent(ev)
             }catch (e:Exception){
                 e.printStackTrace()
             }
