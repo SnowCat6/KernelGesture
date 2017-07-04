@@ -83,17 +83,17 @@ class GestureDetect (val context:Context)
     /**
      *  Settings for filter events with proximity sensor
      */
-    private var timeNearChange = GregorianCalendar.getInstance().timeInMillis
+    private var timeNearChange = System.currentTimeMillis()
     private var _bIsNearProximity:Boolean = false
     var isNearProximity: Boolean
         get() {
-            val timeDiff = GregorianCalendar.getInstance().timeInMillis - timeNearChange
+            val timeDiff = System.currentTimeMillis() - timeNearChange
             return _bIsNearProximity || timeDiff < 1*1000
         }
         set(value) {
             if (_bIsNearProximity != value) {
                 _bIsNearProximity = value
-                timeNearChange = GregorianCalendar.getInstance().timeInMillis
+                timeNearChange = System.currentTimeMillis()
             }
         }
 
@@ -152,7 +152,7 @@ class GestureDetect (val context:Context)
         sensorDevices.forEach { it.onStop() }
     }
 
-    private  var sensorEventGesture = Stack<String>()
+    private  var sensorEventGesture = LinkedList<String>()
     fun waitGesture(): String?
             = getEventThread()
 
@@ -201,18 +201,28 @@ class GestureDetect (val context:Context)
     }
     private fun getCurrentEvent():String?
     {
-        with(sensorEventGesture){
-            if (isNotEmpty()) return pop()
+        with(sensorEventGesture) {
+            synchronized(sensorEventGesture) {
+                if (isNotEmpty()) return pop()
+            }
             eventMutex.lock()
-            return if (isNotEmpty()) pop() else null
+            synchronized(sensorEventGesture) {
+                return if (isNotEmpty()) pop() else null
+            }
         }
     }
     private fun getCurrentEvent(timeout:Long):String?
     {
-        with(sensorEventGesture){
-            if (isNotEmpty()) return pop()
-            eventMutex.lock(timeout)
-            return if (isNotEmpty()) pop() else null
+        with(sensorEventGesture) {
+
+            synchronized(sensorEventGesture) {
+                if (isNotEmpty()) return pop()
+            }
+//            eventMutex.lock(timeout)
+            Thread.sleep(timeout)
+            synchronized(sensorEventGesture) {
+                return if (isNotEmpty()) pop() else null
+            }
         }
     }
 
@@ -223,8 +233,11 @@ class GestureDetect (val context:Context)
         if (BuildConfig.DEBUG){
             Log.d("SensorEvent", value)
         }
-        sensorEventGesture.push(value)
-        eventMutex.unlock()
+        GestureAction.HW.powerON(context)
+        synchronized(sensorEventGesture){
+            sensorEventGesture.push(value)
+            eventMutex.unlock()
+        }
 
         return true
     }
@@ -312,41 +325,51 @@ class GestureDetect (val context:Context)
         private var bLocked = false
         private var semaphore = Semaphore(0)
 
-        fun lock()
-        {
-            if (bLocked) return
-            bLocked = true
+        fun lock() {
+            synchronized(bLocked) {
+                if (bLocked) return
+                bLocked = true
+             }
 
             if (BuildConfig.DEBUG) {
                 Log.d("Lock", "Wait semaphore lock")
             }
-
             semaphore.acquire()
-            bLocked = false
+            synchronized(bLocked) {
+                bLocked = false
+            }
         }
         fun lock(timeout:Long):Boolean
         {
-            if (bLocked) return false
-            bLocked = true
-
-            if (BuildConfig.DEBUG) {
-                Log.d("Lock", "Wait ${timeout}ms semaphore lock")
+            synchronized(bLocked)
+            {
+                if (bLocked) return false
+                bLocked = true
+                if (BuildConfig.DEBUG) {
+                    Log.d("Lock", "Wait ${timeout}ms semaphore lock")
+                }
             }
 
             val bRet = semaphore.tryAcquire(1, timeout, TimeUnit.MILLISECONDS)
 
-            bLocked = false
+            synchronized(bLocked) {
+                bLocked = false
+            }
             return bRet
         }
         fun unlock()
         {
-            if (!bLocked) return
-            bLocked = false
+            synchronized(bLocked)
+            {
+                if (!bLocked) return
+                bLocked = false
 
-            if (BuildConfig.DEBUG) {
-                Log.d("Lock", "Unlock locked semaphore")
+                if (BuildConfig.DEBUG) {
+                    Log.d("Lock", "Unlock locked semaphore")
+                }
+
+                semaphore.release()
             }
-            semaphore.release()
         }
     }
 }

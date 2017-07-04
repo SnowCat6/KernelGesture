@@ -23,8 +23,8 @@ open class SensorProximity(gesture: GestureDetect) :
 
     var bNearSensor = false
 
-    var longTimeFar = GregorianCalendar.getInstance().timeInMillis
-    var nearTimeNear = GregorianCalendar.getInstance().timeInMillis
+    var longTimeFar = System.currentTimeMillis()
+    var nearTimeNear = System.currentTimeMillis()
     var bLongTrigger = false
 
     val sensor1wait = 1*1000
@@ -57,7 +57,7 @@ open class SensorProximity(gesture: GestureDetect) :
         }
 
         bRegisterEvent = true
-        longTimeFar = GregorianCalendar.getInstance().timeInMillis// + sensor1wait
+        longTimeFar = System.currentTimeMillis()
         mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
@@ -89,21 +89,21 @@ open class SensorProximity(gesture: GestureDetect) :
 
         if (bNearSensor){
             //  Start near timer
-            nearTimeNear = GregorianCalendar.getInstance().timeInMillis
+            nearTimeNear = System.currentTimeMillis()
             //  Check pre event timeout
-            bLongTrigger = (GregorianCalendar.getInstance().timeInMillis - longTimeFar) > sensor1wait
+            bLongTrigger = (System.currentTimeMillis() - longTimeFar) > sensor1wait
         }else{
             //  Start far timer
-            longTimeFar = Math.max(GregorianCalendar.getInstance().timeInMillis, longTimeFar)
+            longTimeFar = Math.max(System.currentTimeMillis(), longTimeFar)
             //  If pre event timer not true do not fire event
             if (!bLongTrigger) return
 
             if (BuildConfig.DEBUG) {
-                Log.d("Near pulse time", (GregorianCalendar.getInstance().timeInMillis - nearTimeNear).toString())
+                Log.d("Near pulse time", (System.currentTimeMillis() - nearTimeNear).toString())
             }
 
             //  Check pulse time of near event
-            val bNearTrigger = (GregorianCalendar.getInstance().timeInMillis - nearTimeNear) < sensor2wait
+            val bNearTrigger = (System.currentTimeMillis() - nearTimeNear) < sensor2wait
             if (!bNearTrigger) return
 
             //  Fire event

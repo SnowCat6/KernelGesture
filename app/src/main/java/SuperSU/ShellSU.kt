@@ -129,5 +129,7 @@ class ShellSU
         }
         return null
     }
+    fun writeErr(value:String):Boolean
+        = exec("echo $value>&2")
 }
 

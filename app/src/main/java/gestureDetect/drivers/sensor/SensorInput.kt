@@ -2,11 +2,14 @@ package gestureDetect.drivers.sensor
 
 import SuperSU.ShellSU
 import android.util.Log
+import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.FileReader
+import java.sql.Date
+import java.sql.Time
 import kotlin.concurrent.thread
 
 /**
@@ -15,10 +18,6 @@ import kotlin.concurrent.thread
 
 class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 {
-    companion object {
-        var queryIx = 0
-    }
-
     var bRunning = false
     val su = ShellSU()
 
@@ -71,6 +70,14 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
         return inputDevices.isNotEmpty()
     }
 
+    /**
+     * Exec command for get events from getevent linux binary
+     */
+    private fun evCmd(queryIx:Long, ix:Int, inputName:String, nLimit:Int, nRepeat:Int){
+        val CR = "\\\\n"
+        su.exec("while v$ix=$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; do [ \\\$v$ix ] && for i in `seq 1 $nRepeat` ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
+    }
+
     override fun onStart()
     {
         if (bRunning || !su.checkRootAccess()) return
@@ -85,27 +92,31 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
             var device = ""
             var bQueryFound = false
-            ++queryIx
+            val queryIx = System.currentTimeMillis()
 
             //  For each device
             var ix = 0
-            val CR = "\\\\n"
             inputDevices.forEach { (inputName, device) ->
 
                 //  Run input event detector
-                su.exec("while v${++ix}=$(getevent -c 2 -tl $inputName) ; do for i in 1 2 3 4 ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
-                su.exec("while v${++ix}=$(getevent -c 4 -tl $inputName) ; do for i in 1 2 ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
+                evCmd(queryIx, ++ix, inputName, 2, 5)
+                evCmd(queryIx, ++ix, inputName, 4, 1)
+                evCmd(queryIx, ++ix, inputName, 6, 1)
             }
 
             var lastEventTime:Double = 0.0
+            var prevLine = String()
             while(bRunning)
             {
                 //  Read line from input
                 val rawLine = su.readErrorLine() ?: break
+                if (rawLine == prevLine) continue
+                prevLine = rawLine
 
-                //  Stop if gesture need stop run
+               //  Stop if gesture need stop run
                 if (!bRunning) break
 
+//                GestureAction.HW.vibrate(context)
                 //  Check query number for skip old events output
                 if (!bQueryFound){
                     bQueryFound = rawLine == "query$queryIx"
