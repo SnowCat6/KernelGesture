@@ -104,9 +104,9 @@ class GestureAction(val context:Context)
             "phone.call.#############"
 */
         try {
+            val intent = context.packageManager.getLaunchIntentForPackage(action) ?: return false
             screenON()
             screenUnlock()
-            val intent = context.packageManager.getLaunchIntentForPackage(action) ?: return false
             return startNewActivity(intent)
         }catch (e:Exception){}
         return false

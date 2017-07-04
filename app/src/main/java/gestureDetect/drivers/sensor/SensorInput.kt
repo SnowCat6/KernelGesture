@@ -2,14 +2,11 @@ package gestureDetect.drivers.sensor
 
 import SuperSU.ShellSU
 import android.util.Log
-import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.FileReader
-import java.sql.Date
-import java.sql.Time
 import kotlin.concurrent.thread
 
 /**

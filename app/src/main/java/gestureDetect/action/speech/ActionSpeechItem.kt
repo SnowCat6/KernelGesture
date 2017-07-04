@@ -2,7 +2,6 @@ package gestureDetect.action.speech
 
 import android.speech.tts.TextToSpeech
 import gestureDetect.GestureAction
-import gestureDetect.GestureHW
 import gestureDetect.action.ActionItem
 import java.util.*
 

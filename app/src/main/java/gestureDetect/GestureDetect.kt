@@ -216,8 +216,8 @@ class GestureDetect (val context:Context)
             synchronized(sensorEventGesture) {
                 if (isNotEmpty()) return pop()
             }
-//            eventMutex.lock(timeout)
-            Thread.sleep(timeout)
+            eventMutex.lock(timeout)
+//            Thread.sleep(timeout)
             synchronized(sensorEventGesture) {
                 return if (isNotEmpty()) pop() else null
             }
