@@ -40,7 +40,6 @@
     <string name="ui_alert_gs_message_wo_keys">Возможно ваше устройство не поддерживает жесты</string>
     <string name="ui_title_gestures">жесты</string>
     <string name="ui_title_keys">клавиши</string>
-    <string name="ui_wait_app">Чтение списка программ</string>
     <string name="ui_proximity_gesture">Жест датчика приближения</string>
     <string name="ui_title_gesture">приближение</string>
     <string name="ui_unlock_screen">Блокировка экрана</string>
@@ -59,11 +58,12 @@
     <string name="ui_sensor_actions">Сенсорные действия</string>
     <string name="ui_touchscreen_summ">Включение жестами тачскрина</string>
     <string name="ui_key_summ">Включение клавишами</string>
-    <string name="ui_volume_down_delay">Двойное УМЕНЬШЕНИЕ громкости</string>
-    <string name="ui_volume_up_delay">Двойное УВЕЛИЧЕНИЕ  громкости</string>
+    <string name="ui_volume_down_delay">2хУМЕНЬШЕНИЕ громкости</string>
+    <string name="ui_volume_up_delay">2хУВЕЛИЧЕНИЕ громкости</string>
     <string name="ui_title_no_any_support">Ничто не поддерживается</string>
     <string name="ui_flashlight">Фонарик</string>
     <string name="ui_action_dialer">Телефон</string>
     <string name="ui_action_contacts">Контакты</string>
     <string name="ui_action_mail">Почта</string>
+    <string name="ui_title_screen_on">Действия со включенным экраном</string>
 </resources>

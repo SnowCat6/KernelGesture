@@ -37,13 +37,24 @@ open class SensorProximity(gesture: GestureDetect) :
         if (mProximity == null) return false
 
         gesture.addSupport(arrayOf("PROXIMITY", "KEY_PROXIMITY"))
+        gesture.registerScreenEvents("KEY_PROXIMITY", "KEY_PROXIMITY_ON")
+
         return true
     }
 
     override fun onStart()
     {
-        if (!GestureDetect.getEnable(context, "KEY_PROXIMITY"))
-            return
+        if (gesture.screenOnMode){
+            if (!GestureDetect.getEnable(context, "KEY_PROXIMITY_ON"))
+                return
+        }else{
+            if (!GestureDetect.getEnable(context, "KEY_PROXIMITY"))
+                return
+        }
+
+        if (BuildConfig.DEBUG){
+            Log.d("Proximity", "start")
+        }
 
         bRegisterEvent = true
         longTimeFar = GregorianCalendar.getInstance().timeInMillis// + sensor1wait
@@ -52,6 +63,11 @@ open class SensorProximity(gesture: GestureDetect) :
 
     override fun onStop() {
         if (!bRegisterEvent) return
+
+        if (BuildConfig.DEBUG){
+            Log.d("Proximity", "stop")
+        }
+
         bRegisterEvent = false
         mSensorManager?.unregisterListener(this, mProximity)
     }

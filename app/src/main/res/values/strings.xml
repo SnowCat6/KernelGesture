@@ -40,7 +40,6 @@
     <string name="ui_alert_gs_message_wo_keys">Possibly your device not support gestures</string>
     <string name="ui_title_gestures">gestures</string>
     <string name="ui_title_keys">keys</string>
-    <string name="ui_wait_app">Reading app list</string>
     <string name="ui_proximity_gesture">Proximity gesture</string>
     <string name="ui_title_gesture">proximity</string>
     <string name="ui_unlock_screen">Screen lock</string>
@@ -66,6 +65,7 @@
     <string name="ui_action_dialer">Dialer</string>
     <string name="ui_action_contacts">Contacts</string>
     <string name="ui_action_mail">Mail</string>
+    <string name="ui_title_screen_on">Screen on actions</string>
 
     <!-- Strings related to Settings -->
 

@@ -1,9 +1,9 @@
 package gestureDetect
 
 import SuperSU.ShellSU
+import android.app.IntentService
 import android.app.KeyguardManager
 import android.app.Notification
-import android.app.Service
 import android.content.*
 import android.hardware.Sensor
 import android.hardware.SensorEvent
@@ -13,17 +13,12 @@ import android.os.IBinder
 import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
-import java.lang.Thread.MAX_PRIORITY
-import kotlin.concurrent.thread
 
-class GestureService : Service(), SensorEventListener {
+class GestureService : IntentService("AllKernelGesture"), SensorEventListener {
 
-    companion object
-    {
+    companion object {
         var keyguardLock: KeyguardManager.KeyguardLock? = null
     }
-
-    private var bRunning = false
 
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
@@ -36,86 +31,79 @@ class GestureService : Service(), SensorEventListener {
     /*
     GESTURE DETECT
      */
-    fun startGesture()
+
+    override fun onHandleIntent(intent: Intent?)
     {
-        //  Disable run thread if gestures not use
-        if (!GestureDetect.getAllEnable(this)){
-            gestureDetector?.close()
-            gestureDetector = null
-            bRunning = false
-            return
+        if (GestureAction.HW.isScreenOn(this))
+            setServiceForeground(true)
+
+        if (gestureActions == null)
+            gestureActions = GestureAction(this)
+
+        if (gestureDetector == null)
+            gestureDetector = GestureDetect(this)
+
+        val actions = gestureActions!!
+        val gesture = gestureDetector!!
+
+        su.checkRootAccess()
+        gesture.enable(true)
+
+        actions.onStart()
+        gesture.disabled = false
+
+        //  If proximity sensor used, register event
+        val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
+        gesture.isNearProximity = false
+        if (bProximityEnable) {
+            mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
         }
-        // If thread ruined return back
-        if (bRunning) return
-        bRunning = true
 
-        thread {
-
-            val bForeground = true
-
-            if (bForeground) {
-                /*****************************/
-                val builder = Notification.Builder(this)
-                        .setSmallIcon(R.drawable.icon_screen_on)
-                        .setContentTitle(getString(R.string.ui_service))
-
-                val notification = builder.build()
-                startForeground(777, notification)
-                /*****************************/
+        //  Main gesture loop
+        //  Wait gesture while live
+        while (!gesture.disabled)
+        {
+            val ev = gesture.waitGesture() ?: break
+            try {
+                if (actions.onGestureEvent(ev)) break
+            }catch (e:Exception){
+                e.printStackTrace()
             }
+        }
 
-            if (gestureActions == null)
-                gestureActions = GestureAction(this)
+        //  Unregister even if this need
+        if (bProximityEnable) {
+            mSensorManager?.unregisterListener(this)
+        }
+        actions.onStop()
 
-            if (gestureDetector == null)
-                gestureDetector = GestureDetect(this)
+        setServiceForeground(false)
+    }
+    var bForeground = false
+    fun setServiceForeground(bSetForeground:Boolean)
+    {
+        if (bForeground == bSetForeground)
+            return
 
-            val actions = gestureActions!!
-            val gesture = gestureDetector!!
+        bForeground = bSetForeground
 
-            su.checkRootAccess()
-            gesture.enable(true)
+        if (BuildConfig.DEBUG){
+            Log.d("Service foreground", bForeground.toString())
+        }
 
-            actions.onStart()
-            gesture.disabled = false
+        if (bForeground) {
+            val builder = Notification.Builder(this)
+                    .setSmallIcon(R.drawable.icon_screen_on)
+                    .setContentTitle(getString(R.string.ui_service))
 
-            //  If proximity sensor used, register event
-            val bProximityEnable = GestureDetect.getEnable(this, "GESTURE_PROXIMITY")
-            gesture.isNearProximity = false
-            if (bProximityEnable) {
-                mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
-            }
-
-            //  Main gesture loop
-            //  Wait gesture while live
-            while (gesture.disabled != true)
-            {
-                val ev = gesture.waitGesture() ?: break
-                try {
-                    if (actions.onGestureEvent(ev) == true) break
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-            }
-
-            gesture.disabled = true
-
-            //  Unregister even if this need
-            if (bProximityEnable) {
-                mSensorManager?.unregisterListener(this)
-            }
-            actions.onStop()
-
-            if (bForeground) {
-                /*****************************/
-                stopForeground(true)
-                /*****************************/
-            }
-
-            //  Mark thread stopped
-            bRunning = false
-
-        }.priority = MAX_PRIORITY
+            val notification = builder.build()
+            startForeground(777, notification)
+            /*****************************/
+        }else{
+            /*****************************/
+            stopForeground(true)
+            /*****************************/
+        }
     }
     /************************************/
     /*
@@ -140,8 +128,6 @@ class GestureService : Service(), SensorEventListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
-        super.onStartCommand(intent, flags, startId)
-
         //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
@@ -159,13 +145,9 @@ class GestureService : Service(), SensorEventListener {
 
         //  Enable/disable gestures on start service
         gestureDetector?.enable(GestureDetect.getAllEnable(this))
+        gestureDetector?.screenOnMode = GestureAction.HW.isScreenOn(this)
 
-        //  If screen off - run thread
-        if (!GestureAction.HW.isScreenOn(this)){
-            startGesture()
-        }
-
-        return START_STICKY
+        return super.onStartCommand(intent, flags, startId)
     }
 
     val onScreenIntent = object : BroadcastReceiver()
@@ -175,21 +157,21 @@ class GestureService : Service(), SensorEventListener {
         {
             when (intent.action) {
                 Intent.ACTION_SCREEN_OFF -> {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_OFF)
-                    }
                     keyguardLock?.reenableKeyguard()
-                    startGesture()
+                    setServiceForeground(true)
+                    gestureDetector?.screenOnMode = false
+                    gestureActions?.screenOnMode = false
                 }
                 Intent.ACTION_SCREEN_ON -> {
-                    if (BuildConfig.DEBUG) {
-                        Log.d(ContentValues.TAG, Intent.ACTION_SCREEN_ON)
-                    }
-                    gestureDetector?.disabled = true
+                    setServiceForeground(false)
+                    gestureDetector?.screenOnMode = true
+                    gestureActions?.screenOnMode = true
                 }
             }
         }
     }
+
+
 
     override fun onDestroy()
     {

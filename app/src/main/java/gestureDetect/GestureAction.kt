@@ -36,6 +36,17 @@ class GestureAction(val context:Context)
         onDetect()
     }
 
+    private var _screenOnMode = false
+    var screenOnMode
+        get() = _screenOnMode
+        set(value){
+            if (value != screenOnMode){
+                onStop()
+                _screenOnMode = value
+                onStart()
+            }
+        }
+
     fun onDetect(){
         allActions.forEach { it.onDetect() }
     }
@@ -69,16 +80,16 @@ class GestureAction(val context:Context)
 
     fun onGestureEvent(gestureKey:String):Boolean
     {
+        if (BuildConfig.DEBUG) {
+            Log.d("Gesture action", gestureKey)
+        }
+
         var action:String? = GestureDetect.getAction(context, gestureKey)
 
         if ((action == null || action.isEmpty()) && GestureDetect.getEnable(context, "GESTURE_DEFAULT_ACTION")){
             action = GestureDetect.getAction(context, "GESTURE_DEFAULT_ACTION")
         }
         if (action == null || action.isEmpty()) return false
-
-        if (BuildConfig.DEBUG) {
-            Log.d("Gesture action", gestureKey)
-        }
 
         getAction(action)?.apply {
             return run()
@@ -126,8 +137,9 @@ class GestureAction(val context:Context)
     }
     fun screenUnlock()
     {
-        if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN"))
+        if (GestureDetect.getEnable(context, "GESTURE_UNLOCK_SCREEN")) {
             GestureService.keyguardLock?.disableKeyguard()
+        }
     }
     fun screenON()
     {

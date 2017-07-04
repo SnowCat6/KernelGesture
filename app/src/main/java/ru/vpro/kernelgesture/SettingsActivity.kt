@@ -121,6 +121,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val bEnable = su.hasRootProcess() && bAllEnable && titles.isNotEmpty()
             findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ bEnable
             findPreference("KEY_GROUP")?.isEnabled = bKeys && bEnable
+            findPreference("KEY_GROUP_ON")?.isEnabled = bKeys && bEnable
             findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
         }
 
@@ -226,8 +227,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 GestureItem("KEY_Z",       "speech.battery"),
                 GestureItem("KEY_VOLUMEUP",             ""),
                 GestureItem("KEY_VOLUMEUP_DELAY",       ""),
+                GestureItem("KEY_VOLUMEUP_DELAY_ON",    ""),
                 GestureItem("KEY_VOLUMEDOWN",           ""),
                 GestureItem("KEY_VOLUMEDOWN_DELAY",     ""),
+                GestureItem("KEY_VOLUMEDOWN_DELAY_ON",  ""),
                 GestureItem("KEY_PROXIMITY",            "speech.time"),
                 GestureItem("GESTURE_DEFAULT_ACTION",   "")
         )
@@ -370,7 +373,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 true
             }
         }
-
         private fun changeListener(): Preference.OnPreferenceChangeListener {
             return Preference.OnPreferenceChangeListener { preference, value ->
 

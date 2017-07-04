@@ -42,8 +42,30 @@ class GestureDetect (val context:Context)
             if (value) eventMutex.unlock()
         }
 
+    private var _screenOnMode:Boolean = false
+    var screenOnMode:Boolean
+        get () = _screenOnMode
+        set(value){
+            if (value != _screenOnMode){
+                if (bWaitEvent) onStop()
+                _screenOnMode = value
+                if (bWaitEvent) onStart()
+            }
+        }
+
+    private var screenEvents = emptyList<Pair<String, String>>()
+    fun registerScreenEvents(event:String, screenEvent:String)
+    {
+        screenEvents
+                .filter { (first) -> first.contains(event) }
+                .forEach { return }
+
+        screenEvents += Pair(event, screenEvent)
+        addSupport(event)
+        addSupport(screenEvent)
+    }
     /**
-     * Events with wait 500ms for wtice
+     * Events with wait 500ms for twice
      */
     private var delayEvents = emptyList<Pair<String, String>>()
     fun registerDelayEvents(event:String, delayEvent:String)
@@ -52,6 +74,8 @@ class GestureDetect (val context:Context)
                 .filter { (first) -> first.contains(event) }
                 .forEach { return }
         delayEvents += Pair(event, delayEvent)
+        addSupport(event)
+        addSupport(delayEvent)
     }
     /**
      *  Settings for filter events with proximity sensor
@@ -70,7 +94,7 @@ class GestureDetect (val context:Context)
             }
         }
 
-    val eventMutex = Mutex()
+    private val eventMutex = Mutex()
     /**
      * CODE
      */
@@ -82,6 +106,7 @@ class GestureDetect (val context:Context)
     {
         disabled = true
         eventMutex.unlock()
+        onStop()
         sensorDevices.forEach{ it.close() }
         delayEvents = emptyList()
     }
@@ -94,31 +119,44 @@ class GestureDetect (val context:Context)
 
     private fun detectDevices()
     {
-        eventMutex.unlock()
-        val prevSensor = sensorDevices
+        if (bWaitEvent) onStop()
 
+        val prevSensor = sensorDevices
         delayEvents = emptyList()
         supported = emptyList()
 
         sensorDevices = sensorHandlers.filter { it.onDetect() }
-        prevSensor
-                .filter { !sensorDevices.contains(it) }
-                .forEach { it.close() }
+        prevSensor.subtract(sensorDevices).forEach { it.close() }
+
+        if (bWaitEvent) onStart()
+    }
+
+    private var bStart = false
+    private fun onStart(){
+        if (bStart) return
+        bStart = true
+        sensorDevices.forEach { it.onStart() }
+    }
+    private fun onStop(){
+        if (!bStart) return
+        bStart = false
+        sensorDevices.forEach { it.onStop() }
     }
 
     private  var sensorEventGesture:String? = null
     fun waitGesture(): String?
             = getEventThread()
 
+    private var bWaitEvent = false
     private fun getEventThread():String?
     {
-        if (!su.hasRootProcess() && su.checkRootAccess())
-        {
+        if (!su.hasRootProcess() && su.checkRootAccess()) {
             detectDevices()
             if (disabled) return null
         }
 
-        sensorDevices.forEach { it.onStart() }
+        bWaitEvent = true
+        onStart()
 
         var thisEvent:String?
         do{
@@ -134,17 +172,22 @@ class GestureDetect (val context:Context)
                     Log.d("Lock gesture", thisEvent)
                 }
 
-                for ((first, second) in delayEvents) {
-
-                    if (first != thisEvent) continue
-                    if (!getEnable(context, second)) break
+                delayEvents.firstOrNull {
+                    val evON = if (screenOnMode) screenEvents.firstOrNull { (first, second) -> it.second == first }?.second else null
+                    it.first == thisEvent && (getEnable(context, it.second) || getEnable(context, evON))
+                }?.apply {
                     if (eventMutex.lock(500)) thisEvent = second
-                    break
+                }
+                if (screenOnMode){
+                    thisEvent = screenEvents.firstOrNull {
+                        it.first == thisEvent && getEnable(context, it.second)
+                    }?.second
                 }
             }
         }while (!disabled && !getEnable(context, thisEvent))
 
-        sensorDevices.forEach { it.onStop() }
+        onStop()
+        bWaitEvent = false
 
         return thisEvent
     }
@@ -152,7 +195,6 @@ class GestureDetect (val context:Context)
     fun sensorEvent(value:String):Boolean
     {
         if (disabled) return false
-//        if (!getEnable(context, value)) return false
 
         sensorEventGesture = value
         eventMutex.unlock()

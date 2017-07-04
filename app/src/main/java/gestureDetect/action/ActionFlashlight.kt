@@ -63,7 +63,6 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         closeCamera()
     }
 
-
     var flashlightDirect:String? = null
     var bEnable = false
     var bHasFlash = false
