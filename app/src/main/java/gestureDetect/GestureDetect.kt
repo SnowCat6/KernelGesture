@@ -11,7 +11,7 @@ import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
-class GestureDetect (val context:Context)
+class GestureDetect (val context:Context, val su:ShellSU)
 {
     /**
      * Sensor devices
@@ -31,7 +31,6 @@ class GestureDetect (val context:Context)
     //  Detected sensor devices
     private var sensorDevices = emptyList<SensorHandler>()
     //  SuperSU
-    val su = ShellSU()
     /**
      * Disable event detection
      */
@@ -47,9 +46,14 @@ class GestureDetect (val context:Context)
     var screenOnMode:Boolean
         get () = _screenOnMode
         set(value){
-            if (value != _screenOnMode){
+            if (value != _screenOnMode)
+            {
                 _screenOnMode = value
-                onDetect()
+                //  Re enable drivers on change screen mode
+                if (bStart){
+                    onStop()
+                    onStart()
+                }
             }
         }
 
@@ -114,6 +118,7 @@ class GestureDetect (val context:Context)
 
     fun enable(bEnable: Boolean)
     {
+        if (bEnable) onDetect()
         sensorDevices.forEach { it.enable(bEnable) }
     }
 

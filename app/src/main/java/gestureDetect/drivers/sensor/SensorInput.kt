@@ -17,7 +17,6 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 {
     var bRunning = false
     var bRunThread = false
-    val su = ShellSU()
 
     /**
      * Input devices
@@ -41,9 +40,9 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
         if (bRunThread) {
             bRunning = false
 
-            su.exec("kill -s SIGINT %%")
+            gesture.su.exec("kill -s SIGINT %%")
             //  Many execute for flush process buffer
-            for (ix in 0..15) su.exec("echo CLOSE_EVENTS>&2")
+            for (ix in 0..15) gesture.su.exec("echo CLOSE_EVENTS>&2")
         }
     }
 
@@ -51,7 +50,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
     {
         inputDevices = emptyList()
 
-        if (!su.hasRootProcess()){
+        if (!gesture.su.hasRootProcess()){
             close()
             return false
         }
@@ -78,13 +77,13 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
      */
     private fun evCmd(queryIx:Long, ix:Int, inputName:String, nLimit:Int, nRepeat:Int){
         val CR = "\\\\n"
-        su.exec("while v$ix=$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; do [ \\\$v$ix ] && for i in `seq 1 $nRepeat` ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
+        gesture.su.exec("while v$ix=$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; do [ \\\$v$ix ] && for i in `seq 1 $nRepeat` ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
     }
 
     override fun onStart()
     {
         bRunning = true
-        if (su.checkRootAccess() && inputDevices.isNotEmpty())
+        if (gesture.su.checkRootAccess() && inputDevices.isNotEmpty())
             startThread()
     }
 
@@ -114,20 +113,21 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 //  Run input event detector
                 evCmd(queryIx, ++ix, inputName, 2, 5)
                 evCmd(queryIx, ++ix, inputName, 4, 2)
-//                evCmd(queryIx, ++ix, inputName, 6, 1)
             }
 
             var lastEventTime:Double = 0.0
             var prevLine = String()
-            while(bRunning)
+            val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
+
+            while(bRunThread)
             {
                 //  Read line from input
-                val rawLine = su.readErrorLine() ?: break
+                val rawLine = gesture.su.readErrorLine() ?: break
                 if (rawLine == prevLine) continue
                 prevLine = rawLine
 
                 //  Stop if gesture need stop run
-                if (!bRunning) break
+                if (!bRunThread) break
 
                 //  Check query number for skip old events output
                 if (!bQueryFound){
@@ -142,40 +142,32 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 //  Check device is near screen
                 if (gesture.isNearProximity) continue
 
-                val line:String
-                val splitLine = rawLine.split(']')
-                if (splitLine.size == 2) {
-
-                    line = splitLine[1].trim()
-                    //  Check only key events
-                    if (!line.contains("EV_KEY")) continue
-
-                    val timeLine = splitLine[0].trim('[').trim().toDoubleOrNull() ?: continue
-                    val timeout = timeLine - lastEventTime
-                    if (timeout > 0) lastEventTime = timeLine
-                    if (timeout <= 0.0) continue
-                }else{
-                    line  = rawLine
+                val ev = regSplit.find(rawLine)
+                if (ev == null){
                     //  Detect current input device
-                    if (line.contains("/dev/input/")) device = line
+                    if (rawLine.contains("/dev/input/")) device = rawLine
                     continue
                 }
+                //  Check only key events
+                if (ev.groupValues[2] != "EV_KEY") continue
+                if (ev.groupValues[4] != "DOWN") continue
 
-                val splitEvent = line.split(' ').filter { it.isNotBlank() }
-                if (splitEvent.size != 3) continue
-                if (splitEvent[2] != "DOWN") continue
+                val timeLine = ev.groupValues[1].toDoubleOrNull() ?: continue
+                if (timeLine <= lastEventTime) continue
+                lastEventTime = timeLine
 
+                val splitEvent = listOf(ev.groupValues[2], ev.groupValues[3], ev.groupValues[4])
                 //  Find device for event accept
                 for ((first, second) in inputDevices)
                 {
                     if (first != device) continue
 
+                    if (BuildConfig.DEBUG) {
+                        Log.d("SensorInput", rawLine)
+                    }
+
                     //  Get gesture
                     val gestureEvent = second.onEvent(splitEvent) ?: break
-
-                    if (BuildConfig.DEBUG) {
-                        Log.d("SensorInput", line)
-                    }
 
                     //  Close cmd events
                     sensorEvent(gestureEvent)

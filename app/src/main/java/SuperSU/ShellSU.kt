@@ -10,49 +10,51 @@ import java.io.OutputStream
  */
 class ShellSU
 {
-    companion object
+    class ProcessSU
     {
-        private var processSU: Process? = null
-        private var errorSU: BufferedReader? = null
-        private var readerSU: BufferedReader? = null
-        private var writerSU: OutputStream? = null
-
-        private var bEnableSU = false
-        private var bEnableCheck = true
-
-        val EVENT_UPDATE = "UPDATE-ROOT"
+        var processSU: Process? = null
+        var errorSU: BufferedReader? = null
+        var readerSU: BufferedReader? = null
+        var writerSU: OutputStream? = null
+        var bEnableSU = false
+        var bEnableCheck = true
+    }
+    companion object Common
+    {
+       val commonSU = ProcessSU()
+       val EVENT_UPDATE = "UPDATE-ROOT"
     }
 
     fun checkRootAccess():Boolean
             = open() != null
 
     fun hasRootProcess():Boolean
-            = bEnableSU
+            = commonSU.bEnableSU
 
     fun enable(bEnable:Boolean) {
-        bEnableCheck = bEnable
+        commonSU.bEnableCheck = bEnable
     }
 
     fun open(): Process?
     {
-        if (!bEnableCheck)
-            return processSU
+        if (!commonSU.bEnableCheck)
+            return commonSU.processSU
 
         try{
-            val exit = processSU?.exitValue()
+            val exit = commonSU.processSU?.exitValue()
             if (exit != null) close()
         }catch (e:Exception){}
 
-        if (processSU != null)
-            return processSU
+        if (commonSU.processSU != null)
+            return commonSU.processSU
 
-        synchronized(bEnableSU)
+        synchronized(commonSU.bEnableSU)
         {
             try {
-                processSU = Runtime.getRuntime().exec("su")
-                readerSU = processSU?.inputStream?.bufferedReader()
-                errorSU = processSU?.errorStream?.bufferedReader()
-                writerSU = processSU?.outputStream
+                commonSU.processSU = Runtime.getRuntime().exec("su")
+                commonSU.readerSU = commonSU.processSU?.inputStream?.bufferedReader()
+                commonSU.errorSU = commonSU.processSU?.errorStream?.bufferedReader()
+                commonSU.writerSU = commonSU.processSU?.outputStream
 
                 exec("id")
                 val id = readExecLine()?.contains("root")
@@ -62,10 +64,10 @@ class ShellSU
                 e.printStackTrace()
                 close()
             }
-            bEnableSU = processSU != null
-            bEnableCheck = bEnableSU
+            commonSU.bEnableSU = commonSU.processSU != null
+            commonSU.bEnableCheck = commonSU.bEnableSU
         }
-        return processSU
+        return commonSU.processSU
     }
 
     fun exec(cmd: String): Boolean
@@ -73,7 +75,7 @@ class ShellSU
         open()
 
         try {
-            writerSU?.apply {
+            commonSU.writerSU?.apply {
                 write("$cmd\n".toByteArray())
                 flush()
             }
@@ -91,18 +93,18 @@ class ShellSU
 
     fun close()
     {
-        if (processSU == null) return
+        if (commonSU.processSU == null) return
         try {
-            processSU?.destroy()
+            commonSU.processSU?.destroy()
         }catch (e:Exception){
             e.printStackTrace()
         }
-        processSU = null
-        writerSU = null
-        readerSU = null
-        errorSU = null
+        commonSU.processSU = null
+        commonSU.writerSU = null
+        commonSU.readerSU = null
+        commonSU.errorSU = null
 
-        bEnableSU = false
+        commonSU.bEnableSU = false
     }
 
     fun getFileLine(name: String): String?
@@ -114,7 +116,7 @@ class ShellSU
     fun readExecLine(): String?
     {
         try {
-            return  readerSU?.readLine()
+            return  commonSU.readerSU?.readLine()
         }catch (e:Exception){
             e.printStackTrace()
         }
@@ -123,7 +125,7 @@ class ShellSU
 
     fun readErrorLine() : String? {
         try {
-            return  errorSU?.readLine()
+            return  commonSU.errorSU?.readLine()
         }catch (e:Exception){
             e.printStackTrace()
         }

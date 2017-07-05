@@ -1,16 +1,11 @@
 package gestureDetect.action
 
 import SuperSU.ShellSU
-import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.R
-import android.content.Context.CAMERA_SERVICE
-import android.hardware.camera2.CameraManager
-
-
 
 class ActionFlashlight(action: GestureAction) : ActionItem(action)
 {
@@ -21,10 +16,10 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     {
         bHasFlash = false
 
-        if (su.hasRootProcess())
+        if (action.su.hasRootProcess())
         {
             for (it in devices) {
-                if (!su.isFileExists(it)) continue
+                if (!action.su.isFileExists(it)) continue
                 flashlightDirect = it
                 bHasFlash = true
                 return bHasFlash
@@ -73,7 +68,6 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     var bHasFlash = false
 
     var camera:Camera? = null
-    val su = ShellSU()
 
     var enable:Boolean
         get() = bEnable
@@ -84,7 +78,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         }
 
     fun flashlightDirect(){
-        su.exec("echo ${if (bEnable) 255 else 0} > $flashlightDirect" )
+        action.su.exec("echo ${if (bEnable) 255 else 0} > $flashlightDirect" )
     }
     fun flashlightCamera()
     {
@@ -101,16 +95,18 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             }
         }
 
-        val params = camera?.parameters ?: return
-
-        if (bEnable) {
-            params.flashMode = Camera.Parameters.FLASH_MODE_TORCH
-            camera?.parameters = params
-            camera?.startPreview()
-        }else{
-            params.flashMode = Camera.Parameters.FLASH_MODE_OFF
-            camera?.parameters = params
-            camera?.stopPreview()
+        try {
+            val params = camera?.parameters ?: return
+            if (bEnable) {
+                params.flashMode = Camera.Parameters.FLASH_MODE_TORCH
+                camera?.parameters = params
+                camera?.startPreview()
+            } else {
+                params.flashMode = Camera.Parameters.FLASH_MODE_OFF
+                camera?.parameters = params
+                camera?.stopPreview()
+            }
+        }catch (e:Exception){
         }
     }
     fun closeCamera(){

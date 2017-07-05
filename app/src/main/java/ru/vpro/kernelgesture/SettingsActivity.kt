@@ -88,7 +88,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         val preferenceScreen = fragment.preferenceScreen
         val context = fragment.activity
-        val support = GestureDetect(context).getSupport()
+        val support = GestureDetect(context, su).getSupport()
         val settings = GestureSettings(context)
 
         var titles = emptyArray<String>()
@@ -246,7 +246,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             LocalBroadcastManager.getInstance(activity).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
 
             settings = GestureSettings(activity)
-            gestureAction = GestureAction(activity)
+            gestureAction = GestureAction(activity, su)
 
             findPreference("GESTURE_ENABLE")?.apply{
                 onPreferenceChangeListener = enableAllListener()

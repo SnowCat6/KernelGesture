@@ -18,11 +18,6 @@ import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
-import android.os.SystemClock
-import android.app.AlarmManager
-import android.app.PendingIntent
-
-
 
 class GestureService :
         Service(),
@@ -36,10 +31,10 @@ class GestureService :
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
 
-    private val su = ShellSU()
     private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
 
+    val su = ShellSU()
     /************************************/
     /*
     GESTURE DETECT
@@ -53,10 +48,10 @@ class GestureService :
         val settings = GestureSettings(this)
 
         if (gestureActions == null)
-            gestureActions = GestureAction(this)
+            gestureActions = GestureAction(this, su)
 
         if (gestureDetector == null)
-            gestureDetector = GestureDetect(this)
+            gestureDetector = GestureDetect(this, su)
 
         val actions = gestureActions!!
         val gesture = gestureDetector!!
@@ -142,7 +137,7 @@ class GestureService :
         keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
 
         if (gestureDetector == null)
-            gestureDetector = GestureDetect(this)
+            gestureDetector = GestureDetect(this, su)
 
         //  Enable/disable gestures on start service
         gestureDetector?.enable(true)
@@ -223,13 +218,14 @@ class GestureService :
                     val key = intent.getSerializableExtra("key") as String
                     if (key != "GESTURE_ENABLE") return
 
-                    val bEnable = intent.getSerializableExtra("value") as Boolean?
-                    if (bEnable == true)
+                    val bEnable = intent.getSerializableExtra("value") as Boolean? ?: false
+                    if (bEnable)
                     {
-                        gestureDetector?.onDetect()
                         gestureActions?.onDetect()
                         gestureDetector?.enable(true)
-                    }else stopSelf()
+                    }else {
+                        stopSelf()
+                    }
                 }
             }
         }

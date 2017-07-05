@@ -1,5 +1,6 @@
 package gestureDetect
 
+import SuperSU.ShellSU
 import android.content.Context
 import android.content.Intent
 import android.media.Ringtone
@@ -14,7 +15,7 @@ import gestureDetect.action.speech.ActionSpeechTime
 import ru.vpro.kernelgesture.BuildConfig
 
 
-class GestureAction(val context:Context)
+class GestureAction(val context:Context, val su:ShellSU)
 {
     private val allActions = arrayOf(
             ActionScreenOn(this),
