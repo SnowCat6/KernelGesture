@@ -68,7 +68,6 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     var bHasFlash = false
 
     var camera:Camera? = null
-    var params: Camera.Parameters? = null
     val su = ShellSU()
 
     var enable:Boolean
@@ -86,11 +85,16 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     {
         if (!bHasFlash) return
 
+        var params:Camera.Parameters? = null
         if (camera == null)
         {
             try {
                 camera = Camera.open()
                 params = camera?.parameters
+                if (params == null){
+                    closeCamera()
+                    return
+                }
             } catch (e: RuntimeException) {
                 e.printStackTrace()
                 closeCamera()
@@ -111,6 +115,5 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     fun closeCamera(){
         camera?.release()
         camera = null
-        params = null
     }
 }
