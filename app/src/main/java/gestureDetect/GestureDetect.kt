@@ -48,9 +48,8 @@ class GestureDetect (val context:Context)
         get () = _screenOnMode
         set(value){
             if (value != _screenOnMode){
-                if (bWaitEvent) onStop()
                 _screenOnMode = value
-                if (bWaitEvent) onStart()
+                onDetect()
             }
         }
 
@@ -100,42 +99,51 @@ class GestureDetect (val context:Context)
      * CODE
      */
     init{
-        detectDevices()
+        onDetect()
     }
 
     fun close()
     {
         disabled = true
-        eventMutex.unlock()
+
         onStop()
         sensorDevices.forEach{ it.close() }
-        delayEvents = emptyList()
+
+        eventMutex.unlock()
     }
 
     fun enable(bEnable: Boolean)
     {
-        detectDevices()
         sensorDevices.forEach { it.enable(bEnable) }
     }
 
-    private fun detectDevices()
+    fun onDetect()
     {
-        if (bWaitEvent) onStop()
-
         val prevSensor = sensorDevices
+
         delayEvents = emptyList()
+        screenEvents = emptyList()
         supported = emptyList()
 
         sensorDevices = sensorHandlers.filter { it.onDetect() }
-        prevSensor.subtract(sensorDevices).forEach { it.close() }
 
-        if (bWaitEvent) onStart()
+        if (bStart){
+            sensorDevices.subtract(prevSensor).forEach {
+                it.onStart()
+            }
+        }
+
+        prevSensor.subtract(sensorDevices).forEach {
+            if (bStart) it.onStop()
+            it.close()
+        }
     }
 
     private var bStart = false
     private fun onStart(){
         if (bStart) return
         bStart = true
+
         if (BuildConfig.DEBUG){
             Log.d("GestureDetect", "start")
         }
@@ -144,6 +152,7 @@ class GestureDetect (val context:Context)
     private fun onStop(){
         if (!bStart) return
         bStart = false
+
         if (BuildConfig.DEBUG){
             Log.d("GestureDetect", "stop")
         }
@@ -154,15 +163,8 @@ class GestureDetect (val context:Context)
     fun waitGesture(): String?
             = getEventThread()
 
-    var bWaitEvent = false
     private fun getEventThread():String?
     {
-        if (!su.hasRootProcess() && su.checkRootAccess()) {
-            detectDevices()
-            if (disabled) return null
-        }
-
-        bWaitEvent = true
         sensorEventGesture.clear()
         onStart()
 
@@ -193,7 +195,6 @@ class GestureDetect (val context:Context)
         }while (!disabled && !settings.getEnable(thisEvent))
 
         onStop()
-        bWaitEvent = false
 
         return thisEvent
     }

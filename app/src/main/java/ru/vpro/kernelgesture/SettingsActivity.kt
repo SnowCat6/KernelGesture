@@ -307,7 +307,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         private var mReceiver = object : BroadcastReceiver() {
                 override fun onReceive(context: Context, intent: Intent?) {
-                    updateControls(intent)
+                    if (activity != null)
+                        updateControls(intent)
                 }
             }
 
@@ -320,22 +321,22 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                 if (value) su.enable(true)
                 settings?.setAllEnable(value)
+                updateControls(context, false)
+                if (value) context.startService(Intent(context, GestureService::class.java))
 
                 if (value == true && !su.hasRootProcess())
                 {
                     thread{
                         if (su.checkRootAccess()) {
                             settings?.setAllEnable(value)
-                        }
-                        Handler(context.mainLooper).post {
-                            updateControls(context, true)
+
+                            Handler(context.mainLooper).post {
+                                updateControls(context, true)
+                            }
                         }
                     }
-                }else {
-                    updateControls(context, false)
                 }
 
-                if (value) context.startService(Intent(context, GestureService::class.java))
 /*
             if (value){
                 val fileName = "/dev/input/event5"

@@ -18,6 +18,11 @@ import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
+import android.os.SystemClock
+import android.app.AlarmManager
+import android.app.PendingIntent
+
+
 
 class GestureService :
         Service(),
@@ -41,10 +46,10 @@ class GestureService :
      */
     fun onHandleIntent(intent: Intent?)
     {
+        su.checkRootAccess()
         val hw = GestureHW(this)
 
         setServiceForeground(!hw.isScreenOn())
-        su.checkRootAccess()
         val settings = GestureSettings(this)
 
         if (gestureActions == null)
@@ -55,8 +60,6 @@ class GestureService :
 
         val actions = gestureActions!!
         val gesture = gestureDetector!!
-
-        gesture.enable(true)
 
         actions.onStart()
         gesture.disabled = false
@@ -129,9 +132,8 @@ class GestureService :
             Log.d("Start service", "**************************")
         }
 
+        su.checkRootAccess()
         val hw = GestureHW(this)
-        val settings = GestureSettings(this)
-
         //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
@@ -143,15 +145,14 @@ class GestureService :
             gestureDetector = GestureDetect(this)
 
         //  Enable/disable gestures on start service
-        gestureDetector?.enable(settings.getAllEnable())
+        gestureDetector?.enable(true)
         gestureDetector?.screenOnMode = hw.isScreenOn()
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
 
         //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onEventIntent, intentFilter)
+        LocalBroadcastManager.getInstance(this).registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
 
         thread{
              onHandleIntent(null)
@@ -176,7 +177,6 @@ class GestureService :
             Log.d("Stop service", "**************************")
         }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onEventIntent)
-
         unregisterReceiver(onEventIntent)
 
         gestureDetector?.close()
@@ -224,9 +224,11 @@ class GestureService :
                     if (key != "GESTURE_ENABLE") return
 
                     val bEnable = intent.getSerializableExtra("value") as Boolean?
-                    if (bEnable == true) {
-                        gestureDetector?.enable(bEnable == true)
+                    if (bEnable == true)
+                    {
+                        gestureDetector?.onDetect()
                         gestureActions?.onDetect()
+                        gestureDetector?.enable(true)
                     }else stopSelf()
                 }
             }

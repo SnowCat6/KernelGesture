@@ -16,6 +16,7 @@ import kotlin.concurrent.thread
 class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 {
     var bRunning = false
+    var bRunThread = false
     val su = ShellSU()
 
     /**
@@ -35,12 +36,15 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
     override fun close()
     {
-        if (!bRunning) return
         bRunning = false
 
-        su.exec("kill -s SIGINT %%")
-        //  Many execute for flush process buffer
-        for(ix in 0..15) su.exec("echo CLOSE_EVENTS>&2")
+        if (bRunThread) {
+            bRunning = false
+
+            su.exec("kill -s SIGINT %%")
+            //  Many execute for flush process buffer
+            for (ix in 0..15) su.exec("echo CLOSE_EVENTS>&2")
+        }
     }
 
     override fun onDetect(): Boolean
@@ -64,6 +68,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
         gesture.registerScreenEvents("KEY_VOLUMEUP_DELAY", "KEY_VOLUMEUP_DELAY_ON")
         gesture.registerScreenEvents("KEY_VOLUMEDOWN_DELAY", "KEY_VOLUMEDOWN_DELAY_ON")
 
+        startThread()
+
         return inputDevices.isNotEmpty()
     }
 
@@ -77,10 +83,19 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
     override fun onStart()
     {
-        enable(true)
-
-        if (bRunning || !su.checkRootAccess()) return
         bRunning = true
+        if (su.checkRootAccess() && inputDevices.isNotEmpty())
+            startThread()
+    }
+
+    override fun onStop() {
+        bRunning = false
+    }
+
+    private fun startThread()
+    {
+        if (bRunThread || !bRunning) return
+        bRunThread = true
 
         thread{
 
@@ -111,7 +126,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 if (rawLine == prevLine) continue
                 prevLine = rawLine
 
-               //  Stop if gesture need stop run
+                //  Stop if gesture need stop run
                 if (!bRunning) break
 
                 //  Check query number for skip old events output
@@ -167,7 +182,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                     break
                 }
             }
-            bRunning = false
+            bRunThread = false
 
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Exit")

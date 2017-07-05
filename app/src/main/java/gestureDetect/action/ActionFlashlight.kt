@@ -40,7 +40,6 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
                 bHasFlash = true
                 camera?.release()
             }catch (e:Exception){
-                e.printStackTrace()
             }
         }
         return bHasFlash
