@@ -1,7 +1,6 @@
 package gestureDetect
 
 import SuperSU.ShellSU
-import android.app.IntentService
 import android.app.KeyguardManager
 import android.app.Notification
 import android.app.Service

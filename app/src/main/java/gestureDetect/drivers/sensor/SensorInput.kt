@@ -77,9 +77,10 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
     override fun onStart()
     {
+        enable(true)
+
         if (bRunning || !su.checkRootAccess()) return
         bRunning = true
-        enable(true)
 
         thread{
 
