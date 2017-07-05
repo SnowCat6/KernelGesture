@@ -4,7 +4,10 @@ import SuperSU.ShellSU
 import android.app.IntentService
 import android.app.KeyguardManager
 import android.app.Notification
-import android.content.*
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
@@ -15,7 +18,7 @@ import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 
-class GestureService : IntentService("AllKernelGesture"),
+class GestureService : IntentService("AnyKernelGesture"),
         SensorEventListener
 {
     companion object {
@@ -29,13 +32,14 @@ class GestureService : IntentService("AllKernelGesture"),
     private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
 
-    val hw = GestureHW(this)
     /************************************/
     /*
     GESTURE DETECT
      */
     override fun onHandleIntent(intent: Intent?)
     {
+        val hw = GestureHW(this)
+
         setServiceForeground(!hw.isScreenOn())
         su.checkRootAccess()
         val settings = GestureSettings(this)
@@ -118,6 +122,11 @@ class GestureService : IntentService("AllKernelGesture"),
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
+        if (BuildConfig.DEBUG){
+            Log.d("Start service", "**************************")
+        }
+
+        val hw = GestureHW(this)
         val settings = GestureSettings(this)
 
         //  Get sensor devices
@@ -134,20 +143,22 @@ class GestureService : IntentService("AllKernelGesture"),
         gestureDetector?.enable(settings.getAllEnable())
         gestureDetector?.screenOnMode = hw.isScreenOn()
 
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
+        LocalBroadcastManager.getInstance(this).registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
 
         //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onEventIntent, intentFilter)
 
-        return super.onStartCommand(intent, flags, startId)
+        super.onStartCommand(intent, flags, startId)
+        return START_STICKY
     }
     override fun onDestroy()
     {
-        LocalBroadcastManager.getInstance(this)
-                .unregisterReceiver(onEventIntent)
+        if (BuildConfig.DEBUG){
+            Log.d("Stop service", "**************************")
+        }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(onEventIntent)
 
         unregisterReceiver(onEventIntent)
 
@@ -159,6 +170,11 @@ class GestureService : IntentService("AllKernelGesture"),
 
         super.onDestroy()
     }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+    }
+
     /************************************/
     /*
     SENSOR events

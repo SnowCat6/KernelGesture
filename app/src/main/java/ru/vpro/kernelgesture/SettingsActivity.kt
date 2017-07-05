@@ -1,6 +1,7 @@
 package ru.vpro.kernelgesture
 
 
+import SuperSU.ShellSU
 import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.content.*
@@ -26,7 +27,6 @@ import com.google.android.gms.ads.InterstitialAd
 import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.GestureService
-import SuperSU.ShellSU
 import gestureDetect.GestureSettings
 import gestureDetect.action.ActionItem
 import java.io.Serializable
@@ -59,6 +59,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     {
         super.onCreate(savedInstanceState)
         setupActionBar()
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
 
         mInterstitialAd = InterstitialAd(this)
         mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548"
@@ -70,16 +71,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 mInterstitialAd?.loadAd(AdRequest.Builder().build())
             }
         }
-
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
     }
 
     override fun onDestroy() {
-        LocalBroadcastManager.getInstance(this)
-                .unregisterReceiver(mReceiver)
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
         super.onDestroy()
     }
+
+    var dlg:AlertDialog?= null
     fun updateControls(intent:Intent?)
     {
         val bShowAlert = intent?.getSerializableExtra("bShowAlert") as Boolean
@@ -128,7 +127,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             setTitle(context.getString(R.string.ui_alert_gs_title))
             setMessage(alertMessage)
-            create().show()
+            dlg = create()
+            dlg?.show()
         }
     }
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean) {
@@ -236,30 +236,21 @@ class SettingsActivity : AppCompatPreferenceActivity()
         var iconResource = 0
         val su = ShellSU()
 
-        var _settings:GestureSettings? = null
-        val settings:GestureSettings get() {
-            if (_settings == null) _settings = GestureSettings(activity)
-            return _settings!!
-        }
-
-        var _gestureAction:GestureAction? = null
-        val gestureAction:GestureAction
-        get(){
-            if (_gestureAction == null) _gestureAction = GestureAction(activity)
-            return _gestureAction!!
-        }
+        var settings:GestureSettings? = null
+        var gestureAction:GestureAction? = null
 
         override fun onCreate(savedInstanceState: Bundle?)
         {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(xmlResourceId)
+            LocalBroadcastManager.getInstance(activity).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
 
-            LocalBroadcastManager.getInstance(activity)
-                    .registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
+            settings = GestureSettings(activity)
+            gestureAction = GestureAction(activity)
 
             findPreference("GESTURE_ENABLE")?.apply{
                 onPreferenceChangeListener = enableAllListener()
-                onPreferenceChangeListener.onPreferenceChange(this, settings.getAllEnable())
+                onPreferenceChangeListener.onPreferenceChange(this, settings!!.getAllEnable())
             }
 
             findPreference("GESTURE_NOTIFY")?.apply{
@@ -272,7 +263,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     thread {
                         su.enable(true)
                         if (su.checkRootAccess()){
-                            settings.setAllEnable(true)
+                            settings?.setAllEnable(true)
                             Handler(Looper.getMainLooper()).post {
                                 updateControls(context, false)
                             }
@@ -307,9 +298,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
             updateControls(activity, false)
         }
 
-        override fun onDestroy() {
-            LocalBroadcastManager.getInstance(activity)
-                    .unregisterReceiver(mReceiver)
+        override fun onDestroy(){
+            settings = null
+            gestureAction = null
+            LocalBroadcastManager.getInstance(activity).unregisterReceiver(mReceiver)
             super.onDestroy()
         }
 
@@ -327,13 +319,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 val context = preference.context
 
                 if (value) su.enable(true)
-                settings.setAllEnable(value)
+                settings?.setAllEnable(value)
 
                 if (value == true && !su.hasRootProcess())
                 {
                     thread{
                         if (su.checkRootAccess()) {
-                            settings.setAllEnable(value)
+                            settings?.setAllEnable(value)
                         }
                         Handler(context.mainLooper).post {
                             updateControls(context, true)
@@ -456,7 +448,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             var action:String
                 get() {
-                    val a = settings.getAction(key)
+                    val a = settings?.getAction(key)
                     if (uiAction(a).isNotEmpty()) return a!!
                     if (uiAction(defaultAction).isEmpty()) return ""
 
@@ -468,14 +460,14 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     _actionName = ""
                     _icon = null
                     applicationInfo = null
-                    settings.setAction(key, value)
+                    settings?.setAction(key, value)
                 }
             var enable:Boolean
-                get() = settings.getEnable(key)
+                get() = settings?.getEnable(key) ?: false
                 set(value){
                     _actionName = ""
                     _icon = null
-                    settings.setEnable(key, value)
+                    settings?.setEnable(key, value)
                 }
 
             var _actionName:String = ""
@@ -520,7 +512,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 preferenceScreen.removePreference(this)
             }
 
-            gestureAction.onDetect()
+            gestureAction?.onDetect()
 
             preferenceItems.forEach {
 
@@ -546,13 +538,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
             private var objects = emptyList<Any>()
             private val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             private val context = preference.context
-            private val currentAction = settings.getAction(preference.key)
+            private val currentAction = settings?.getAction(preference.key)
 
             init{
                 objects += ActionListItem("none")
 
-                gestureAction.getActions()
-                        .forEach { objects += ActionListItem(it) }
+                gestureAction?.getActions()
+                        ?.forEach { objects += ActionListItem(it) }
 
                 thread{
                     val pm =  preference.context.packageManager
@@ -624,7 +616,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 is ApplicationInfo -> return item.packageName
                 is ActionItem -> return item.action()
                 is String -> {
-                    if (gestureAction.getAction(item) != null) return item
+                    if (gestureAction?.getAction(item) != null) return item
                     val appInfo = uiAppInfo(item)
                     if (appInfo != null) return item
                 }
@@ -642,7 +634,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 "" ->  return activity.getString(R.string.ui_default_action)
                 "none"  -> return activity.getString(R.string.ui_no_action)
                 is ActionItem -> return item.name()
-                is String -> return gestureAction.getAction(item)?.name() ?: ""
+                is String -> return gestureAction?.getAction(item)?.name() ?: ""
             }
             return ""
         }
@@ -652,7 +644,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 is ActionListItem -> return item.icon
                 is ApplicationInfo -> return activity.packageManager.getApplicationIcon(item)
                 is ActionItem -> return item.icon()
-                is String -> return gestureAction.getAction(item)?.icon() ?: activity.getDrawable(android.R.color.transparent)
+                is String -> return gestureAction?.getAction(item)?.icon() ?: activity.getDrawable(android.R.color.transparent)
             }
             return activity.getDrawable(android.R.color.transparent)
         }

@@ -98,7 +98,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 //  Run input event detector
                 evCmd(queryIx, ++ix, inputName, 2, 5)
                 evCmd(queryIx, ++ix, inputName, 4, 1)
-                evCmd(queryIx, ++ix, inputName, 6, 1)
+//                evCmd(queryIx, ++ix, inputName, 6, 1)
             }
 
             var lastEventTime:Double = 0.0
