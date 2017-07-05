@@ -161,6 +161,17 @@ class GestureService :
     }
     override fun onDestroy()
     {
+        closeService()
+        super.onDestroy()
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        closeService()
+        super.onTaskRemoved(rootIntent)
+    }
+
+    fun closeService()
+    {
         if (BuildConfig.DEBUG){
             Log.d("Stop service", "**************************")
         }
@@ -173,14 +184,7 @@ class GestureService :
 
         gestureActions?.close()
         gestureActions = null
-
-        super.onDestroy()
     }
-
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        super.onTaskRemoved(rootIntent)
-    }
-
     /************************************/
     /*
     SENSOR events

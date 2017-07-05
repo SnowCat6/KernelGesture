@@ -1,11 +1,16 @@
 package gestureDetect.action
 
 import SuperSU.ShellSU
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.R
+import android.content.Context.CAMERA_SERVICE
+import android.hardware.camera2.CameraManager
+
+
 
 class ActionFlashlight(action: GestureAction) : ActionItem(action)
 {
@@ -31,6 +36,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         {
             try{
                 val camera = Camera.open()
+                val params = camera?.parameters
                 bHasFlash = true
                 camera?.release()
             }catch (e:Exception){
@@ -85,16 +91,10 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     {
         if (!bHasFlash) return
 
-        var params:Camera.Parameters? = null
         if (camera == null)
         {
             try {
                 camera = Camera.open()
-                params = camera?.parameters
-                if (params == null){
-                    closeCamera()
-                    return
-                }
             } catch (e: RuntimeException) {
                 e.printStackTrace()
                 closeCamera()
@@ -102,12 +102,14 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             }
         }
 
+        val params = camera?.parameters ?: return
+
         if (bEnable) {
-            params?.flashMode = Camera.Parameters.FLASH_MODE_TORCH
+            params.flashMode = Camera.Parameters.FLASH_MODE_TORCH
             camera?.parameters = params
             camera?.startPreview()
         }else{
-            params?.flashMode = Camera.Parameters.FLASH_MODE_OFF
+            params.flashMode = Camera.Parameters.FLASH_MODE_OFF
             camera?.parameters = params
             camera?.stopPreview()
         }

@@ -90,8 +90,13 @@ class GestureAction(val context:Context)
         }
         if (action == null || action.isEmpty()) return false
 
-        getAction(action)?.apply {
-            return run()
+        try {
+            getAction(action)?.apply {
+                return run()
+            }
+        }catch (e:Exception){
+            e.printStackTrace()
+            return false
         }
 /*
             "screen.on"
