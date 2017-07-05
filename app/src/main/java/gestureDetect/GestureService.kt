@@ -4,6 +4,7 @@ import SuperSU.ShellSU
 import android.app.IntentService
 import android.app.KeyguardManager
 import android.app.Notification
+import android.app.Service
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -17,8 +18,11 @@ import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
+import kotlin.concurrent.thread
 
-class GestureService : IntentService("AnyKernelGesture"),
+class GestureService :
+        Service(),
+        //IntentService("AnyKernelGesture"),
         SensorEventListener
 {
     companion object {
@@ -36,7 +40,7 @@ class GestureService : IntentService("AnyKernelGesture"),
     /*
     GESTURE DETECT
      */
-    override fun onHandleIntent(intent: Intent?)
+    fun onHandleIntent(intent: Intent?)
     {
         val hw = GestureHW(this)
 
@@ -150,8 +154,11 @@ class GestureService : IntentService("AnyKernelGesture"),
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onEventIntent, intentFilter)
 
-        super.onStartCommand(intent, flags, startId)
-        return START_STICKY
+        thread{
+             onHandleIntent(null)
+        }.priority = Thread.MAX_PRIORITY
+
+        return super.onStartCommand(intent, flags, startId)
     }
     override fun onDestroy()
     {
