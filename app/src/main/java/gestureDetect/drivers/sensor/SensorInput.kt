@@ -28,9 +28,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
     private var inputDevices = emptyList<Pair<String, InputHandler>>()
 
     override fun enable(bEnable: Boolean)
-    {
-        inputDevices.forEach { it.second.setEnable(bEnable) }
-    }
+            = inputDevices.forEach { it.second.setEnable(bEnable) }
 
     override fun close()
     {
@@ -122,11 +120,11 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
             {
                 //  Read line from input
                 val rawLine = gesture.su.readErrorLine() ?: break
-                if (rawLine == prevLine) continue
-                prevLine = rawLine
-
                 //  Stop if gesture need stop run
                 if (!bRunThread) break
+
+                if (rawLine == prevLine) continue
+                prevLine = rawLine
 
                 //  Check query number for skip old events output
                 if (!bQueryFound){
@@ -168,32 +166,30 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
             }
             bRunThread = false
 
-
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Exit")
             }
         }
     }
 
-    private fun getInputEvents():Array<Pair<String, String>>
+    private fun getInputEvents():List<Pair<String, String>>
     {
-        var inputs = emptyArray<Pair<String, String>>()
+        var inputs = emptyList<Pair<String, String>>()
+        val regName = Regex("Name=\"(.*)\"")
+        val regHandlers = Regex("Handlers=(.*)")
+
         try {
             var name = ""
             BufferedReader(FileReader("/proc/bus/input/devices"))
-                    .readLines()
-                    .forEach { line ->
+                    .forEachLine { line ->
 
-                        val iName = line.indexOf("Name=")
-                        if (iName >= 0) name = line.substring(iName + 5).trim('"')
-
-                        val iHandlers = line.indexOf("Handlers=")
-                        if (iHandlers >= 0)
-                        {
-                            line.substring(iHandlers + 9)
-                                    .split(" ")
-                                    .filter { it.contains("event") }
-                                    .forEach { inputs += Pair("/dev/input/$it", name) }
+                        regName.find(line)?.apply {
+                            name = groupValues[1]
+                        }
+                        regHandlers.find(line)?.apply {
+                            groupValues[1].split(" ")
+                                .filter { it.contains("event") }
+                                .forEach { inputs += Pair("/dev/input/$it", name) }
                         }
                     }
         } catch (e: Exception) {
