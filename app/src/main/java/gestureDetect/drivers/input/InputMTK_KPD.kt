@@ -1,8 +1,6 @@
 package gestureDetect.drivers.input
 
-import SuperSU.ShellSU
 import gestureDetect.GestureDetect
-import gestureDetect.GestureHW
 
 /*
 MTK and QCOMM keyboard
@@ -10,42 +8,40 @@ MTK and QCOMM keyboard
 open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
     private class GS(
-            val detectFile: String,
+            val detectPowerFile: String,
             val setPowerON: String,
             val setPowerOFF: String,
-            val getGesture: String
+            val getGesture: String = ""
     )
-    val hw = GestureHW(context)
 
     private var HCT_GESTURE_IO: GS? = null
     //  HCT version gesture for Android 5x and Android 6x
     private val HCT_GESTURE_PATH = arrayOf(
             //  Android 5.x HCT gestures
             GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
-                    "on > /sys/devices/platform/mtk-tpd/tpgesture_status",
-                    "",
+                    "on",
+                    "off",
                     "/sys/devices/platform/mtk-tpd/tpgesture"),
             // Android 6.x HCT gestures
             GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
-                    "on > /sys/devices/bus/bus\\:touch@/tpgesture_status",
-                    "",
+                    "on",
+                    "off",
                     "/sys/devices/bus/bus\\:touch@/tpgesture"),
             //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
             GS("/sys/class/syna/gesenable",
-                    "1 > /sys/class/syna/gesenable",
-                    "",
-                    "")
+                    "1",
+                    "0")
     )
-    val su = ShellSU()
 
     override fun setEnable(enable:Boolean)
     {
-        if (HCT_GESTURE_IO == null) return
-//  Change state when screen is off cause freeze!! Touchscreen driver BUG!!
-        if (!hw.isScreenOn()) return
+        //  Change state when screen is off cause sensor freeze!! Touchscreen driver BUG!!
+        if (!gesture.hw.isScreenOn()) return
 
-        val io = if (enable) HCT_GESTURE_IO!!.setPowerON else HCT_GESTURE_IO!!.setPowerOFF
-        if (io.isNotEmpty()) su.exec("echo $io")
+        HCT_GESTURE_IO?.apply {
+            val io = if (enable) setPowerON else setPowerOFF
+            if (io.isNotEmpty()) gesture.su.exec("echo $io > $detectPowerFile")
+        }
     }
 
     override fun onDetect(name:String): Boolean
@@ -55,7 +51,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 
         if (HCT_GESTURE_IO == null) {
             for (it in HCT_GESTURE_PATH) {
-                if (!su.isFileExists(it.detectFile)) continue
+                if (!gesture.su.isFileExists(it.detectPowerFile)) continue
                 HCT_GESTURE_IO = it
                 gesture.addSupport("GESTURE")
                 gesture.addSupport(allowGestures)
@@ -112,7 +108,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         )
 
         HCT_GESTURE_IO?.apply {
-            return filter(su.getFileLine(this.getGesture), keys)
+            return filter(gesture.su.getFileLine(this.getGesture), keys)
         }
         return null
     }

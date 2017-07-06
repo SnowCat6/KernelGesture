@@ -43,6 +43,16 @@ open class SensorProximity(gesture: GestureDetect) :
         return true
     }
 
+    override fun onScreenState(bScreenON: Boolean)
+    {
+        if (settings.getEnable("KEY_PROXIMITY_ON")){
+            onStart()
+        }else {
+            if (bScreenON) onStop()
+            else onStart()
+        }
+    }
+
     override fun onStart()
     {
         if (gesture.screenOnMode){

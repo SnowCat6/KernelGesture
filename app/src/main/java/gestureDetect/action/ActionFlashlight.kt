@@ -1,6 +1,5 @@
 package gestureDetect.action
 
-import SuperSU.ShellSU
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera

@@ -1,6 +1,5 @@
 package gestureDetect.drivers.sensor
 
-import SuperSU.ShellSU
 import android.util.Log
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
@@ -38,7 +37,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
         bRunning = false
 
         if (bRunThread) {
-            bRunning = false
+            bRunThread = false
 
             gesture.su.exec("kill -s SIGINT %%")
             //  Many execute for flush process buffer
@@ -156,23 +155,10 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 if (timeLine <= lastEventTime) continue
                 lastEventTime = timeLine
 
-                val splitEvent = listOf(ev.groupValues[2], ev.groupValues[3], ev.groupValues[4])
-                //  Find device for event accept
-                for ((first, second) in inputDevices)
-                {
-                    if (first != device) continue
-
-                    if (BuildConfig.DEBUG) {
-                        Log.d("SensorInput", rawLine)
-                    }
-
-                    //  Get gesture
-                    val gestureEvent = second.onEvent(splitEvent) ?: break
-
-                    //  Close cmd events
-                    sensorEvent(gestureEvent)
-                    break
-                }
+                inputDevices
+                        .find { it.first == device }
+                        ?.second?.onEvent(ev.groupValues.subList(2, 4))
+                        ?.apply { sensorEvent(this) }
             }
             bRunThread = false
 

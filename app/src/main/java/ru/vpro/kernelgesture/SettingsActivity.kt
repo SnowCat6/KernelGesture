@@ -47,7 +47,6 @@ import kotlin.concurrent.thread
 class SettingsActivity : AppCompatPreferenceActivity()
 {
     private var mInterstitialAd: InterstitialAd? = null
-    val su = ShellSU()
 
     var mReceiver:BroadcastReceiver =  object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent?) {
@@ -234,7 +233,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         var xmlResourceId = R.xml.pref_gesture
         var iconResource = 0
-        val su = ShellSU()
 
         var settings:GestureSettings? = null
         var gestureAction:GestureAction? = null
@@ -667,6 +665,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
     companion object
     {
+        val su = ShellSU()
+
         /**
          * Helper method to determine if the device has an extra-large screen. For
          * example, 10" tablets are extra-large.

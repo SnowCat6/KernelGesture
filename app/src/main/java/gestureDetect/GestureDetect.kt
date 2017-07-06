@@ -49,11 +49,7 @@ class GestureDetect (val context:Context, val su:ShellSU)
             if (value != _screenOnMode)
             {
                 _screenOnMode = value
-                //  Re enable drivers on change screen mode
-                if (bStart){
-                    onStop()
-                    onStart()
-                }
+                sensorDevices.forEach { it.onScreenState(value) }
             }
         }
 
@@ -233,6 +229,7 @@ class GestureDetect (val context:Context, val su:ShellSU)
     fun sensorEvent(value:String):Boolean
     {
         if (disabled) return false
+        if (!bStart) return false
 
         if (BuildConfig.DEBUG){
             Log.d("SensorEvent", value)

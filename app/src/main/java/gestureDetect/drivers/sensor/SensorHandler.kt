@@ -13,6 +13,11 @@ abstract class SensorHandler(val gesture:GestureDetect)
      * Определить доступность сенсора для работы
      */
     abstract fun onDetect():Boolean
+
+    /**
+     * Screen state changed
+     */
+    open fun onScreenState(bScreenON:Boolean) {}
     /**
      * Начало процесса детектирования событий
      */
