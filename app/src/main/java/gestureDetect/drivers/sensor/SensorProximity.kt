@@ -17,9 +17,8 @@ import ru.vpro.kernelgesture.BuildConfig
 open class SensorProximity(gesture: GestureDetect) :
         SensorHandler(gesture), SensorEventListener
 {
-    val settings = GestureSettings(context)
-    private var mSensorManager: SensorManager? = null
-    private var mProximity: Sensor? = null
+    private var mSensorManager: SensorManager? = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    private var mProximity: Sensor? = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
     private var bRegisterEvent = false
 
     var bNearSensor = false
@@ -33,8 +32,6 @@ open class SensorProximity(gesture: GestureDetect) :
 
     override fun onDetect(): Boolean
     {
-        mSensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
         if (mProximity == null) return false
 
         gesture.addSupport(arrayOf("PROXIMITY", "KEY_PROXIMITY"))
@@ -44,42 +41,41 @@ open class SensorProximity(gesture: GestureDetect) :
     }
 
     override fun onScreenState(bScreenON: Boolean)
-    {
-        if (settings.getEnable("KEY_PROXIMITY_ON")){
-            onStart()
-        }else {
-            if (bScreenON) onStop()
-            else onStart()
-        }
-    }
+            = onStart()
 
     override fun onStart()
     {
         if (gesture.screenOnMode){
-            if (!settings.getEnable("KEY_PROXIMITY_ON"))
+            if (!gesture.settings.getEnable("KEY_PROXIMITY_ON")) {
+                onStop()
                 return
+            }
         }else{
-            if (!settings.getEnable("KEY_PROXIMITY"))
+            if (!gesture.settings.getEnable("KEY_PROXIMITY")) {
+                onStop()
                 return
+            }
         }
+
+        if (bRegisterEvent) return
+        bRegisterEvent = true
 
         if (BuildConfig.DEBUG){
             Log.d("Proximity", "start")
         }
 
-        bRegisterEvent = true
         longTimeFar = System.currentTimeMillis()
         mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
     override fun onStop() {
         if (!bRegisterEvent) return
+        bRegisterEvent = false
 
         if (BuildConfig.DEBUG){
             Log.d("Proximity", "stop")
         }
 
-        bRegisterEvent = false
         mSensorManager?.unregisterListener(this, mProximity)
     }
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
