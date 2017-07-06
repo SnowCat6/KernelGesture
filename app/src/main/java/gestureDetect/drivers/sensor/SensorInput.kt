@@ -76,7 +76,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
      */
     private fun evCmd(queryIx:Long, ix:Int, inputName:String, nLimit:Int, nRepeat:Int){
         val CR = "\\\\n"
-        gesture.su.exec("while v$ix=$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; do [ \\\$v$ix ] && for i in `seq 1 $nRepeat` ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
+        gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; [ \\\$v$ix ] && for i in `seq 1 $nRepeat` ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
     }
 
     override fun onStart()
@@ -147,6 +147,12 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                     if (rawLine.contains("/dev/input/")) device = rawLine
                     continue
                 }
+/*
+                Log.d("Sensor", device)
+                inputDevices.forEach {
+                    Log.d("Sensors", it.first)
+                }
+*/
                 //  Check only key events
                 if (ev.groupValues[2] != "EV_KEY") continue
                 if (ev.groupValues[4] != "DOWN") continue
@@ -161,6 +167,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                         ?.apply { sensorEvent(this) }
             }
             bRunThread = false
+
 
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Exit")

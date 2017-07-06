@@ -19,18 +19,15 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
     private val HCT_GESTURE_PATH = arrayOf(
             //  Android 5.x HCT gestures
             GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
-                    "on",
-                    "off",
+                    "on","off",
                     "/sys/devices/platform/mtk-tpd/tpgesture"),
             // Android 6.x HCT gestures
             GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
-                    "on",
-                    "off",
+                    "on", "off",
                     "/sys/devices/bus/bus\\:touch@/tpgesture"),
             //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
             GS("/sys/class/syna/gesenable",
-                    "1",
-                    "0")
+                    "1","0")
     )
 
     override fun setEnable(enable:Boolean)
