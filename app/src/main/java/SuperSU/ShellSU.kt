@@ -1,5 +1,8 @@
 package SuperSU
 
+import android.content.Context
+import android.content.Intent
+import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
@@ -22,11 +25,28 @@ class ShellSU
     companion object Common
     {
        val commonSU = ProcessSU()
-       val EVENT_UPDATE = "UPDATE-ROOT"
+       val EVENT_UPDATE_ROOT_STATE = "UPDATE_ROOT_STATE"
     }
 
-    fun checkRootAccess():Boolean
-            = open() != null
+    fun checkRootAccess(context: Context? = null):Boolean
+    {
+        val bEnable = commonSU.processSU != null
+        if (open() == null){
+            if (bEnable) context?.apply {
+                LocalBroadcastManager.getInstance(this)
+                        .sendBroadcast(Intent(EVENT_UPDATE_ROOT_STATE))
+            }
+            return false
+        }
+        if (bEnable) return true
+
+        context?.apply {
+            LocalBroadcastManager.getInstance(this)
+                    .sendBroadcast(Intent(EVENT_UPDATE_ROOT_STATE))
+        }
+
+        return true
+    }
 
     fun hasRootProcess():Boolean
             = commonSU.bEnableSU

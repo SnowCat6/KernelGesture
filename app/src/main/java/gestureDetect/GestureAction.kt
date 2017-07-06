@@ -15,7 +15,7 @@ import gestureDetect.action.speech.ActionSpeechTime
 import ru.vpro.kernelgesture.BuildConfig
 
 
-class GestureAction(val context:Context, val su:ShellSU)
+class GestureAction(val context:Context)
 {
     private val allActions = arrayOf(
             ActionScreenOn(this),
@@ -30,6 +30,7 @@ class GestureAction(val context:Context, val su:ShellSU)
             ActionCamera(this)
     )
     val hw = GestureHW(context)
+    val su = ShellSU()
     val settings = GestureSettings(context)
 
     init {

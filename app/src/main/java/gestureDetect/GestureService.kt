@@ -41,17 +41,17 @@ class GestureService :
      */
     fun onHandleIntent(intent: Intent?)
     {
-        su.checkRootAccess()
+        su.checkRootAccess(this)
         val hw = GestureHW(this)
 
         setServiceForeground(!hw.isScreenOn())
         val settings = GestureSettings(this)
 
         if (gestureActions == null)
-            gestureActions = GestureAction(this, su)
+            gestureActions = GestureAction(this)
 
         if (gestureDetector == null)
-            gestureDetector = GestureDetect(this, su)
+            gestureDetector = GestureDetect(this)
 
         val actions = gestureActions!!
         val gesture = gestureDetector!!
@@ -127,7 +127,7 @@ class GestureService :
             Log.d("Start service", "**************************")
         }
 
-        su.checkRootAccess()
+        su.checkRootAccess(this)
         val hw = GestureHW(this)
         //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -137,7 +137,7 @@ class GestureService :
         keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
 
         if (gestureDetector == null)
-            gestureDetector = GestureDetect(this, su)
+            gestureDetector = GestureDetect(this)
 
         //  Enable/disable gestures on start service
         gestureDetector?.enable(true)

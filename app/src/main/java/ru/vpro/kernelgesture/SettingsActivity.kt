@@ -58,7 +58,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     {
         super.onCreate(savedInstanceState)
         setupActionBar()
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
+        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE_ROOT_STATE))
 
         mInterstitialAd = InterstitialAd(this)
         mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548"
@@ -80,14 +80,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
     var dlg:AlertDialog?= null
     fun updateControls(intent:Intent?)
     {
-        val bShowAlert = intent?.getSerializableExtra("bShowAlert") as Boolean
-
         val fragment = fragmentManager
                 .findFragmentById(android.R.id.content) as PreferenceFragment? ?: return
 
         val preferenceScreen = fragment.preferenceScreen
         val context = fragment.activity
-        val support = GestureDetect(context, su).getSupport()
+        val support = GestureDetect(context).getSupport()
         val settings = GestureSettings(context)
 
         var titles = emptyArray<String>()
@@ -120,7 +118,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
             findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
         }
 
-        if (alertMessage == null || !bShowAlert) return
+        if (!su.hasRootProcess()) return
+        if (alertMessage == null || dlg != null) return
 
         with(AlertDialog.Builder(context))
         {
@@ -241,10 +240,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(xmlResourceId)
-            LocalBroadcastManager.getInstance(activity).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE))
+            LocalBroadcastManager.getInstance(activity).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE_ROOT_STATE))
 
             settings = GestureSettings(activity)
-            gestureAction = GestureAction(activity, su)
+            gestureAction = GestureAction(activity)
 
             findPreference("GESTURE_ENABLE")?.apply{
                 onPreferenceChangeListener = enableAllListener()
@@ -260,12 +259,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 setOnPreferenceClickListener {
                     thread {
                         su.enable(true)
-                        if (su.checkRootAccess()){
+                        if (su.checkRootAccess(context))
                             settings?.setAllEnable(true)
-                            Handler(Looper.getMainLooper()).post {
-                                updateControls(context, false)
-                            }
-                        }
                     }
                     true
                 }
@@ -293,7 +288,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
             }
 
-            updateControls(activity, false)
+            updateControls(activity)
         }
 
         override fun onDestroy(){
@@ -319,17 +314,17 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                 if (value) su.enable(true)
                 settings?.setAllEnable(value)
-                updateControls(context, false)
+                updateControls(context)
                 if (value) context.startService(Intent(context, GestureService::class.java))
 
                 if (value == true && !su.hasRootProcess())
                 {
                     thread{
-                        if (su.checkRootAccess()) {
+                        if (su.checkRootAccess(context)) {
                             settings?.setAllEnable(value)
 
                             Handler(context.mainLooper).post {
-                                updateControls(context, true)
+                                updateControls(context)
                             }
                         }
                     }
@@ -675,10 +670,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
             return context.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
         }
 
-        fun updateControls(context:Context, bShowAlert:Boolean)
+        fun updateControls(context:Context)
         {
-            val intent = Intent(ShellSU.EVENT_UPDATE)
-            intent.putExtra("bShowAlert", bShowAlert as Serializable)
+            val intent = Intent(ShellSU.EVENT_UPDATE_ROOT_STATE)
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
         }
     }
