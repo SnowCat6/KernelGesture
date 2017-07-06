@@ -180,15 +180,15 @@ class GestureDetect (val context:Context, val su:ShellSU)
                     Log.d("Lock gesture", thisEvent)
                 }
 
-                delayEvents.firstOrNull {
-                    val evON = if (screenOnMode) screenEvents.firstOrNull { (first, second) -> it.second == first }?.second else null
-                    it.first == thisEvent && (settings.getEnable(it.second) || settings.getEnable(evON))
-                }?.apply {
-                    val evDelay = getCurrentEvent(350)
-                    if (evDelay == first) thisEvent = second
+                if (isEventEnable(this)){
+                    delayEvents.find { it.first == this }?.apply {
+                        val evDelay = getCurrentEvent(350)
+                        if (evDelay == first) thisEvent = second
+                    }
                 }
+
                 if (screenOnMode){
-                    thisEvent = screenEvents.firstOrNull {
+                    thisEvent = screenEvents.find {
                         it.first == thisEvent && settings.getEnable(it.second)
                     }?.second
                 }
@@ -230,6 +230,7 @@ class GestureDetect (val context:Context, val su:ShellSU)
     {
         if (disabled) return false
         if (!bStart) return false
+        if (!isEventEnable(value)) return false
 
         if (BuildConfig.DEBUG){
             Log.d("SensorEvent", value)
@@ -241,6 +242,20 @@ class GestureDetect (val context:Context, val su:ShellSU)
         }
 
         return true
+    }
+
+    /**
+     * Once event or double tap events enable
+     */
+    fun isEventEnable(ev:String):Boolean
+    {
+        if (settings.getEnable(ev)) return true
+        if (screenOnMode){
+            val evDelay = delayEvents.find { it.first == ev } ?: return false
+            return screenEvents.find { it.first == evDelay.second && settings.getEnable(it.second) } != null
+        }
+
+        return delayEvents.find { it.first == ev && settings.getEnable(it.second) } != null
     }
 
     fun addSupport(value:String)
