@@ -264,7 +264,7 @@ class GestureDetect (val context:Context)
         if (supported.contains(value)) return
         supported += value
     }
-    fun addSupport(value:Array<String>)
+    fun addSupport(value:List<String>)
             = value.forEach { addSupport(it) }
 
     fun getSupport():List<String>

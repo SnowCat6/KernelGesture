@@ -29,7 +29,6 @@ import gestureDetect.GestureDetect
 import gestureDetect.GestureService
 import gestureDetect.GestureSettings
 import gestureDetect.action.ActionItem
-import java.io.Serializable
 import kotlin.concurrent.thread
 
 
@@ -48,17 +47,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
 {
     private var mInterstitialAd: InterstitialAd? = null
 
-    var mReceiver:BroadcastReceiver =  object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent?) {
-                updateControls(intent)
-            }
-        }
-
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
         setupActionBar()
-        LocalBroadcastManager.getInstance(this).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE_ROOT_STATE))
 
         mInterstitialAd = InterstitialAd(this)
         mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548"
@@ -72,66 +64,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
         }
     }
 
-    override fun onDestroy() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver)
-        super.onDestroy()
-    }
-
-    var dlg:AlertDialog?= null
-    fun updateControls(intent:Intent?)
-    {
-        val fragment = fragmentManager
-                .findFragmentById(android.R.id.content) as PreferenceFragment? ?: return
-
-        val preferenceScreen = fragment.preferenceScreen
-        val context = fragment.activity
-        val support = GestureDetect(context).getSupport()
-        val settings = GestureSettings(context)
-
-        var titles = emptyArray<String>()
-        var alertMessage:String? = null
-        val bAllEnable = settings.getAllEnable()
-
-        val bGesture = support.contains("GESTURE")
-        if (bGesture) titles += context.getString(R.string.ui_title_gestures)
-
-        val bKeys = support.contains("KEYS")
-        if (bKeys) titles += context.getString(R.string.ui_title_keys)
-
-        val bProximity = support.contains("PROXIMITY")
-        if (bProximity) titles += context.getString(R.string.ui_title_gesture)
-
-        if (!titles.isEmpty()) supportActionBar.subtitle = titles.joinToString(", ")
-        else supportActionBar.subtitle = context.getString(R.string.ui_title_no_any_support)
-
-        if (titles.isEmpty())
-            alertMessage = context.getString(R.string.ui_alert_gs_message_wo_keys)
-        else
-            if (!support.contains("GESTURE"))
-                alertMessage = context.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
-
-        with(preferenceScreen){
-            val bEnable = su.hasRootProcess() && bAllEnable && titles.isNotEmpty()
-            findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ bEnable
-            findPreference("KEY_GROUP")?.isEnabled = bKeys && bEnable
-            findPreference("KEY_GROUP_ON")?.isEnabled = bKeys && bEnable
-            findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
-        }
-
-        if (!su.hasRootProcess()) return
-        if (alertMessage == null || dlg != null) return
-
-        with(AlertDialog.Builder(context))
-        {
-            setTitle(context.getString(R.string.ui_alert_gs_title))
-            setMessage(alertMessage)
-            dlg = create()
-            dlg?.show()
-        }
-    }
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean) {
         super.onMultiWindowModeChanged(isInMultiWindowMode)
-        if (!isInMultiWindowMode) updateControls(null)
+        if (!isInMultiWindowMode) updateControls(this)
     }
 
     /**
@@ -288,7 +223,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
             }
 
-            updateControls(activity)
+        }
+
+        override fun onResume() {
+            super.onResume()
+            updateControls()
         }
 
         override fun onDestroy(){
@@ -299,11 +238,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
         }
 
         private var mReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent?) {
-                    if (activity != null)
-                        updateControls(intent)
+            override fun onReceive(context: Context, intent: Intent?) {
+                activity?.apply {
+                    updateControls(intent)
                 }
             }
+        }
 
         private fun enableAllListener(): Preference.OnPreferenceChangeListener {
             return Preference.OnPreferenceChangeListener { preference, value ->
@@ -322,10 +262,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     thread{
                         if (su.checkRootAccess(context)) {
                             settings?.setAllEnable(value)
-
-                            Handler(context.mainLooper).post {
-                                updateControls(context)
-                            }
+                            updateControls(context)
                         }
                     }
                 }
@@ -497,12 +434,10 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         applicationInfo else uiAppInfo(action)
         }
 
+        var dlg:AlertDialog? = null
         private fun updateControls(intent:Intent? = null)
         {
-            val preferenceScreen = preferenceScreen
-
-            val bRootExists = su.hasRootProcess()
-            if (bRootExists) preferenceScreen.findPreference("pref_ROOT")?.apply {
+            if (su.hasRootProcess()) preferenceScreen.findPreference("pref_ROOT")?.apply {
                 preferenceScreen.removePreference(this)
             }
 
@@ -517,6 +452,57 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     onPreferenceClickListener = actionListener()
                     onPreferenceChangeListener.onPreferenceChange(this, it.enable)
                 }
+            }
+
+            val fragment = fragmentManager
+                    .findFragmentById(android.R.id.content) as PreferenceFragment? ?: return
+
+            val context = fragment.activity
+            val support = GestureDetect(context).getSupport()
+            val settings = GestureSettings(context)
+
+            var titles = emptyList<String>()
+            var alertMessage:String? = null
+            val bAllEnable = settings.getAllEnable()
+
+            val bGesture = support.contains("GESTURE")
+            if (bGesture) titles += context.getString(R.string.ui_title_gestures)
+
+            val bKeys = support.contains("KEYS")
+            if (bKeys) titles += context.getString(R.string.ui_title_keys)
+
+            val bProximity = support.contains("PROXIMITY")
+            if (bProximity) titles += context.getString(R.string.ui_title_gesture)
+
+            (activity as AppCompatPreferenceActivity?)?.supportActionBar?.apply {
+                if (!titles.isEmpty()) subtitle = titles.joinToString(", ")
+                else subtitle = context.getString(R.string.ui_title_no_any_support)
+            }
+
+            if (titles.isEmpty())
+                alertMessage = context.getString(R.string.ui_alert_gs_message_wo_keys)
+            else
+                if (!support.contains("GESTURE"))
+                    alertMessage = context.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
+
+            with(preferenceScreen){
+                val bEnable = su.hasRootProcess() && bAllEnable && titles.isNotEmpty()
+                findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ bEnable
+                findPreference("KEY_GROUP")?.isEnabled = bKeys && bEnable
+                findPreference("KEY_GROUP_ON")?.isEnabled = bKeys && bEnable
+                findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
+            }
+
+            if (!su.hasRootProcess()) return
+            if (alertMessage == null || !bShowAlertDlg) return
+            bShowAlertDlg = false
+
+            with(AlertDialog.Builder(context))
+            {
+                setTitle(context.getString(R.string.ui_alert_gs_title))
+                setMessage(alertMessage)
+                dlg = create()
+                dlg?.show()
             }
         }
 
@@ -661,6 +647,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     companion object
     {
         val su = ShellSU()
+        var bShowAlertDlg = true
 
         /**
          * Helper method to determine if the device has an extra-large screen. For

@@ -34,7 +34,7 @@ open class SensorProximity(gesture: GestureDetect) :
     {
         if (mProximity == null) return false
 
-        gesture.addSupport(arrayOf("PROXIMITY", "KEY_PROXIMITY"))
+        gesture.addSupport(listOf("PROXIMITY", "KEY_PROXIMITY"))
         gesture.registerScreenEvents("KEY_PROXIMITY", "KEY_PROXIMITY_ON")
 
         return true

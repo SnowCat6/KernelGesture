@@ -1,6 +1,7 @@
 package gestureDetect
 
 import SuperSU.ShellSU
+import android.app.IntentService
 import android.app.KeyguardManager
 import android.app.Notification
 import android.app.Service
@@ -20,8 +21,8 @@ import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
 
 class GestureService :
-        Service(),
-        //IntentService("AnyKernelGesture"),
+//        Service(),
+        IntentService("AnyKernelGesture"),
         SensorEventListener
 {
     companion object {
@@ -39,7 +40,7 @@ class GestureService :
     /*
     GESTURE DETECT
      */
-    fun onHandleIntent(intent: Intent?)
+    override fun onHandleIntent(intent: Intent?)
     {
         su.checkRootAccess(this)
         val hw = GestureHW(this)
@@ -123,6 +124,12 @@ class GestureService :
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
+        super.onStartCommand(intent, flags, startId)
+        return Service.START_STICKY
+    }
+
+    override fun onCreate()
+    {
         if (BuildConfig.DEBUG){
             Log.d("Start service", "**************************")
         }
@@ -149,12 +156,9 @@ class GestureService :
         registerReceiver(onEventIntent, intentFilter)
         LocalBroadcastManager.getInstance(this).registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
 
-        thread{
-             onHandleIntent(null)
-        }.priority = Thread.MAX_PRIORITY
-
-        return super.onStartCommand(intent, flags, startId)
+        super.onCreate()
     }
+
     override fun onDestroy()
     {
         closeService()

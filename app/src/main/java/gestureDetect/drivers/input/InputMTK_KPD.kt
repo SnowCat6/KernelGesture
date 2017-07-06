@@ -44,7 +44,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
     override fun onDetect(name:String): Boolean
     {
         if (name.toLowerCase() != "mtk-kpd") return false
-        gesture.addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+        gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
 
         if (HCT_GESTURE_IO == null) {
             for (it in HCT_GESTURE_PATH) {

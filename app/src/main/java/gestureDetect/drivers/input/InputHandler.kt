@@ -32,7 +32,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     companion object
     {
         //  Allowed standard key
-        val allowGestures = arrayOf(
+        val allowGestures = listOf(
                 "KEY_UP",
                 "KEY_DOWN",
                 "KEY_LEFT",

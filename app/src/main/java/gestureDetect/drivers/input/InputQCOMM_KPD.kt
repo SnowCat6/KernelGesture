@@ -11,7 +11,7 @@ open class InputQCOMM_KPD(gesture: GestureDetect) : InputHandler(gesture)
         if (!arrayOf("qpnp_pon",  "gpio-keys")
                 .contains(name.toLowerCase())) return false
 
-        gesture.addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+        gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
         return true
     }
 

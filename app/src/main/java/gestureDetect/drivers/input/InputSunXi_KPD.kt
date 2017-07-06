@@ -11,7 +11,7 @@ open class InputSunXi_KPD(gesture: GestureDetect) : InputHandler(gesture)
         if (!arrayOf("sun4i-keyboard")
                 .contains(name.toLowerCase())) return false
 
-        gesture.addSupport(arrayOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+        gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
         return true
     }
 
