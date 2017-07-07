@@ -181,8 +181,16 @@ class GestureDetect (val context:Context)
                     Log.d("Lock gesture", thisEvent)
                 }
 
-                if (isEventEnable(this)){
-                    delayEvents.find { it.first == this }?.apply {
+                if (screenOnMode)
+                {
+                    delayEvents.find { it.first == thisEvent  }?.apply {
+                        screenEvents.find { it.first == second && settings.getEnable(second) }?.apply {
+                            val evDelay = getCurrentEvent(350)
+                            if (evDelay == thisEvent) thisEvent = first
+                        }
+                    }
+                }else{
+                    delayEvents.find { it.first == thisEvent && settings.getEnable(it.second) }?.apply {
                         val evDelay = getCurrentEvent(350)
                         if (evDelay == first) thisEvent = second
                     }
@@ -248,15 +256,16 @@ class GestureDetect (val context:Context)
     /**
      * Once event or double tap events enable
      */
-    fun isEventEnable(ev:String):Boolean
+    fun isEventEnable(event:String):Boolean
     {
-        if (settings.getEnable(ev)) return true
         if (screenOnMode){
-            val evDelay = delayEvents.find { it.first == ev } ?: return false
-            return screenEvents.find { it.first == evDelay.second && settings.getEnable(it.second) } != null
+            var ev = event
+            delayEvents.find { it.first == ev}?.second?.apply { ev = this }
+            return screenEvents.find { it.first == ev && settings.getEnable(it.second) } != null
         }
 
-        return delayEvents.find { it.first == ev && settings.getEnable(it.second) } != null
+        if (settings.getEnable(event)) return true
+        return delayEvents.find { it.first == event && settings.getEnable(it.second) } != null
     }
 
     fun addSupport(value:String)

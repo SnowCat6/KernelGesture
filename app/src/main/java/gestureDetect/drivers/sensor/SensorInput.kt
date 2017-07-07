@@ -74,7 +74,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
      */
     private fun evCmd(queryIx:Long, ix:Int, inputName:String, nLimit:Int, nRepeat:Int){
         val CR = "\\\\n"
-        gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; [ \\\$v$ix ] && for i in `seq 1 $nRepeat` ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
+        gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; [ \"\$v$ix\" ] && for i in `seq 1 $nRepeat` ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
     }
 
     override fun onStart()
