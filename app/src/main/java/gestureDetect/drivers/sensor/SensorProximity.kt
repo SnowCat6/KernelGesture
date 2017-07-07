@@ -7,7 +7,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
 import gestureDetect.GestureDetect
-import gestureDetect.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
 
 /**

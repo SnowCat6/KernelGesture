@@ -18,7 +18,6 @@ import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
-import kotlin.concurrent.thread
 
 class GestureService :
 //        Service(),
