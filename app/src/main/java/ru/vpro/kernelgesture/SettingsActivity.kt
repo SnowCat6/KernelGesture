@@ -200,6 +200,17 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
             }
 
+            preferenceItems.forEach {
+
+                it.action
+                findPreference(it.key)?.apply {
+                    icon = it.icon
+                    onPreferenceChangeListener = changeListener()
+                    onPreferenceClickListener = actionListener()
+                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
+                }
+            }
+
             arrayOf(
                     Pair("TOUCH_PREFERENCE", TouchscreenPreferenceFragment::class.java),
                     Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
@@ -441,17 +452,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
 
             gestureAction?.onDetect()
-
-            preferenceItems.forEach {
-
-                it.action
-                findPreference(it.key)?.apply {
-                    icon = it.icon
-                    onPreferenceChangeListener = changeListener()
-                    onPreferenceClickListener = actionListener()
-                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
-                }
-            }
 
             val fragment = fragmentManager
                     .findFragmentById(android.R.id.content) as PreferenceFragment? ?: return

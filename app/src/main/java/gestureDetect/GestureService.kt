@@ -100,7 +100,7 @@ class GestureService :
 
         if (bForeground) {
             val builder = Notification.Builder(this)
-                    .setSmallIcon(R.drawable.icon_screen_on)
+                    .setSmallIcon(R.drawable.icon_service)
                     .setContentTitle(getString(R.string.ui_service))
 
             val notification = builder.build()
