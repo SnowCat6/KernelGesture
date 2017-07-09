@@ -84,7 +84,7 @@ class InputDetectActivity : AppCompatActivity() {
 
         log += "Add input devices list"
         SensorInput.getInputEvents().forEach {
-            log += "device:${it.second} -> ${it.first}"
+            log += "device:${it.second}"
         }
         log += String()
 
@@ -112,10 +112,10 @@ class InputDetectActivity : AppCompatActivity() {
         if (su.exec("find $path $cmd") && su.exec("echo --END--"))
         {
             while (true) {
-                val line = "path:" + su.readExecLine() ?: break
+                val line = su.readExecLine() ?: break
                 if (line == "--END--") break
 
-                log += line
+                log += "path:" + line
             }
         }
         log += String()
