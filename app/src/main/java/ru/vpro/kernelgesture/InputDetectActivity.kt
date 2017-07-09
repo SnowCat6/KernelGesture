@@ -65,29 +65,46 @@ class InputDetectActivity : AppCompatActivity() {
             isEnabled = false
             setOnClickListener {
                 isEnabled = false
-                val bundle = Bundle()
-                log.forEach {
-                    val ix = it.indexOf(":")
-                    if (ix > 0)
-                    {
-                        val type = it.substring(0, ix)
-                        val value = it.substring(ix)
-                        bundle.putString("model_name", android.os.Build.MODEL)
-                        bundle.putString("device_type", type)
-                        bundle.putString("device_value", value)
-                        firebaseAnalytics?.logEvent("gesture_detect", bundle);
+                thread {
+                    reportError()
+                    Handler(mainLooper).post {
+                        with(android.app.AlertDialog.Builder(context))
+                        {
+                            setTitle("Report send")
+                            setMessage("Thanks you for report!")
+                            dlg = create()
+                            dlg?.show()
+                        }
                     }
-                }
-                with(android.app.AlertDialog.Builder(context))
-                {
-                    setTitle("Report send")
-                    setMessage("Thanks you for report!")
-                    dlg = create()
-                    dlg?.show()
                 }
             }
         }
 
+    }
+
+    private fun reportError()
+    {
+/*
+        log.forEach {
+            val ix = it.indexOf(":")
+            if (ix > 0)
+            {
+                val bundle = Bundle()
+                val type = it.substring(0, ix)
+                val value = it.substring(ix+1)
+                bundle.putString(FirebaseAnalytics.Param.ITEM_ID, value)
+                bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, type)
+                firebaseAnalytics?.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+            }
+        }
+*/
+        val intent = Intent(Intent.ACTION_SEND)
+        intent.type = "text/html"
+        intent.putExtra(Intent.EXTRA_EMAIL, "vpro@vpro.ru")
+        intent.putExtra(Intent.EXTRA_SUBJECT, "AnyKernelGesture log")
+        intent.putExtra(Intent.EXTRA_TEXT, log.joinToString("\n"))
+
+        startActivity(Intent.createChooser(intent, "Send Email"))
     }
 
     var dlg: android.app.AlertDialog? = null
@@ -95,6 +112,9 @@ class InputDetectActivity : AppCompatActivity() {
 
         log = emptyList()
         val su = ShellSU()
+
+
+        log += "Device name:" + android.os.Build.MODEL
 
         log += "Add input devices list"
         SensorInput.getInputEvents().forEach {
