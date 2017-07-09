@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.support.v7.app.AlertDialog
+import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
@@ -31,6 +32,11 @@ class InputDetectActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_input_detect)
+
+        supportActionBar?.apply {
+            subtitle = "Detect and sent to developer"
+            setDisplayHomeAsUpEnabled(true)
+        }
 
         firebaseAnalytics = FirebaseAnalytics.getInstance(this)
 
@@ -64,11 +70,12 @@ class InputDetectActivity : AppCompatActivity() {
                     val ix = it.indexOf(":")
                     if (ix > 0)
                     {
-                        val id = it.substring(0, ix)
+                        val type = it.substring(0, ix)
                         val value = it.substring(ix)
-                        bundle.putString(FirebaseAnalytics.Param.GROUP_ID, id)
-                        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, value)
-                        firebaseAnalytics?.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
+                        bundle.putString("model_name", android.os.Build.MODEL)
+                        bundle.putString("device_type", type)
+                        bundle.putString("device_value", value)
+                        firebaseAnalytics?.logEvent("gesture_detect", bundle);
                     }
                 }
             }
@@ -119,6 +126,16 @@ class InputDetectActivity : AppCompatActivity() {
             }
         }
         log += String()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        when (item?.itemId) {
+            android.R.id.home -> {
+                super.onBackPressed()
+                return true
+            }
+        }
+        return super.onOptionsItemSelected(item)
     }
 
     companion object {
