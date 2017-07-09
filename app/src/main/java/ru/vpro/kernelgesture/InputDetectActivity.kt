@@ -78,6 +78,13 @@ class InputDetectActivity : AppCompatActivity() {
                         firebaseAnalytics?.logEvent("gesture_detect", bundle);
                     }
                 }
+                with(android.app.AlertDialog.Builder(context))
+                {
+                    setTitle("Report send")
+                    setMessage("Thanks you for report!")
+                    dlg = create()
+                    dlg?.show()
+                }
             }
         }
 
