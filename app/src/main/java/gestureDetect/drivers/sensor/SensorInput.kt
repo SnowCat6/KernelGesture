@@ -174,29 +174,32 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
         }
     }
 
-    private fun getInputEvents():List<Pair<String, String>>
+    companion object
     {
-        var inputs = emptyList<Pair<String, String>>()
-        val regName = Regex("Name=\"(.*)\"")
-        val regHandlers = Regex("Handlers=(.*)")
+        fun getInputEvents():List<Pair<String, String>>
+        {
+            var inputs = emptyList<Pair<String, String>>()
+            val regName = Regex("Name=\"(.*)\"")
+            val regHandlers = Regex("Handlers=(.*)")
 
-        try {
-            var name = ""
-            BufferedReader(FileReader("/proc/bus/input/devices"))
-                    .forEachLine { line ->
+            try {
+                var name = ""
+                BufferedReader(FileReader("/proc/bus/input/devices"))
+                        .forEachLine { line ->
 
-                        regName.find(line)?.apply {
-                            name = groupValues[1]
+                            regName.find(line)?.apply {
+                                name = groupValues[1]
+                            }
+                            regHandlers.find(line)?.apply {
+                                groupValues[1].split(" ")
+                                        .filter { it.contains("event") }
+                                        .forEach { inputs += Pair("/dev/input/$it", name) }
+                            }
                         }
-                        regHandlers.find(line)?.apply {
-                            groupValues[1].split(" ")
-                                .filter { it.contains("event") }
-                                .forEach { inputs += Pair("/dev/input/$it", name) }
-                        }
-                    }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return inputs
         }
-        return inputs
     }
 }

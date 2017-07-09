@@ -101,8 +101,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     Log.d("TAG", "The interstitial wasn't loaded yet.")
                 }
             }
+            R.id.menu_settings ->
+            {
+                InputDetectActivity.startActivity(this)
+            }
+            else -> super.onOptionsItemSelected(item)
         }
-        return super.onOptionsItemSelected(item)
+        return true
     }
 
     /**

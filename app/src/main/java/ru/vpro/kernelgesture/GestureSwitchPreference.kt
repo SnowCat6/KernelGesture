@@ -15,7 +15,7 @@ class GestureSwitchPreference : SwitchPreference
     constructor(context:Context, attrs:AttributeSet, defStyleAttr:Int, defStyleRes:Int) : super(context, attrs, defStyleAttr, defStyleRes)
 
     init {
-        widgetLayoutResource = R.layout.preference_switch_item
+        widgetLayoutResource = R.layout.adapter_switch_item
     }
 
     override fun onBindView(view: View)

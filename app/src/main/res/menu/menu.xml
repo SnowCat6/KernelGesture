@@ -6,4 +6,11 @@
         android:icon="@android:drawable/ic_menu_info_details"
         app:showAsAction="always"
         android:title="@string/ui_adv_menu" />
+
+    <item
+        android:id="@+id/menu_settings"
+        android:icon="@android:drawable/ic_menu_preferences"
+        app:showAsAction="ifRoom"
+        android:title="Settings" />
+
 </menu>
