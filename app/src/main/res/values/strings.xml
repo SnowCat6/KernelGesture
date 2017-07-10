@@ -67,6 +67,7 @@
     <string name="ui_action_camera">Camera</string>
     <string name="ui_title_screen_on">Screen on</string>
     <string name="ui_title_screen_off">Screen off</string>
+    <string name="ui_action_screen_off">Screen off</string>
 
     <!-- Strings related to Settings -->
 

@@ -19,6 +19,7 @@ class GestureAction(val context:Context)
 {
     private val allActions = arrayOf(
             ActionScreenOn(this),
+            ActionScreenOff(this),
             ActionGoogleNow(this),
             ActionSpeechTime(this),
             ActionSpeechBattery(this),
