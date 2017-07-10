@@ -397,6 +397,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 get() {
                     val a = settings?.getAction(key)
                     if (uiAction(a).isNotEmpty()) return a!!
+                    if (a != null) return ""
                     if (uiAction(defaultAction).isEmpty()) return ""
 
                     action = defaultAction
