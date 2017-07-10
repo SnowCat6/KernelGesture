@@ -28,7 +28,15 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                     "/sys/devices/bus/bus\\:touch@/tpgesture"),
             //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
             GS("/sys/class/syna/gesenable",
-                    "1","0")
+                    "1","0"),
+            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-0038/gesture",
+                    "1", "0"),
+            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-005d/gesture",
+                    "1", "0"),
+            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-0020/gesture",
+                    "1", "0"),
+            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-004b/gesture",
+                    "1", "0")
     )
 
     override fun setEnable(enable:Boolean)
