@@ -1,5 +1,6 @@
 package gestureDetect
 
+import SuperSU.ShellSU
 import android.content.Context
 import android.hardware.display.DisplayManager
 import android.os.PowerManager
@@ -28,10 +29,6 @@ class GestureHW(val context:Context)
                         PowerManager.ACQUIRE_CAUSES_WAKEUP,
                 "KernelGesture")
         wakeLock.acquire(500)
-    }
-    fun screenOFF()
-    {
-        powerON()
     }
     fun powerON()
     {
