@@ -1,13 +1,14 @@
 package gestureDetect.drivers.input
 
 import gestureDetect.GestureDetect
+import gestureDetect.drivers.sensor.SensorInput
 
 /*
 MTK and QCOMM keyboard
  */
 open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
-    private class GS(
+    private data class GS(
             val detectPowerFile: String,
             val setPowerON: String,
             val setPowerOFF: String,
@@ -43,6 +44,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 
     override fun onDetect(name:String): Boolean
     {
+        super.onDetect(name)
         if (name.toLowerCase() != "mtk-kpd") return false
         gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
 
@@ -58,12 +60,12 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         return true
     }
 
-    override fun onEvent(ev:List<String>):String?
+    override fun onEvent(ev: SensorInput.EvData):String?
     {
-        when(ev[1]){
+        when(ev.evButton){
             "KEY_PROG3" ->  return onEventHCT()
             "KEY_VOLUMEUP",
-            "KEY_VOLUMEDOWN" ->  return filter(ev[1])
+            "KEY_VOLUMEDOWN" ->  return filter(ev.evButton)
         }
 
         //  Many others device conversion
@@ -83,7 +85,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                 Pair("BTN_TOP",     "KEY_M"),
                 Pair("BTN_BASE5",   "KEY_Z")
         )
-        return filter(ev[1], keys)
+        return filter(ev.evButton, keys)
     }
     //  HCT gesture give from file
     private fun onEventHCT():String?

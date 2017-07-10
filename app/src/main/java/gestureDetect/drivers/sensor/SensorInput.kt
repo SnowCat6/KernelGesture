@@ -25,6 +25,13 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
             InputQCOMM_KPD(gesture), InputFT5x06_ts(gesture),
             InputSunXi_KPD(gesture)
     )
+    data class EvData(
+            val evName:String,
+            val evButton:String,
+            val evPress:String,
+            val evMilliTime:Double
+    )
+
     private var inputDevices = emptyList<Pair<String, InputHandler>>()
 
     override fun enable(bEnable: Boolean)
@@ -163,7 +170,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
                 inputDevices
                         .find { it.first == device }
-                        ?.second?.onEvent(ev.groupValues.subList(2, 4))
+                        ?.second?.onEvent(EvData(ev.groupValues[2], ev.groupValues[3], ev.groupValues[4],timeLine))
                         ?.apply { sensorEvent(this) }
             }
             bRunThread = false

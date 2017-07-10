@@ -147,6 +147,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
     {
         private val preferenceItems = arrayOf(
                 GestureItem("KEY_U",       "screen.on"),
+                GestureItem("KEY_U_ON",    ""),
                 GestureItem("KEY_UP",      "application.dialer"),
                 GestureItem("KEY_DOWN",    "application.contacts"),
                 GestureItem("KEY_LEFT",    ""),
@@ -492,6 +493,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             with(preferenceScreen){
                 val bEnable = su.hasRootProcess() && bAllEnable && titles.isNotEmpty()
                 findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ bEnable
+                findPreference("GESTURE_GROUP_ON")?.isEnabled = /*bGesture*/ bEnable
                 findPreference("KEY_GROUP")?.isEnabled = bKeys && bEnable
                 findPreference("KEY_GROUP_ON")?.isEnabled = bKeys && bEnable
                 findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable

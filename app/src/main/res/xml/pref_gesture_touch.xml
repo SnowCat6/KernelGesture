@@ -9,7 +9,6 @@
             android:defaultValue="false"
             android:key="KEY_U"
             android:title="@string/ui_dblclick"
-            android:icon="@android:color/transparent"
             />
 
         <ru.vpro.kernelgesture.GestureSwitchPreference
@@ -74,4 +73,14 @@
             />
     </PreferenceCategory>
 
+    <PreferenceCategory
+        android:title="@string/ui_title_screen_on"
+        android:key="GESTURE_GROUP_ON"
+        >
+        <ru.vpro.kernelgesture.GestureSwitchPreference
+            android:defaultValue="false"
+            android:key="KEY_U_ON"
+            android:title="@string/ui_dblclick"
+            />
+    </PreferenceCategory>
 </PreferenceScreen>

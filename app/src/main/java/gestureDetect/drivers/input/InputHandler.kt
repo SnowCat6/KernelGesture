@@ -1,7 +1,8 @@
 package gestureDetect.drivers.input
 
+import android.util.Log
 import gestureDetect.GestureDetect
-
+import gestureDetect.drivers.sensor.SensorInput
 
 /**
  * Базовый класс для получения события для конкретных устройств
@@ -12,13 +13,27 @@ abstract class InputHandler(val gesture:GestureDetect)
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */
-    abstract fun onDetect(name:String):Boolean
+    open fun onDetect(name:String):Boolean
+    {
+        gesture.registerScreenEvents("KEY_U_ON", "KEY_U_ON")
+        return false
+    }
 
     /**
      * Реакция на событие от устройства ввода
      */
-    abstract fun onEvent(ev:List<String>):String?
+    var lastTouchTime:Double = 0.0
+    open fun onEvent(ev: SensorInput.EvData): String?
+    {
+        if (ev.evButton != "BTN_TOUCH")
+            return filter(ev.evButton)
 
+        val timeout = ev.evMilliTime - lastTouchTime
+        lastTouchTime = ev.evMilliTime
+        Log.d("Timeout", timeout.toString())
+        if (timeout !in 0.0 .. 0.300) return null
+        return filter("KEY_U_ON")
+    }
     /**
      * Включить или выключить распознование жестов
      */
@@ -29,6 +44,26 @@ abstract class InputHandler(val gesture:GestureDetect)
      */
     open fun getEnable():Boolean = false
 
+    /**
+     * Отфильтровать не поддерживаемые жесты или сконвертировать частные жесты в поддерживаемые
+     */
+    fun filter(key: String?, convert: Array<Pair<String, String>>? = null): String?
+    {
+        if (key == null || key.isEmpty())
+            return null
+
+        var gesture = key
+        if (convert != null) {
+            for ((first, second) in convert) {
+                if (key != first) continue
+                gesture = second
+                break
+            }
+        }
+
+        return if (gesture in allowGestures) gesture else null
+    }
+
     companion object
     {
         //  Allowed standard key
@@ -38,6 +73,7 @@ abstract class InputHandler(val gesture:GestureDetect)
                 "KEY_LEFT",
                 "KEY_RIGHT",
                 "KEY_U",
+                "KEY_U_ON", //  Double tap with screen is on
                 "KEY_C",
                 "KEY_O",
                 "KEY_W",
@@ -50,24 +86,5 @@ abstract class InputHandler(val gesture:GestureDetect)
                 "KEY_VOLUMEDOWN",
                 "KEY_PROXIMITY"
         )
-
-        /**
-         * Отфильтровать не поддерживаемые жесты или сконвертировать частные жесты в поддерживаемые
-         */
-        fun filter(key: String?, convert: Array<Pair<String, String>>? = null): String?
-        {
-            if (key == null || key.isEmpty())
-                return null
-
-            var gesture = key
-            if (convert != null) {
-                for ((first, second) in convert) {
-                    if (key != first) continue
-                    gesture = second
-                    break
-                }
-            }
-            return if (gesture in allowGestures) gesture else null
-        }
     }
 }
