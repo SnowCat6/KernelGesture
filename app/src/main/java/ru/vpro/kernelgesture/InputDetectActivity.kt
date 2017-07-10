@@ -15,6 +15,10 @@ import android.widget.ListView
 import com.google.firebase.analytics.FirebaseAnalytics
 import gestureDetect.drivers.sensor.SensorInput
 import kotlin.concurrent.thread
+import android.R.attr.versionName
+import android.content.pm.PackageInfo
+
+
 
 
 
@@ -99,8 +103,8 @@ class InputDetectActivity : AppCompatActivity() {
         }
 */
         val intent = Intent(Intent.ACTION_SEND)
-        intent.type = "text/html"
-        intent.putExtra(Intent.EXTRA_EMAIL, "vpro@vpro.ru")
+        intent.type = "text/rfc822"
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf("vpro@vpro.ru"))
         intent.putExtra(Intent.EXTRA_SUBJECT, "AnyKernelGesture log")
         intent.putExtra(Intent.EXTRA_TEXT, log.joinToString("\n"))
 
@@ -113,8 +117,11 @@ class InputDetectActivity : AppCompatActivity() {
         log = emptyList()
         val su = ShellSU()
 
-
         log += "Device name:" + android.os.Build.MODEL
+        val pInfo = packageManager.getPackageInfo(packageName, 0)
+        log += "App version:${pInfo.versionName}"
+
+        log += String()
 
         log += "Add input devices list"
         SensorInput.getInputEvents().forEach {
