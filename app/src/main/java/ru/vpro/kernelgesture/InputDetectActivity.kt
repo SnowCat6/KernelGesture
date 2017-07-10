@@ -136,10 +136,10 @@ class InputDetectActivity : AppCompatActivity() {
         }
 
         log += "Run find cmd to search /sys/ devices"
-        doSearch(su, "/sys", listOf<String>("*gesture*", "*gesenable*"))
+        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*"))
 
         log += "Run find cmd to search /proc/ functions"
-        doSearch(su, "/proc", listOf<String>("*goodix*", "*ts*", "*data*"))
+        doSearch(su, "/proc", listOf("*goodix*"))
 
         return log
     }
@@ -150,15 +150,21 @@ class InputDetectActivity : AppCompatActivity() {
         search.forEach { rawCmd += "-name $it" }
         val cmd = rawCmd.joinToString(" -or ")
 
+        var files = emptyList<String>()
         if (su.exec("find $path $cmd") && su.exec("echo --END--"))
         {
             while (true) {
                 val line = su.readExecLine() ?: break
                 if (line == "--END--") break
 
-                log += "path:" + line
+                files += line
             }
         }
+        files.forEach {
+            val value = su.getFileLine(it)
+            log += "path:$it=>$value"
+        }
+
         log += String()
     }
 
