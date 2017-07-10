@@ -6,6 +6,11 @@ import android.os.PowerManager
 import android.os.Vibrator
 import android.view.Display
 import android.content.Context.POWER_SERVICE
+import android.app.admin.DevicePolicyManager
+
+
+
+
 
 
 
@@ -26,6 +31,7 @@ class GestureHW(val context:Context)
     }
     fun screenOFF()
     {
+        powerON()
     }
     fun powerON()
     {
