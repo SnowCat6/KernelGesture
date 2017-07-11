@@ -47,14 +47,11 @@ class GestureService :
         setServiceForeground(!hw.isScreenOn())
         val settings = GestureSettings(this)
 
-        if (gestureActions == null)
-            gestureActions = GestureAction(this)
+        val actions = gestureActions ?: GestureAction(this)
+        gestureActions = actions
 
-        if (gestureDetector == null)
-            gestureDetector = GestureDetect(this)
-
-        val actions = gestureActions!!
-        val gesture = gestureDetector!!
+        val gesture = gestureDetector ?: GestureDetect(this)
+        gestureDetector = gesture
 
         actions.onStart()
         gesture.disabled = false
@@ -142,12 +139,12 @@ class GestureService :
         val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
 
-        if (gestureDetector == null)
-            gestureDetector = GestureDetect(this)
+        val gesture = gestureDetector ?: GestureDetect(this)
+        gestureDetector = gesture
 
         //  Enable/disable gestures on start service
-        gestureDetector?.enable(true)
-        gestureDetector?.screenOnMode = hw.isScreenOn()
+        gesture.enable(true)
+        gesture.screenOnMode = hw.isScreenOn()
 
         //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
@@ -182,6 +179,8 @@ class GestureService :
 
         gestureActions?.close()
         gestureActions = null
+
+        su.close()
     }
     /************************************/
     /*

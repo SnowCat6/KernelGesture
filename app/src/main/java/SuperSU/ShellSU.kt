@@ -28,9 +28,11 @@ class ShellSU
        val EVENT_UPDATE_ROOT_STATE = "UPDATE_ROOT_STATE"
     }
 
+    val su = commonSU
+
     fun checkRootAccess(context: Context? = null):Boolean
     {
-        val bEnable = commonSU.processSU != null
+        val bEnable = su.processSU != null
         if (open() == null){
             if (bEnable) context?.apply {
                 LocalBroadcastManager.getInstance(this)
@@ -49,45 +51,49 @@ class ShellSU
     }
 
     fun hasRootProcess():Boolean
-            = commonSU.bEnableSU
+            = su.bEnableSU
 
     fun enable(bEnable:Boolean) {
-        commonSU.bEnableCheck = bEnable
+        su.bEnableCheck = bEnable
     }
 
     fun open(): Process?
     {
-        if (!commonSU.bEnableCheck)
-            return commonSU.processSU
-
-        try{
-            val exit = commonSU.processSU?.exitValue()
-            if (exit != null) close()
-        }catch (e:Exception){}
-
-        if (commonSU.processSU != null)
-            return commonSU.processSU
-
-        synchronized(commonSU.bEnableSU)
+        with(su)
         {
-            try {
-                commonSU.processSU = Runtime.getRuntime().exec("su")
-                commonSU.readerSU = commonSU.processSU?.inputStream?.bufferedReader()
-                commonSU.errorSU = commonSU.processSU?.errorStream?.bufferedReader()
-                commonSU.writerSU = commonSU.processSU?.outputStream
+            if (!bEnableCheck)
+                return processSU
 
-                exec("id")
-                val id = readExecLine()?.contains("root")
-                if (id == null || id == false) close()
+            try{
+                val exit = processSU?.exitValue()
+                if (exit != null) close()
+            }catch (e:Exception){}
 
-            } catch (e: Exception) {
-                e.printStackTrace()
-                close()
+            if (processSU != null)
+                return processSU
+
+            synchronized(bEnableSU)
+            {
+                try {
+                    processSU = Runtime.getRuntime().exec("su")
+                    readerSU = processSU?.inputStream?.bufferedReader()
+                    errorSU = processSU?.errorStream?.bufferedReader()
+                    writerSU = processSU?.outputStream
+
+                    exec("id")
+                    val id = readExecLine()?.contains("root")
+                    if (id == null || id == false) close()
+
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    close()
+                }
+                bEnableSU = processSU != null
+                bEnableCheck = bEnableSU
+
+                return processSU
             }
-            commonSU.bEnableSU = commonSU.processSU != null
-            commonSU.bEnableCheck = commonSU.bEnableSU
         }
-        return commonSU.processSU
     }
 
     fun exec(cmd: String): Boolean
@@ -95,7 +101,7 @@ class ShellSU
         open()
 
         try {
-            commonSU.writerSU?.apply {
+            su.writerSU?.apply {
                 write("$cmd\n".toByteArray())
                 flush()
             }
@@ -113,18 +119,24 @@ class ShellSU
 
     fun close()
     {
-        if (commonSU.processSU == null) return
-        try {
-            commonSU.processSU?.destroy()
-        }catch (e:Exception){
-            e.printStackTrace()
-        }
-        commonSU.processSU = null
-        commonSU.writerSU = null
-        commonSU.readerSU = null
-        commonSU.errorSU = null
+        with(su)
+        {
+            synchronized(bEnableSU)
+            {
+                if (processSU == null) return
+                try {
+                    processSU?.destroy()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                processSU = null
+                writerSU = null
+                readerSU = null
+                errorSU = null
 
-        commonSU.bEnableSU = false
+                bEnableSU = false
+            }
+        }
     }
 
     fun getFileLine(name: String): String?
@@ -136,7 +148,7 @@ class ShellSU
     fun readExecLine(): String?
     {
         try {
-            return  commonSU.readerSU?.readLine()
+            return  su.readerSU?.readLine()
         }catch (e:Exception){
             e.printStackTrace()
         }
@@ -145,7 +157,7 @@ class ShellSU
 
     fun readErrorLine() : String? {
         try {
-            return  commonSU.errorSU?.readLine()
+            return  su.errorSU?.readLine()
         }catch (e:Exception){
             e.printStackTrace()
         }
