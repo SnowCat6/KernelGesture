@@ -64,9 +64,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 
     override fun onDetect(name:String): Boolean
     {
-        super.onDetect(name)
         if (name.toLowerCase() != "mtk-kpd") return false
-        gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
 
         if (HCT_GESTURE_IO == null) {
             for (it in HCT_GESTURE_PATH) {
@@ -77,7 +75,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                 break
             }
         }
-        return true
+        return onDetectKeys(name)
     }
 
     override fun onEvent(ev: SensorInput.EvData):String?

@@ -11,8 +11,7 @@ open class InputFT5x06_ts(gesture: GestureDetect) : InputHandler(gesture)
 
     override fun onDetect(name: String): Boolean {
         if (name.toLowerCase() != "ft5x06_ts") return false
-        super.onDetect(name)
-        return true
+        return super.onDetectTouch(name)
     }
 
     override fun setEnable(enable: Boolean){

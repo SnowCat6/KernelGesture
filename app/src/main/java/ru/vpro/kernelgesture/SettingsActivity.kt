@@ -474,6 +474,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val bGesture = support.contains("GESTURE")
             if (bGesture) titles += context.getString(R.string.ui_title_gestures)
 
+            val bGestureON = support.contains("GESTURE_ON")
+//            if (bGestureON) titles += context.getString(R.string.ui_title_gestures)
+
             val bKeys = support.contains("KEYS")
             if (bKeys) titles += context.getString(R.string.ui_title_keys)
 
@@ -494,7 +497,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             with(preferenceScreen){
                 val bEnable = su.hasRootProcess() && bAllEnable && titles.isNotEmpty()
                 findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ bEnable
-                findPreference("GESTURE_GROUP_ON")?.isEnabled = bEnable
+                findPreference("GESTURE_GROUP_ON")?.isEnabled = bGestureON && bEnable
                 findPreference("KEY_GROUP")?.isEnabled = bKeys && bEnable
                 findPreference("KEY_GROUP_ON")?.isEnabled = bKeys && bEnable
                 findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable

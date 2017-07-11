@@ -10,12 +10,10 @@ open class InputSunXi_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
     override fun onDetect(name:String):Boolean
     {
-        super.onDetect(name)
         if (!arrayOf("sun4i-keyboard")
                 .contains(name.toLowerCase())) return false
 
-        gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
-        return true
+        return onDetectKeys(name)
     }
 
     override fun onEvent(ev: SensorInput.EvData): String?

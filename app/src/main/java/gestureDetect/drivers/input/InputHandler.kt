@@ -13,10 +13,26 @@ abstract class InputHandler(val gesture:GestureDetect)
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */
-    open fun onDetect(name:String):Boolean
+    abstract fun onDetect(name:String):Boolean
+
+    open fun onDetectTouch(name:String):Boolean
     {
+        gesture.addSupport(listOf("GESTURE_ON"))
         gesture.registerScreenEvents("KEY_U_ON", "KEY_U_ON")
-        return false
+
+        return true
+    }
+    open fun onDetectKeys(name:String):Boolean
+    {
+        gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+
+        gesture.registerDelayEvents("KEY_VOLUMEUP", "KEY_VOLUMEUP_DELAY")
+        gesture.registerDelayEvents("KEY_VOLUMEDOWN", "KEY_VOLUMEDOWN_DELAY")
+
+        gesture.registerScreenEvents("KEY_VOLUMEUP_DELAY", "KEY_VOLUMEUP_DELAY_ON")
+        gesture.registerScreenEvents("KEY_VOLUMEDOWN_DELAY", "KEY_VOLUMEDOWN_DELAY_ON")
+
+        return true
     }
 
     /**

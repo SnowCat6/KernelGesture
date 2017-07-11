@@ -8,8 +8,10 @@ MT touchscreen with gestures
  */
 open class InputMTK_TPD(gesture: GestureDetect) : InputHandler(gesture)
 {
-    override fun onDetect(name:String):Boolean{
-        super.onDetect(name)
-        return name.toLowerCase() == "mtk-tpd"
+    override fun onDetect(name:String):Boolean
+    {
+        if (name.toLowerCase() != "mtk-tpd") return false
+
+        return super.onDetectTouch(name)
     }
 }
