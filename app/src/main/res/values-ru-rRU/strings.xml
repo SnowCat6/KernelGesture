@@ -68,4 +68,5 @@
     <string name="ui_action_flashlight">Фонарик</string>
     <string name="ui_title_screen_off">Выключенный экран</string>
     <string name="ui_action_screen_off">Выключить экран</string>
+    <string name="ui_menu_settings">Настройки</string>
 </resources>
