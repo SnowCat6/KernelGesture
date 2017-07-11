@@ -26,7 +26,7 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
         try {
             val bm = context.getSystemService(BATTERY_SERVICE) as BatteryManager
 
-            var batLevel = 0//bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            var batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             if (batLevel == 0){
                 try {
                     val f = File("/sys/class/power_supply/battery/capacity");

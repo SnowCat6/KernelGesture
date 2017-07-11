@@ -175,7 +175,7 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 }
 
                 if (ev.groupValues[2] != "EV_KEY") continue
-                if (timeLine - lastKeyEvent < 0.05) continue
+                if (timeLine - lastKeyEvent < 0.025) continue
                 lastKeyEvent = timeLine
 //                if (ev.groupValues[4] != "DOWN") continue
 
