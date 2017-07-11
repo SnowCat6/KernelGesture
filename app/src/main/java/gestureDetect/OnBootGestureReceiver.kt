@@ -10,6 +10,8 @@ import android.content.Intent
 class OnBootGestureReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent)
     {
+        if(!listOf(Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_LOCKED_BOOT_COMPLETED).contains(intent.action)) return
+
         val settings = GestureSettings(context)
         if (!settings.getAllEnable()) return
         context.startService(Intent(context, GestureService::class.java))
