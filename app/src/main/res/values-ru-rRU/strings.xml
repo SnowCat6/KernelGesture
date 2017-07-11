@@ -69,4 +69,5 @@
     <string name="ui_title_screen_off">Выключенный экран</string>
     <string name="ui_action_screen_off">Выключить экран</string>
     <string name="ui_menu_settings">Настройки</string>
+    <string name="ui_action_dbl_tap_on">Двойной тап вверху экрана</string>
 </resources>

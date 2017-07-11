@@ -21,6 +21,7 @@ open class InputSunXi_KPD(gesture: GestureDetect) : InputHandler(gesture)
         val keys = arrayOf(
                 Pair("KEY_MENU",     "KEY_VOLUMEUP"),
                 Pair("KEY_SEARCH",   "KEY_VOLUMEDOWN"))
-        return filter(ev.evButton, keys)
+
+        return filter(ev, ev.evButton, keys)
     }
 }

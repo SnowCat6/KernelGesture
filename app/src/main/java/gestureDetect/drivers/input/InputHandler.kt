@@ -3,6 +3,17 @@ package gestureDetect.drivers.input
 import android.util.Log
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.sensor.SensorInput
+import android.R.attr.y
+import android.R.attr.x
+import android.content.Context
+import android.view.Display
+import android.content.Context.WINDOW_SERVICE
+import android.graphics.Point
+import android.view.WindowManager
+
+
+
+
 
 /**
  * Базовый класс для получения события для конкретных устройств
@@ -10,6 +21,9 @@ import gestureDetect.drivers.sensor.SensorInput
 abstract class InputHandler(val gesture:GestureDetect)
 {
     val context = gesture.context
+    var rawFilter = "EV_KEY"
+    val size = Point()
+
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */
@@ -17,8 +31,14 @@ abstract class InputHandler(val gesture:GestureDetect)
 
     open fun onDetectTouch(name:String):Boolean
     {
+        rawFilter = "-e EV_KEY -e ABS_MT_POSITION"
+
         gesture.addSupport(listOf("GESTURE_ON"))
         gesture.registerScreenEvents("KEY_U_ON", "KEY_U_ON")
+
+        val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val display = wm.defaultDisplay
+        display.getSize(size)
 
         return true
     }
@@ -41,14 +61,17 @@ abstract class InputHandler(val gesture:GestureDetect)
     var lastTouchTime:Double = 0.0
     open fun onEvent(ev: SensorInput.EvData): String?
     {
-        if (ev.evButton != "BTN_TOUCH")
-            return filter(ev.evButton)
+        if (ev.evButton != "BTN_TOUCH") {
+            return filter(ev, ev.evButton)
+        }
+
+        if (ev.y !in 1 .. size.y / 2) return null
 
         val timeout = ev.evMilliTime - lastTouchTime
         lastTouchTime = ev.evMilliTime
         Log.d("Timeout", timeout.toString())
-        if (timeout !in 0.0 .. 0.300) return null
-        return filter("KEY_U_ON")
+        if (timeout !in 0.0 .. 0.500) return null
+        return "KEY_U_ON"
     }
     /**
      * Включить или выключить распознование жестов
@@ -63,9 +86,9 @@ abstract class InputHandler(val gesture:GestureDetect)
     /**
      * Отфильтровать не поддерживаемые жесты или сконвертировать частные жесты в поддерживаемые
      */
-    fun filter(key: String?, convert: Array<Pair<String, String>>? = null): String?
+    fun filter(ev: SensorInput.EvData, key: String?, convert: Array<Pair<String, String>>? = null): String?
     {
-        if (key == null || key.isEmpty())
+        if (key == null || key.isEmpty() || ev.evPress != "DOWN")
             return null
 
         var gesture = key

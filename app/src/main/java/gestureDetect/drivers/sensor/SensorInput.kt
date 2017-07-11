@@ -29,7 +29,9 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
             val evName:String,
             val evButton:String,
             val evPress:String,
-            val evMilliTime:Double
+            val evMilliTime:Double,
+            val x:Int,
+            val y:Int
     )
 
     private var inputDevices = emptyList<Pair<String, InputHandler>>()
@@ -73,11 +75,11 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
     /**
      * Exec command for get events from getevent linux binary
      */
-    private fun evCmd(queryIx:Long, ix:Int, inputName:String, nLimit:Int, nRepeat:Int){
+    private fun evCmd(queryIx:Long, ix:Int, device:Pair<String, InputHandler>, nLimit:Int, nRepeat:Int){
         val CR = "\\\\n"
         var seq = ""
         for (i in 0 .. nRepeat) seq += " $i"
-        gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl $inputName | grep EV_KEY) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR$inputName$CR\"\$v$ix\">&2 ; done ; done &")
+        gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl ${device.first} | grep ${device.second.rawFilter}) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR${device.first}$CR\"\$v$ix\">&2 ; done ; done &")
     }
 
     override fun onStart()
@@ -108,14 +110,17 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
             //  For each device
             var ix = 0
-            inputDevices.forEach { (inputName, device) ->
+            inputDevices.forEach {
 
                 //  Run input event detector
-                evCmd(queryIx, ++ix, inputName, 2, 5)
-                evCmd(queryIx, ++ix, inputName, 4, 2)
+                evCmd(queryIx, ++ix, it, 2, 5)
+                evCmd(queryIx, ++ix, it, 6, 2)
             }
 
-            var lastEventTime:Double = 0.0
+            var posX = 0
+            var posY = 0
+            var lastEventTime = 0.0
+            var lastKeyEvent = 0.0
             var prevLine = String()
             val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
 
@@ -154,17 +159,36 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                     Log.d("Sensors", it.first)
                 }
 */
-                //  Check only key events
-                if (ev.groupValues[2] != "EV_KEY") continue
-                if (ev.groupValues[4] != "DOWN") continue
-
                 val timeLine = ev.groupValues[1].toDoubleOrNull() ?: continue
-                if (timeLine <= lastEventTime) continue
+                val timeout = timeLine - lastEventTime
+                if (timeout < 0.0) continue
                 lastEventTime = timeLine
+
+                //  Check only key events
+                if (ev.groupValues[3] == "ABS_MT_POSITION_X"){
+                    posX = ev.groupValues[4].toInt(16)
+                    continue
+                }
+                if (ev.groupValues[3] == "ABS_MT_POSITION_Y"){
+                    posY = ev.groupValues[4].toInt(16)
+                    continue
+                }
+
+                if (ev.groupValues[2] != "EV_KEY") continue
+                if (timeLine - lastKeyEvent < 0.05) continue
+                lastKeyEvent = timeLine
+//                if (ev.groupValues[4] != "DOWN") continue
+
+                val evInput = EvData(ev.groupValues[2],
+                        ev.groupValues[3],
+                        ev.groupValues[4],
+                        timeLine, posX, posY)
+                posX = 0
+                posY = 0
 
                 inputDevices
                         .find { it.first == device }
-                        ?.second?.onEvent(EvData(ev.groupValues[2], ev.groupValues[3], ev.groupValues[4],timeLine))
+                        ?.second?.onEvent(evInput)
                         ?.apply { sensorEvent(this) }
             }
             bRunThread = false

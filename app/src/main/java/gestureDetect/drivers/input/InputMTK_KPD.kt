@@ -81,9 +81,9 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
     override fun onEvent(ev: SensorInput.EvData):String?
     {
         when(ev.evButton){
-            "KEY_PROG3" ->  return onEventHCT()
+            "KEY_PROG3" ->  return onEventHCT(ev)
             "KEY_VOLUMEUP",
-            "KEY_VOLUMEDOWN" ->  return filter(ev.evButton)
+            "KEY_VOLUMEDOWN" ->  return filter(ev, ev.evButton)
         }
 
         //  Many others device conversion
@@ -103,10 +103,10 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                 Pair("BTN_TOP",     "KEY_M"),
                 Pair("BTN_BASE5",   "KEY_Z")
         )
-        return filter(ev.evButton, keys)
+        return filter(ev, ev.evButton, keys)
     }
     //  HCT gesture give from file
-    private fun onEventHCT():String?
+    private fun onEventHCT(ev: SensorInput.EvData):String?
     {
         val keys = arrayOf(
                 Pair("UP",          "KEY_UP"),
@@ -125,7 +125,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         )
 
         HCT_GESTURE_IO?.apply {
-            return filter(gesture.su.getFileLine(this.getGesture), keys)
+            return filter(ev, gesture.su.getFileLine(this.getGesture), keys)
         }
         return null
     }
