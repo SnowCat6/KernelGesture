@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.os.BatteryManager
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.R
+import java.io.File
 
 /**
  * Speech battery percent
@@ -24,9 +25,16 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
     {
         try {
             val bm = context.getSystemService(BATTERY_SERVICE) as BatteryManager
-            val batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-            val prefix = context.getString(R.string.ui_action_battery)
 
+            var batLevel = 0//bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            if (batLevel == 0){
+                try {
+                    val f = File("/sys/class/power_supply/battery/capacity");
+                    batLevel = f.readText().trim().toInt()
+                }catch (e:Exception){}
+            }
+
+            val prefix = context.getString(R.string.ui_action_battery)
             return doSpeech("$prefix $batLevel%")
         }catch (e:Exception){
             e.printStackTrace()
