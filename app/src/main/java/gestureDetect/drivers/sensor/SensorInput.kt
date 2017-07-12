@@ -47,7 +47,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
         if (bRunThread) {
             bRunThread = false
 
-            gesture.su.exec("kill -s SIGINT %%")
+//            gesture.su.exec("kill -s SIGINT %%")
+            gesture.su.exec("kill -s SIGINT \$(jobs -p)")
             //  Many execute for flush process buffer
             for (ix in 0..15) gesture.su.exec("echo CLOSE_EVENTS>&2")
         }
@@ -122,7 +123,6 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
             var posY = 0
             var lastEventTime = 0.0
             var eqEvents = emptyList<String>()
-            var prevLine = String()
             val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
 
             while(bRunThread)
@@ -131,9 +131,6 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 val rawLine = gesture.su.readErrorLine() ?: break
                 //  Stop if gesture need stop run
                 if (!bRunThread) break
-
-                if (rawLine == prevLine) continue
-                prevLine = rawLine
 
                 //  Check query number for skip old events output
                 if (!bQueryFound){
