@@ -1,5 +1,6 @@
 package gestureDetect.drivers
 
+import android.graphics.Point
 import android.util.Log
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
@@ -31,8 +32,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             val evButton:String,
             val evPress:String,
             val evMilliTime:Double,
-            val x:Int,
-            val y:Int
+            val coordinates:Point
     )
 
     private var inputDevices = emptyList<Pair<String, InputHandler>>()
@@ -119,8 +119,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                 evCmd(queryIx, ++ix, it, 4, 2)
             }
 
-            var posX = -1
-            var posY = -1
+            var coordinates = Point(-1, -1)
             var lastEventTime = 0.0
             var eqEvents = emptyList<String>()
             val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
@@ -167,11 +166,11 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
                 //  Check only key events
                 if (ev.groupValues[3] == "ABS_MT_POSITION_X"){
-                    posX = ev.groupValues[4].toInt(16)
+                    coordinates.x = ev.groupValues[4].toInt(16)
                     continue
                 }
                 if (ev.groupValues[3] == "ABS_MT_POSITION_Y"){
-                    posY = ev.groupValues[4].toInt(16)
+                    coordinates.y = ev.groupValues[4].toInt(16)
                     continue
                 }
 
@@ -181,9 +180,8 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                 val evInput = EvData(ev.groupValues[2],
                         ev.groupValues[3],
                         ev.groupValues[4],
-                        timeLine, posX, posY)
-                posX = -1
-                posY = -1
+                        timeLine, coordinates)
+                coordinates = Point(-1, -1)
 
                 inputDevices
                         .find { it.first == device }

@@ -6,6 +6,8 @@ import gestureDetect.drivers.SensorInput
 import android.content.Context
 import android.graphics.Point
 import android.view.WindowManager
+import ru.vpro.kernelgesture.BuildConfig
+import java.security.PolicySpi
 
 
 /**
@@ -16,6 +18,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     val context = gesture.context
     var rawFilter = "EV_KEY"
     val size = Point()
+    var coordinates = Point()
 
     data class GS(
             val detectPowerFile: String,
@@ -78,13 +81,26 @@ abstract class InputHandler(val gesture:GestureDetect)
             return filter(ev, ev.evButton)
         }
 
-        if (!gesture.hw.isHomeScreen()) return null
-        if (ev.y !in 0 .. size.y) return null
-
         val timeout = ev.evMilliTime - lastTouchTime
+
+        val dx = (coordinates.x-ev.coordinates.x).toDouble()
+        val dy = (coordinates.y-ev.coordinates.y).toDouble()
+        val radius = Math.sqrt(dx*dx + dy*dy).toInt()
+
+        coordinates = ev.coordinates
         lastTouchTime = ev.evMilliTime
-        Log.d("Timeout", timeout.toString())
-        if (timeout !in 0.0 .. 0.500) return null
+
+        if (ev.coordinates.y !in 0 .. size.y ||
+                ev.coordinates.x !in 0 .. size.x) return null
+
+        val maxR = Math.min(size.x, size.y)/16
+        if (BuildConfig.DEBUG) {
+            Log.d("Double tap", "r:$radius, rMax:$maxR, t:$timeout")
+        }
+        if (timeout !in 0.025 .. 0.500 || radius > maxR)
+            return null
+
+        if (!gesture.hw.isHomeScreen()) return null
         return "KEY_U_ON"
     }
     /**
