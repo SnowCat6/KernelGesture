@@ -45,29 +45,14 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
     )
 
     override fun setEnable(enable:Boolean)
-    {
-        //  Change state when screen is off cause sensor freeze!! Touchscreen driver BUG!!
-        if (!gesture.hw.isScreenOn()) return
-
-        HCT_GESTURE_IO?.apply {
-            val io = if (enable) setPowerON else setPowerOFF
-            if (io.isNotEmpty()) gesture.su.exec("echo $io > $detectPowerFile")
-        }
-    }
+            = setEnable(enable, HCT_GESTURE_IO)
 
     override fun onDetect(name:String): Boolean
     {
-        if (name.toLowerCase() != "mtk-kpd") return false
+        if (arrayOf("mtk-kpd")
+                .contains(name.toLowerCase())) return false
 
-        if (HCT_GESTURE_IO == null) {
-            for (it in HCT_GESTURE_PATH) {
-                if (!gesture.su.isFileExists(it.detectPowerFile)) continue
-                HCT_GESTURE_IO = it
-                gesture.addSupport("GESTURE")
-                gesture.addSupport(allowGestures)
-                break
-            }
-        }
+        if (HCT_GESTURE_IO == null) HCT_GESTURE_IO = onDetectGS(HCT_GESTURE_PATH)
         return onDetectKeys(name)
     }
 

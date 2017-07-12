@@ -18,28 +18,10 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
                 .contains(name.toLowerCase()))
             return false
 
-        if (GESTURE_IO == null) {
-            for (it in GESTURE_PATH) {
-                if (!gesture.su.isFileExists(it.detectPowerFile)) continue
-                GESTURE_IO = it
-                gesture.addSupport("GESTURE")
-                gesture.addSupport(allowGestures)
-                break
-            }
-        }
-
+        if (GESTURE_IO == null) GESTURE_IO = onDetectGS(GESTURE_PATH)
         return super.onDetectTouch(name)
     }
 
     override fun setEnable(enable: Boolean)
-    {
-        //  Change state when screen is off cause sensor freeze!! Touchscreen driver BUG!!
-        if (!gesture.hw.isScreenOn()) return
-
-        GESTURE_IO?.apply {
-            val io = if (enable) setPowerON else setPowerOFF
-            if (io.isNotEmpty()) gesture.su.exec("echo $io > $detectPowerFile")
-        }
-
-    }
+            = setEnable(enable, GESTURE_IO)
 }

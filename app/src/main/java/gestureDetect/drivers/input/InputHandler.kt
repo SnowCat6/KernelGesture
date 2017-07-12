@@ -11,10 +11,6 @@ import android.content.Context.WINDOW_SERVICE
 import android.graphics.Point
 import android.view.WindowManager
 
-
-
-
-
 /**
  * Базовый класс для получения события для конкретных устройств
  */
@@ -34,6 +30,17 @@ abstract class InputHandler(val gesture:GestureDetect)
      * Определить возможность получения событий по имени /dev/input устройства
      */
     abstract fun onDetect(name:String):Boolean
+
+    fun onDetectGS(gs:Array<GS>):GS?
+    {
+        for (it in gs) {
+            if (!gesture.su.isFileExists(it.detectPowerFile)) continue
+            gesture.addSupport("GESTURE")
+            gesture.addSupport(allowGestures)
+            return it
+        }
+        return null
+    }
 
     open fun onDetectTouch(name:String):Boolean
     {
@@ -84,6 +91,15 @@ abstract class InputHandler(val gesture:GestureDetect)
      */
     open fun setEnable(enable:Boolean) {}
 
+    fun setEnable(enable:Boolean, gs:GS?){
+        //  Change state when screen is off cause sensor freeze!! Touchscreen driver BUG!!
+        if (!gesture.hw.isScreenOn()) return
+
+        gs?.apply {
+            val io = if (enable) setPowerON else setPowerOFF
+            if (io.isNotEmpty()) gesture.su.exec("echo $io > $detectPowerFile")
+        }
+    }
     /**
      * Получить текущее состояние
      */
