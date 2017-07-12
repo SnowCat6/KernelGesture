@@ -24,6 +24,12 @@ abstract class InputHandler(val gesture:GestureDetect)
     var rawFilter = "EV_KEY"
     val size = Point()
 
+    data class GS(
+            val detectPowerFile: String,
+            val setPowerON: String,
+            val setPowerOFF: String,
+            val getGesture: String = ""
+    )
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */

@@ -8,13 +8,6 @@ MTK and QCOMM keyboard
  */
 open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
-    private data class GS(
-            val detectPowerFile: String,
-            val setPowerON: String,
-            val setPowerOFF: String,
-            val getGesture: String = ""
-    )
-
     private var HCT_GESTURE_IO: GS? = null
     //  HCT version gesture for Android 5x and Android 6x
     private val HCT_GESTURE_PATH = arrayOf(
