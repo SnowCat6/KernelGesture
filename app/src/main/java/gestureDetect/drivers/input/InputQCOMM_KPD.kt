@@ -1,7 +1,6 @@
 package gestureDetect.drivers.input
 
 import gestureDetect.GestureDetect
-import gestureDetect.drivers.sensor.SensorInput
 
 /*
 Qualcomm keys

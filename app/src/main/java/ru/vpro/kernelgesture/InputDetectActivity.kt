@@ -7,19 +7,13 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.support.v7.app.AlertDialog
 import android.view.MenuItem
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
 import com.google.firebase.analytics.FirebaseAnalytics
-import gestureDetect.drivers.sensor.SensorInput
+import gestureDetect.drivers.SensorInput
 import kotlin.concurrent.thread
-import android.R.attr.versionName
-import android.content.pm.PackageInfo
-
-
-
 
 
 class InputDetectActivity : AppCompatActivity() {

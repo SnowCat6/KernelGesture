@@ -1,7 +1,7 @@
 package gestureDetect.drivers.input
 
 import gestureDetect.GestureDetect
-import gestureDetect.drivers.sensor.SensorInput
+import gestureDetect.drivers.SensorInput
 
 /*
 MTK and QCOMM keyboard

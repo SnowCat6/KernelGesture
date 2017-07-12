@@ -26,8 +26,9 @@ import com.google.android.gms.ads.InterstitialAd
 import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.GestureService
-import gestureDetect.GestureSettings
+import gestureDetect.tools.GestureSettings
 import gestureDetect.action.ActionItem
+import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
 import kotlin.concurrent.thread
 
 
@@ -173,7 +174,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
         var xmlResourceId = R.xml.pref_gesture
         var iconResource = 0
 
-        var settings:GestureSettings? = null
+        var settings: GestureSettings? = null
         var gestureAction:GestureAction? = null
 
         override fun onCreate(savedInstanceState: Bundle?)

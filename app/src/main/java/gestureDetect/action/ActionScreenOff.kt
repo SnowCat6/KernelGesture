@@ -3,7 +3,6 @@ package gestureDetect.action
 import SuperSU.ShellSU
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
-import gestureDetect.GestureHW
 import ru.vpro.kernelgesture.R
 
 /**

@@ -2,21 +2,10 @@ package gestureDetect.drivers.input
 
 import android.util.Log
 import gestureDetect.GestureDetect
-import gestureDetect.drivers.sensor.SensorInput
-import android.R.attr.y
-import android.R.attr.x
+import gestureDetect.drivers.SensorInput
 import android.content.Context
-import android.view.Display
-import android.content.Context.WINDOW_SERVICE
 import android.graphics.Point
 import android.view.WindowManager
-import android.content.ContentValues.TAG
-import android.content.pm.ResolveInfo
-import android.content.Intent
-import android.content.ComponentName
-import android.app.ActivityManager
-import android.content.Context.ACTIVITY_SERVICE
-
 
 
 /**

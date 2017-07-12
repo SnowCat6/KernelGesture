@@ -1,4 +1,4 @@
-package ru.vpro.kernelgesture
+package ru.vpro.kernelgesture.tools
 
 import android.content.Context
 import android.preference.SwitchPreference
@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.widget.Switch
 import android.view.View
 import android.widget.CompoundButton
+import ru.vpro.kernelgesture.R
 
 class GestureSwitchPreference : SwitchPreference
 {

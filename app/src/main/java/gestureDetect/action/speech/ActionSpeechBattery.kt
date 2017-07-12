@@ -29,7 +29,7 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
             var batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
             if (batLevel == 0){
                 try {
-                    val f = File("/sys/class/power_supply/battery/capacity");
+                    val f = File("/sys/class/power_supply/battery/capacity")
                     batLevel = f.readText().trim().toInt()
                 }catch (e:Exception){}
             }

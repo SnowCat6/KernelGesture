@@ -1,17 +1,12 @@
-package gestureDetect
+package gestureDetect.tools
 
 import android.app.ActivityManager
-import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.hardware.display.DisplayManager
 import android.os.PowerManager
 import android.os.Vibrator
-import android.util.Log
 import android.view.Display
-import android.app.Activity
-
-
 
 
 class GestureHW(val context:Context)
@@ -60,11 +55,10 @@ class GestureHW(val context:Context)
             mainIntent.addCategory(Intent.CATEGORY_HOME)
             val mPackageManager = context.packageManager
 
-            val appList = mPackageManager.queryIntentActivities(mainIntent, 0)
-            for (i in appList.indices) {
-                val apl = appList.get(i)
-                homeScreenActivity += apl.activityInfo.packageName
-            }
+            mPackageManager.queryIntentActivities(mainIntent, 0)
+                .forEach {
+                    homeScreenActivity += it.activityInfo.packageName
+                }
         }
 
         val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager

@@ -1,4 +1,4 @@
-package gestureDetect.drivers.sensor
+package gestureDetect.drivers
 
 import android.content.Context
 import android.hardware.Sensor

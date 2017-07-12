@@ -16,6 +16,8 @@ import android.hardware.SensorManager
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
+import gestureDetect.tools.GestureHW
+import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 

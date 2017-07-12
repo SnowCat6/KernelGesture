@@ -1,4 +1,4 @@
-package gestureDetect.drivers.sensor
+package gestureDetect.drivers
 
 import android.util.Log
 import gestureDetect.GestureDetect
@@ -12,7 +12,7 @@ import kotlin.concurrent.thread
  * Класс для получения событий мз устройств ввода, /dev/input/
  */
 
-class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
+class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
     var bRunning = false
     var bRunThread = false

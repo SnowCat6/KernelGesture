@@ -1,8 +1,9 @@
-package gestureDetect
+package gestureDetect.tools
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import gestureDetect.GestureService
 
 /*
  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

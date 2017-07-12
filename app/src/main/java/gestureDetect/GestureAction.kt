@@ -15,6 +15,8 @@ import gestureDetect.action.music.ActionMusicPlayPause
 import gestureDetect.action.music.ActionMusicPrev
 import gestureDetect.action.speech.ActionSpeechBattery
 import gestureDetect.action.speech.ActionSpeechTime
+import gestureDetect.tools.GestureHW
+import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
 
 

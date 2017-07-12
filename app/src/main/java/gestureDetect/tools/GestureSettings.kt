@@ -1,4 +1,4 @@
-package gestureDetect
+package gestureDetect.tools
 
 import android.content.Context
 import android.content.Intent

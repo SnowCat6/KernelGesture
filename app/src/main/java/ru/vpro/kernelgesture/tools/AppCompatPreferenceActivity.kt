@@ -1,4 +1,4 @@
-package ru.vpro.kernelgesture
+package ru.vpro.kernelgesture.tools
 
 import android.content.res.Configuration
 import android.os.Bundle
