@@ -35,7 +35,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     {
         for (it in gs) {
             if (!gesture.su.isFileExists(it.detectPowerFile)) continue
-            gesture.addSupport("GESTURE")
+            gesture.addSupport("GESTURE_HW")
             gesture.addSupport(allowGestures)
             return it
         }
@@ -46,8 +46,11 @@ abstract class InputHandler(val gesture:GestureDetect)
     {
         rawFilter = "-e EV_KEY -e ABS_MT_POSITION"
 
-        gesture.addSupport(listOf("GESTURE_ON"))
+        gesture.addSupport("GESTURE_ON")
         gesture.registerScreenEvents("KEY_U_ON", "KEY_U_ON")
+
+        gesture.addSupport("GESTURE")
+        gesture.addSupport(allowGestures)
 
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = wm.defaultDisplay

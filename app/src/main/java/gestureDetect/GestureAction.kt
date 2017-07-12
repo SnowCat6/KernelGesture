@@ -10,6 +10,9 @@ import android.preference.PreferenceManager
 import android.util.Log
 import gestureDetect.action.*
 import gestureDetect.action.application.*
+import gestureDetect.action.music.ActionMusicNext
+import gestureDetect.action.music.ActionMusicPlayPause
+import gestureDetect.action.music.ActionMusicPrev
 import gestureDetect.action.speech.ActionSpeechBattery
 import gestureDetect.action.speech.ActionSpeechTime
 import ru.vpro.kernelgesture.BuildConfig
@@ -24,6 +27,9 @@ class GestureAction(val context:Context)
             ActionSpeechTime(this),
             ActionSpeechBattery(this),
             ActionFlashlight(this),
+            ActionMusicPlayPause(this),
+            ActionMusicPrev(this),
+            ActionMusicNext(this),
             ActionDialer(this),
             ActionContacts(this),
             ActionWebBrowser(this),

@@ -115,13 +115,13 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 
                 //  Run input event detector
                 evCmd(queryIx, ++ix, it, 2, 5)
-                evCmd(queryIx, ++ix, it, 6, 2)
+                evCmd(queryIx, ++ix, it, 4, 2)
             }
 
             var posX = 0
             var posY = 0
             var lastEventTime = 0.0
-            var lastKeyEvent = 0.0
+            var eqEvents = emptyList<String>()
             var prevLine = String()
             val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
 
@@ -147,6 +147,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 if (gesture.disabled) continue
                 //  Check device is near screen
                 if (gesture.isNearProximity) continue
+                if (eqEvents.contains(rawLine)) continue
+                eqEvents += rawLine
 
                 val ev = regSplit.find(rawLine)
                 if (ev == null){
@@ -162,7 +164,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
 */
                 val timeLine = ev.groupValues[1].toDoubleOrNull() ?: continue
                 val timeout = timeLine - lastEventTime
-                if (timeout < 0.0) continue
+                if (timeout < 0) continue
+                if (timeout > 0) eqEvents = listOf(rawLine)
                 lastEventTime = timeLine
 
                 //  Check only key events
@@ -176,8 +179,6 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 }
 
                 if (ev.groupValues[2] != "EV_KEY") continue
-                if (timeLine - lastKeyEvent < 0.025) continue
-                lastKeyEvent = timeLine
 //                if (ev.groupValues[4] != "DOWN") continue
 
                 val evInput = EvData(ev.groupValues[2],

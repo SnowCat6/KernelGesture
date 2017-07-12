@@ -49,7 +49,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 
     override fun onDetect(name:String): Boolean
     {
-        if (arrayOf("mtk-kpd")
+        if (!arrayOf("mtk-kpd")
                 .contains(name.toLowerCase())) return false
 
         if (HCT_GESTURE_IO == null) HCT_GESTURE_IO = onDetectGS(HCT_GESTURE_PATH)

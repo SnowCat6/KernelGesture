@@ -70,4 +70,7 @@
     <string name="ui_action_screen_off">Выключить экран</string>
     <string name="ui_menu_settings">Настройки</string>
     <string name="ui_action_dbl_tap_on">Двойной тап вверху экрана</string>
+    <string name="ui_action_music_playpause">Старт/Пауза музыки</string>
+    <string name="ui_action_music_prev">Предыдущий трек</string>
+    <string name="ui_action_music_next">Следующий трек</string>
 </resources>

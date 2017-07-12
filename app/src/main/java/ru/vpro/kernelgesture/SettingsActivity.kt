@@ -472,10 +472,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val bAllEnable = settings.getAllEnable()
 
             val bGesture = support.contains("GESTURE")
-            if (bGesture) titles += context.getString(R.string.ui_title_gestures)
-
             val bGestureON = support.contains("GESTURE_ON")
-//            if (bGestureON) titles += context.getString(R.string.ui_title_gestures)
+            val bGestureHW = support.contains("GESTURE_HW")
+            if (bGestureHW) titles += context.getString(R.string.ui_title_gestures)
 
             val bKeys = support.contains("KEYS")
             if (bKeys) titles += context.getString(R.string.ui_title_keys)
@@ -491,12 +490,12 @@ class SettingsActivity : AppCompatPreferenceActivity()
             if (titles.isEmpty())
                 alertMessage = context.getString(R.string.ui_alert_gs_message_wo_keys)
             else
-                if (!support.contains("GESTURE"))
+                if (!bGestureHW)
                     alertMessage = context.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
 
             with(preferenceScreen){
                 val bEnable = su.hasRootProcess() && bAllEnable && titles.isNotEmpty()
-                findPreference("GESTURE_GROUP")?.isEnabled = /*bGesture*/ bEnable
+                findPreference("GESTURE_GROUP")?.isEnabled = bGesture && bEnable
                 findPreference("GESTURE_GROUP_ON")?.isEnabled = bGestureON && bEnable
                 findPreference("KEY_GROUP")?.isEnabled = bKeys && bEnable
                 findPreference("KEY_GROUP_ON")?.isEnabled = bKeys && bEnable
