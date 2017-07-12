@@ -119,8 +119,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                 evCmd(queryIx, ++ix, it, 4, 2)
             }
 
-            var posX = 0
-            var posY = 0
+            var posX = -1
+            var posY = -1
             var lastEventTime = 0.0
             var eqEvents = emptyList<String>()
             val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
@@ -182,8 +182,8 @@ class SensorInput(gesture: GestureDetect):SensorHandler(gesture)
                         ev.groupValues[3],
                         ev.groupValues[4],
                         timeLine, posX, posY)
-                posX = 0
-                posY = 0
+                posX = -1
+                posY = -1
 
                 inputDevices
                         .find { it.first == device }

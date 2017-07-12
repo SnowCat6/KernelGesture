@@ -10,6 +10,14 @@ import android.view.Display
 import android.content.Context.WINDOW_SERVICE
 import android.graphics.Point
 import android.view.WindowManager
+import android.content.ContentValues.TAG
+import android.content.pm.ResolveInfo
+import android.content.Intent
+import android.content.ComponentName
+import android.app.ActivityManager
+import android.content.Context.ACTIVITY_SERVICE
+
+
 
 /**
  * Базовый класс для получения события для конкретных устройств
@@ -81,7 +89,8 @@ abstract class InputHandler(val gesture:GestureDetect)
             return filter(ev, ev.evButton)
         }
 
-        if (ev.y !in 1 .. size.y / 2) return null
+        if (!gesture.hw.isHomeScreen()) return null
+        if (ev.y !in 0 .. size.y) return null
 
         val timeout = ev.evMilliTime - lastTouchTime
         lastTouchTime = ev.evMilliTime

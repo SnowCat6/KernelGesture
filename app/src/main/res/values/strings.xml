@@ -69,7 +69,7 @@
     <string name="ui_title_screen_off">Screen off</string>
     <string name="ui_action_screen_off">Screen off</string>
     <string name="ui_menu_settings">Settings</string>
-    <string name="ui_action_dbl_tap_on">Double tap on screen top</string>
+    <string name="ui_action_dbl_tap_on">Double tap on homescreen</string>
     <string name="ui_action_music_playpause">Play/Pause music</string>
     <string name="ui_action_music_prev">Previous track</string>
     <string name="ui_action_music_next">Next track</string>
