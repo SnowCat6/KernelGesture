@@ -77,9 +77,8 @@ abstract class InputHandler(val gesture:GestureDetect)
     var lastTouchTime:Double = 0.0
     open fun onEvent(ev: SensorInput.EvData): String?
     {
-        if (ev.evButton != "BTN_TOUCH") {
+        if (ev.evButton != "BTN_TOUCH")
             return filter(ev, ev.evButton)
-        }
 
         val timeout = ev.evMilliTime - lastTouchTime
 
@@ -100,7 +99,9 @@ abstract class InputHandler(val gesture:GestureDetect)
         if (timeout !in 0.025 .. 0.500 || radius > maxR)
             return null
 
-        if (!gesture.hw.isHomeScreen()) return null
+        if (!gesture.hw.isHomeScreen())
+            return null
+
         return "KEY_U_ON"
     }
     /**

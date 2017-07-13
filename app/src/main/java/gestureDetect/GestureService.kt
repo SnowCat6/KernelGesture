@@ -82,6 +82,7 @@ class GestureService :
             mSensorManager?.unregisterListener(this)
         }
         actions.onStop()
+        gesture.close()
 
         setServiceForeground(false)
     }
@@ -206,8 +207,8 @@ class GestureService :
             when (intent.action) {
                 //  Screen ON
                 Intent.ACTION_SCREEN_OFF -> {
-                    keyguardLock?.reenableKeyguard()
                     setServiceForeground(true)
+                    keyguardLock?.reenableKeyguard()
                     gestureDetector?.screenOnMode = false
                     gestureActions?.screenOnMode = false
                 }

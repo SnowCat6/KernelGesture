@@ -51,6 +51,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             gesture.su.exec("kill -s SIGINT \$(jobs -p)")
             //  Many execute for flush process buffer
             for (ix in 0..15) gesture.su.exec("echo CLOSE_EVENTS>&2")
+            Thread.sleep(1*1000)
         }
     }
 
@@ -79,8 +80,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
      */
     private fun evCmd(queryIx:Long, ix:Int, device:Pair<String, InputHandler>, nLimit:Int, nRepeat:Int){
         val CR = "\\\\n"
-        var seq = ""
-        for (i in 0 .. nRepeat) seq += " $i"
+        val seq =(1 .. nRepeat).joinToString(" ")
         gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl ${device.first} | grep ${device.second.rawFilter}) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR${device.first}$CR\"\$v$ix\">&2 ; done ; done &")
     }
 

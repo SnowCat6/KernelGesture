@@ -3,6 +3,7 @@ package ru.vpro.kernelgesture
 import SuperSU.ShellSU
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -64,15 +65,22 @@ class InputDetectActivity : AppCompatActivity() {
             setOnClickListener {
                 isEnabled = false
                 thread {
-                    reportError()
                     Handler(mainLooper).post {
+                        
                         with(android.app.AlertDialog.Builder(context))
                         {
-                            setTitle("Report send")
-                            setMessage("Thanks you for report!")
+                            if (reportError()) {
+                                setTitle("Report sending....")
+                                setMessage("Email app opening!\n\nThanks you for report!")
+                            } else {
+                                setTitle("No email app found")
+                                setMessage("Please install any email app to send report!")
+                            }
                             dlg = create()
                             dlg?.show()
                         }
+
+                        isEnabled = true
                     }
                 }
             }
@@ -80,8 +88,7 @@ class InputDetectActivity : AppCompatActivity() {
 
     }
 
-    private fun reportError()
-    {
+    private fun reportError(): Boolean {
 /*
         log.forEach {
             val ix = it.indexOf(":")
@@ -96,13 +103,18 @@ class InputDetectActivity : AppCompatActivity() {
             }
         }
 */
-        val intent = Intent(Intent.ACTION_SEND)
+        val mailAddress = "snowcat6@gmail.com"
+        val intent = Intent(Intent.ACTION_SENDTO)
         intent.type = "text/rfc822"
-        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf("vpro@vpro.ru"))
+        intent.data = Uri.parse("mailto:")
+        intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(mailAddress))
         intent.putExtra(Intent.EXTRA_SUBJECT, "AnyKernelGesture log")
         intent.putExtra(Intent.EXTRA_TEXT, log.joinToString("\n"))
 
+        if (intent.resolveActivity(packageManager) == null) return false
+
         startActivity(Intent.createChooser(intent, "Send Email"))
+        return true
     }
 
     var dlg: android.app.AlertDialog? = null
