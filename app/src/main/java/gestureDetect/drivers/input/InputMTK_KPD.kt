@@ -79,7 +79,8 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                 Pair("BTN_BASE6",   "KEY_V"),
                 Pair("BTN_BASE4",   "KEY_W"),
                 Pair("BTN_TOP",     "KEY_M"),
-                Pair("BTN_BASE5",   "KEY_Z")
+                Pair("BTN_BASE5",   "KEY_Z"),
+                Pair("KEY_WAKEUP",  "KEY_U")
         )
         return filter(ev, ev.evButton, keys)
     }

@@ -66,7 +66,7 @@ class InputDetectActivity : AppCompatActivity() {
                 isEnabled = false
                 thread {
                     Handler(mainLooper).post {
-                        
+
                         with(android.app.AlertDialog.Builder(context))
                         {
                             if (reportError()) {
@@ -142,10 +142,18 @@ class InputDetectActivity : AppCompatActivity() {
         }
 
         log += "Run find cmd to search /sys/ devices"
-        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*"))
+        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup*"))
 
         log += "Run find cmd to search /proc/ functions"
         doSearch(su, "/proc", listOf("*goodix*"))
+
+        /**
+        //  Xiaomi gesture mode???
+        // ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0038/wakeup_mode /data/tp/wakeup_mode
+        //  ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-004a/wakeup_mode /data/tp/wakeup_mode
+         */
+        log += "Run find cmd to search /data/tp/ devices"
+        doSearch(su, "/data/tp", listOf("*wakeup*"))
 
         return log
     }
