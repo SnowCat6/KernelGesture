@@ -20,6 +20,7 @@ import kotlin.concurrent.thread
 class InputDetectActivity : AppCompatActivity() {
 
     private var logList:ListView? = null
+    private var logListAdapter:ArrayAdapter<String>? = null
 
     private var startButton:Button? = null
     private var sendButton:Button? = null
@@ -45,16 +46,17 @@ class InputDetectActivity : AppCompatActivity() {
 
         startButton?.apply {
             setOnClickListener {
+
                 isEnabled = false
                 log = emptyList()
+                updateProgress()
+
                 thread{
-                    val log = doStartDetect()
+                    doStartDetect()
                     Handler(Looper.getMainLooper()).post {
+                        updateProgress()
                         isEnabled = true
                         sendButton?.isEnabled = true
-
-                        val listAdapter = ArrayAdapter<String>(logList!!.context, android.R.layout.simple_list_item_1, log)
-                        logList?.adapter = listAdapter
                     }
                 }
             }
@@ -118,7 +120,7 @@ class InputDetectActivity : AppCompatActivity() {
     }
 
     var dlg: android.app.AlertDialog? = null
-    private fun doStartDetect():List<String> {
+    private fun doStartDetect() {
 
         log = emptyList()
         val su = ShellSU()
@@ -134,12 +136,14 @@ class InputDetectActivity : AppCompatActivity() {
             log += "device:${it.second}"
         }
         log += String()
+        updateProgress()
 
         if (!su.checkRootAccess(this))
         {
             log += "No ROOT access to more search"
-            return log
+            return
         }
+        updateProgress()
 
         log += "Run find cmd to search /sys/ devices"
         doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup*"))
@@ -154,8 +158,6 @@ class InputDetectActivity : AppCompatActivity() {
          */
         log += "Run find cmd to search /data/tp/ devices"
         doSearch(su, "/data/tp", listOf("*wakeup*"))
-
-        return log
     }
 
     private fun doSearch(su:ShellSU, path:String,search: List<String>)
@@ -178,10 +180,14 @@ class InputDetectActivity : AppCompatActivity() {
             val value = su.getFileLine(it)
             log += "path:$it=>$value"
         }
-
-        log += String()
+        updateProgress()
     }
-
+    private fun updateProgress(){
+        Handler(Looper.getMainLooper()).post {
+            logListAdapter = ArrayAdapter<String>(logList!!.context, android.R.layout.simple_list_item_1, log)
+            logList?.adapter = logListAdapter
+        }
+    }
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {
             android.R.id.home -> {
