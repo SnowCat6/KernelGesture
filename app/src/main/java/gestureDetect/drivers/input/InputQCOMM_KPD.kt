@@ -11,6 +11,7 @@ open class InputQCOMM_KPD(gesture: GestureDetect) : InputHandler(gesture)
         if (!arrayOf("qpnp_pon",  "gpio-keys", "hbtp_vm")
                 .contains(name.toLowerCase())) return false
 
+        super.onDetect(name)
         return onDetectKeys(name)
     }
 }

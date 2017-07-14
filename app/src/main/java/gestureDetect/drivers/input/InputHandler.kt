@@ -7,7 +7,6 @@ import android.content.Context
 import android.graphics.Point
 import android.view.WindowManager
 import ru.vpro.kernelgesture.BuildConfig
-import java.security.PolicySpi
 
 
 /**
@@ -20,26 +19,29 @@ abstract class InputHandler(val gesture:GestureDetect)
     val size = Point()
     var coordinates = Point()
 
+    var GESTURE_IO: GS? = null
+    open val GESTURE_PATH = arrayOf<GS>()
+
     data class GS(
-            val detectPowerFile: String,
-            val setPowerON: String,
-            val setPowerOFF: String,
-            val getGesture: String = ""
+        val detectPowerFile: String,
+        val setPowerON: String,
+        val setPowerOFF: String,
+        val getGesture: String = ""
     )
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */
-    abstract fun onDetect(name:String):Boolean
-
-    fun onDetectGS(gs:Array<GS>):GS?
+    open fun onDetect(name:String):Boolean
     {
-        for (it in gs) {
+        for (it in GESTURE_PATH)
+        {
             if (!gesture.su.isFileExists(it.detectPowerFile)) continue
             gesture.addSupport("GESTURE_HW")
             gesture.addSupport(allowGestures)
-            return it
+            GESTURE_IO = it
+            break
         }
-        return null
+        return false
     }
 
     open fun onDetectTouch(name:String):Boolean
@@ -107,13 +109,11 @@ abstract class InputHandler(val gesture:GestureDetect)
     /**
      * Включить или выключить распознование жестов
      */
-    open fun setEnable(enable:Boolean) {}
-
-    fun setEnable(enable:Boolean, gs:GS?){
+    open fun setEnable(enable:Boolean) {
         //  Change state when screen is off cause sensor freeze!! Touchscreen driver BUG!!
         if (!gesture.hw.isScreenOn()) return
 
-        gs?.apply {
+        GESTURE_IO?.apply {
             val io = if (enable) setPowerON else setPowerOFF
             if (io.isNotEmpty()) gesture.su.exec("echo $io > $detectPowerFile")
         }

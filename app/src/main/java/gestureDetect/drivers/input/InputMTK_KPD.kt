@@ -8,9 +8,8 @@ MTK and QCOMM keyboard
  */
 open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
 {
-    private var HCT_GESTURE_IO: GS? = null
     //  HCT version gesture for Android 5x and Android 6x
-    private val HCT_GESTURE_PATH = arrayOf(
+    override val GESTURE_PATH = arrayOf(
             //  Android 5.x HCT gestures
             GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
                     "on","off",
@@ -44,15 +43,12 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                     "1", "0")
     )
 
-    override fun setEnable(enable:Boolean)
-            = setEnable(enable, HCT_GESTURE_IO)
-
     override fun onDetect(name:String): Boolean
     {
         if (!arrayOf("mtk-kpd")
                 .contains(name.toLowerCase())) return false
 
-        if (HCT_GESTURE_IO == null) HCT_GESTURE_IO = onDetectGS(HCT_GESTURE_PATH)
+        super.onDetect(name)
         return onDetectKeys(name)
     }
 
@@ -103,7 +99,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
                 Pair("s",           "KEY_S")
         )
 
-        HCT_GESTURE_IO?.apply {
+        GESTURE_IO?.apply {
             return filter(ev, gesture.su.getFileLine(this.getGesture), keys)
         }
         return null

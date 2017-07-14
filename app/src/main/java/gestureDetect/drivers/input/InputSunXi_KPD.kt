@@ -13,6 +13,7 @@ open class InputSunXi_KPD(gesture: GestureDetect) : InputHandler(gesture)
         if (!arrayOf("sun4i-keyboard")
                 .contains(name.toLowerCase())) return false
 
+        super.onDetect(name)
         return onDetectKeys(name)
     }
 
