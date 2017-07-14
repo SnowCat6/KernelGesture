@@ -1,6 +1,7 @@
 package ru.vpro.kernelgesture
 
 import SuperSU.ShellSU
+import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -48,6 +49,17 @@ class InputDetectActivity : AppCompatActivity() {
             setOnClickListener {
 
                 isEnabled = false
+                sendButton?.isEnabled = false
+
+                dlg?.hide()
+                with(AlertDialog.Builder(context)){
+                    setTitle("Collecting data....")
+                    setMessage("Wait until you find the data, it may take a long time!")
+                    setCancelable(false)
+                    dlg = create()
+                    dlg?.show()
+                }
+
                 log = emptyList()
                 updateProgress()
 
@@ -55,6 +67,7 @@ class InputDetectActivity : AppCompatActivity() {
                     doStartDetect()
                     Handler(Looper.getMainLooper()).post {
                         updateProgress()
+                        dlg?.hide()
                         isEnabled = true
                         sendButton?.isEnabled = true
                     }
@@ -69,7 +82,8 @@ class InputDetectActivity : AppCompatActivity() {
                 thread {
                     Handler(mainLooper).post {
 
-                        with(android.app.AlertDialog.Builder(context))
+                        dlg?.hide()
+                        with(AlertDialog.Builder(context))
                         {
                             if (reportError()) {
                                 setTitle("Report sending....")
@@ -146,7 +160,7 @@ class InputDetectActivity : AppCompatActivity() {
         updateProgress()
 
         log += "Run find cmd to search /sys/ devices"
-        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup*"))
+        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup_mode*"))
 
         log += "Run find cmd to search /proc/ functions"
         doSearch(su, "/proc", listOf("*goodix*"))

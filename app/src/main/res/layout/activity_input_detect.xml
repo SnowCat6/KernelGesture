@@ -17,6 +17,7 @@
             android:id="@+id/startLog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/item_margin"
             android:layout_weight="1"
             android:text="Start detect"
             app:layout_constraintEnd_toEndOf="parent"
@@ -26,6 +27,7 @@
             android:id="@+id/seendLog"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="@dimen/item_margin"
             android:layout_weight="1"
             android:text="Send log" />
     </LinearLayout>
