@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
+import com.google.firebase.crash.FirebaseCrash
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.OutputStream
@@ -107,6 +108,7 @@ class ShellSU
             }
         }catch (e:Exception){
             e.printStackTrace()
+            FirebaseCrash.report(e)
             return false
         }
 
@@ -160,6 +162,7 @@ class ShellSU
             return  su.errorSU?.readLine()
         }catch (e:Exception){
             e.printStackTrace()
+            FirebaseCrash.report(e)
         }
         return null
     }

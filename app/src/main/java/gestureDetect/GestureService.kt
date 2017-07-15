@@ -16,6 +16,8 @@ import android.hardware.SensorManager
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
+import com.google.firebase.FirebaseApp
+import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
@@ -74,6 +76,7 @@ class GestureService :
                 actions.onGestureEvent(ev)
             }catch (e:Exception){
                 e.printStackTrace()
+                FirebaseCrash.report(e)
             }
         }
 

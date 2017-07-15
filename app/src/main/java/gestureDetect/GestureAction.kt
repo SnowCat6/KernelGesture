@@ -8,6 +8,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.preference.PreferenceManager
 import android.util.Log
+import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.action.*
 import gestureDetect.action.application.*
 import gestureDetect.action.music.ActionMusicNext
@@ -107,6 +108,7 @@ class GestureAction(val context:Context)
             }
         }catch (e:Exception){
             e.printStackTrace()
+            FirebaseCrash.report(e)
             return false
         }
 /*
