@@ -93,21 +93,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
             android.R.id.home ->{
                 if (fragmentManager.backStackEntryCount > 0)
                     super.onBackPressed()
-                return true
             }
-            R.id.menu_adv ->
-            {
-                if (mInterstitialAd?.isLoaded != null && mInterstitialAd!!.isLoaded) {
-                    mInterstitialAd?.show()
-                } else {
-                    Log.d("TAG", "The interstitial wasn't loaded yet.")
+            R.id.menu_adv -> {
+                mInterstitialAd?.apply {
+                    if (isLoaded) mInterstitialAd?.show()
                 }
+                Log.d("TAG", "The interstitial wasn't loaded yet.")
             }
-            R.id.menu_settings ->
-            {
-                InputDetectActivity.startActivity(this)
-            }
-            else -> super.onOptionsItemSelected(item)
+            R.id.menu_settings -> InputDetectActivity.startActivity(this)
+            else -> return super.onOptionsItemSelected(item)
         }
         return true
     }
@@ -116,7 +110,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
      * {@inheritDoc}
      */
     override fun onIsMultiPane(): Boolean {
-        return isXLargeTablet(this)
+        return resources.configuration.screenLayout and
+                Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
     }
 
     /**
@@ -651,14 +646,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
     {
         val su = ShellSU()
         var bShowAlertDlg = true
-
-        /**
-         * Helper method to determine if the device has an extra-large screen. For
-         * example, 10" tablets are extra-large.
-         */
-        private fun isXLargeTablet(context: Context): Boolean {
-            return context.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_XLARGE
-        }
 
         fun updateControls(context:Context)
         {
