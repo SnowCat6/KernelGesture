@@ -91,7 +91,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
         when(item?.itemId)
         {
             android.R.id.home ->{
-                super.onBackPressed()
+                if (fragmentManager.backStackEntryCount > 0)
+                    super.onBackPressed()
                 return true
             }
             R.id.menu_adv ->
@@ -406,7 +407,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     return defaultAction
                 }
                 set(value) {
-                    _actionName = ""
                     _icon = null
                     applicationInfo = null
                     settings?.setAction(key, value)
@@ -414,27 +414,23 @@ class SettingsActivity : AppCompatPreferenceActivity()
             var enable:Boolean
                 get() = settings?.getEnable(key) ?: false
                 set(value){
-                    _actionName = ""
                     _icon = null
                     settings?.setEnable(key, value)
                 }
 
-            var _actionName:String = ""
             val actionName:String
                 get() {
-                    if (_actionName.isNotEmpty()) return _actionName
-
-                    if (getAppInfo() != null) {
-                        _actionName = uiName(getAppInfo())
-                    }else{
-                        if (action == "" && key == "GESTURE_DEFAULT_ACTION") {
-                            _actionName = getString(R.string.ui_no_action)
-                        }else {
-                            if (action == "" && !enable) _actionName = getString(R.string.ui_no_action)
-                            else _actionName = uiName(action)
-                        }
+                    getAppInfo()?.apply {
+                        return uiName(this)
                     }
-                    return _actionName
+
+                    if (action.isEmpty()){
+                        if (key == "GESTURE_DEFAULT_ACTION")
+                            return getString(R.string.ui_no_action)
+                        if (!enable) return getString(R.string.ui_no_action)
+                    }
+
+                    return uiName(action)
                 }
 
             var _icon:Drawable? = null
@@ -448,8 +444,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
 
             private fun getAppInfo():ApplicationInfo?
-                    = if (applicationInfo != null)
-                        applicationInfo else uiAppInfo(action)
+                    = applicationInfo ?: uiAppInfo(action)
         }
 
         var dlg:AlertDialog? = null
@@ -606,9 +601,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 is ApplicationInfo -> return item.packageName
                 is ActionItem -> return item.action()
                 is String -> {
-                    if (gestureAction?.getAction(item) != null) return item
-                    val appInfo = uiAppInfo(item)
-                    if (appInfo != null) return item
+                    gestureAction?.getAction(item)?.apply { return item  }
+                    uiAppInfo(item)?.apply { return item }
                 }
             }
             return ""
@@ -652,7 +646,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
     class KeyPreferenceFragment : GesturePreferenceFragment()
     { init { xmlResourceId = R.xml.pref_gesture_keys; iconResource = R.drawable.icon_gesture_key }}
-
 
     companion object
     {
