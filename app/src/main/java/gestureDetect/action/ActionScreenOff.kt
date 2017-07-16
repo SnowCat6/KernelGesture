@@ -10,10 +10,8 @@ import ru.vpro.kernelgesture.R
  */
 class ActionScreenOff(action: GestureAction) : ActionItem(action)
 {
-    val su = ShellSU()
-
     override fun action(): String
-            = if (su.hasRootProcess()) "screen.off" else ""
+            = if (action.su.hasRootProcess()) "screen.off" else ""
 
     override fun name(): String
             = context.getString(R.string.ui_action_screen_off)
@@ -23,7 +21,7 @@ class ActionScreenOff(action: GestureAction) : ActionItem(action)
 
     override fun run(): Boolean {
         action.hw.vibrate()
-        su.exec("input keyevent 26")
+        action.su.exec("input keyevent 26")
         return true
     }
 }

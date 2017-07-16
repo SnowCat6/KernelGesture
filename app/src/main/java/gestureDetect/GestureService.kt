@@ -22,10 +22,11 @@ import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
+import kotlin.concurrent.thread
 
 class GestureService :
-//        Service(),
-        IntentService("AnyKernelGesture"),
+        Service(),
+//        IntentService("AnyKernelGesture"),
         SensorEventListener
 {
     companion object {
@@ -43,7 +44,7 @@ class GestureService :
     /*
     GESTURE DETECT
      */
-    override fun onHandleIntent(intent: Intent?)
+    fun onHandleIntent(intent: Intent?)
     {
         su.checkRootAccess(this)
         val hw = GestureHW(this)
@@ -126,8 +127,11 @@ class GestureService :
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
-        super.onStartCommand(intent, flags, startId)
-        return Service.START_STICKY
+        thread(priority = Thread.MAX_PRIORITY) {
+            onHandleIntent(null)
+        }
+
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onCreate()

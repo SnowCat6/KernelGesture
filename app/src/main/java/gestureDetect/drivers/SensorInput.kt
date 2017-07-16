@@ -100,7 +100,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         if (bRunThread || !bRunning) return
         bRunThread = true
 
-        thread{
+        thread(priority = Thread.MAX_PRIORITY){
 
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Start")
