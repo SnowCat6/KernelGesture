@@ -81,9 +81,12 @@ class ShellSU
                     errorSU = processSU?.errorStream?.bufferedReader()
                     writerSU = processSU?.outputStream
 
-                    exec("id")
-                    val id = readExecLine()?.contains("root")
-                    if (id == null || id == false) close()
+                    if (exec("id")) {
+                        val id = readExecLine()?.contains("root")
+                        if (id == null || id == false) close()
+                    }else{
+                        close()
+                    }
 
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -99,8 +102,6 @@ class ShellSU
 
     fun exec(cmd: String): Boolean
     {
-        open()
-
         try {
             su.writerSU?.apply {
                 write("$cmd\n".toByteArray())

@@ -62,24 +62,23 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         closeCamera()
     }
 
-    var flashlightDirect:String? = null
-    var bEnable = false
     var bHasFlash = false
-
+    var flashlightDirect:String? = null
     var camera:Camera? = null
 
-    var enable:Boolean
-        get() = bEnable
+    var enable:Boolean = false
+        get() = field
         set(value) {
-            bEnable = value
+            if (field == value) return
+            field = value
             if (flashlightDirect != null) flashlightDirect()
             else flashlightCamera()
         }
 
-    fun flashlightDirect(){
-        action.su.exec("echo ${if (bEnable) 255 else 0} > $flashlightDirect" )
+    private fun flashlightDirect(){
+        action.su.exec("echo ${if (enable) 255 else 0} > $flashlightDirect" )
     }
-    fun flashlightCamera()
+    private fun flashlightCamera()
     {
         if (!bHasFlash) return
 
@@ -96,7 +95,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
 
         try {
             val params = camera?.parameters ?: return
-            if (bEnable) {
+            if (enable) {
                 params.flashMode = Camera.Parameters.FLASH_MODE_TORCH
                 camera?.parameters = params
                 camera?.startPreview()
@@ -108,7 +107,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         }catch (e:Exception){
         }
     }
-    fun closeCamera(){
+    private fun closeCamera(){
         camera?.release()
         camera = null
     }

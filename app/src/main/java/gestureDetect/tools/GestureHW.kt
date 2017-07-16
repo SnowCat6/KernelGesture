@@ -62,7 +62,7 @@ class GestureHW(val context:Context)
         }
 
         val mActivityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val packageName = mActivityManager.runningAppProcesses.get(0).processName
+        val packageName = mActivityManager.runningAppProcesses[0].processName
 
         return homeScreenActivity.firstOrNull {
             it == packageName } != null

@@ -47,15 +47,13 @@ class GestureAction(val context:Context)
         onDetect()
     }
 
-    private var _screenOnMode = false
-    var screenOnMode
-        get() = _screenOnMode
+    var screenOnMode = false
+        get() = field
         set(value){
-            if (value != screenOnMode){
-                onStop()
-                _screenOnMode = value
-                onStart()
-            }
+            if (value == field) return
+            onStop()
+            field = value
+            onStart()
         }
 
     fun onDetect(){

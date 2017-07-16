@@ -1,7 +1,6 @@
 package gestureDetect
 
 import SuperSU.ShellSU
-import android.app.IntentService
 import android.app.KeyguardManager
 import android.app.Notification
 import android.app.Service
@@ -16,7 +15,6 @@ import android.hardware.SensorManager
 import android.os.IBinder
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
-import com.google.firebase.FirebaseApp
 import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings

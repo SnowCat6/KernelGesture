@@ -37,23 +37,19 @@ class GestureDetect (val context:Context)
     /**
      * Disable event detection
      */
-    private var _disabled = false
-    var disabled: Boolean
-        get() = _disabled
+    var disabled: Boolean = false
+        get() = field
         set(value) {
-            _disabled = value
+            field = value
             if (value) eventMutex.unlock()
         }
 
-    private var _screenOnMode:Boolean = false
-    var screenOnMode:Boolean
-        get () = _screenOnMode
+    var screenOnMode:Boolean = false
+        get () = field
         set(value){
-            if (value != _screenOnMode)
-            {
-                _screenOnMode = value
-                sensorDevices.forEach { it.onScreenState(value) }
-            }
+            if (value == field) return
+            field = value
+            sensorDevices.forEach { it.onScreenState(value) }
         }
 
     private var screenEvents = emptyList<Pair<String, String>>()
@@ -84,17 +80,15 @@ class GestureDetect (val context:Context)
      *  Settings for filter events with proximity sensor
      */
     private var timeNearChange = System.currentTimeMillis()
-    private var _bIsNearProximity:Boolean = false
-    var isNearProximity: Boolean
+    var isNearProximity: Boolean = false
         get() {
             val timeDiff = System.currentTimeMillis() - timeNearChange
-            return _bIsNearProximity || timeDiff < 1*1000
+            return field || timeDiff < 1*1000
         }
         set(value) {
-            if (_bIsNearProximity != value) {
-                _bIsNearProximity = value
-                timeNearChange = System.currentTimeMillis()
-            }
+            if (field == value) return
+            field = value
+            timeNearChange = System.currentTimeMillis()
         }
 
     private val eventMutex = Mutex()

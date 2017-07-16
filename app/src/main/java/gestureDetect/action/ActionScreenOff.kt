@@ -1,6 +1,5 @@
 package gestureDetect.action
 
-import SuperSU.ShellSU
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.R
