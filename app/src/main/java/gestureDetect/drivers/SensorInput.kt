@@ -46,12 +46,8 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
         if (bRunThread) {
             bRunThread = false
-
-//            gesture.su.exec("kill -s SIGINT %%")
-            gesture.su.exec("kill -s SIGINT \$(jobs -p)")
             //  Many execute for flush process buffer
             for (ix in 0..15) gesture.su.exec("echo CLOSE_EVENTS>&2")
-            Thread.sleep(1*1000)
         }
     }
 
@@ -188,12 +184,16 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                         ?.second?.onEvent(evInput)
                         ?.apply { sensorEvent(this) }
             }
+
+            gesture.su.exec("kill -s SIGINT \$(jobs -p)")
             bRunThread = false
+
+            Thread.sleep(1*1000)
 
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Exit")
             }
-        }.priority = Thread.MAX_PRIORITY
+        }
     }
 
     companion object
