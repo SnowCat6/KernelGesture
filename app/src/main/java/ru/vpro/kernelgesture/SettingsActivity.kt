@@ -363,9 +363,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
             val item = adapter.getItem(i) as? ActionListItem ?: return@OnClickListener
-
             val preference = adapter.preference as TwoStatePreference
-
             val itemAction =  uiAction(item)
 
             if (BuildConfig.DEBUG) {
@@ -528,7 +526,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                 thread{
                     val pm =  preference.context.packageManager
-
                     val mainIntent = Intent(Intent.ACTION_MAIN, null)
                     mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
                     val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)

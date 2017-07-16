@@ -1,6 +1,7 @@
 package gestureDetect.action.speech
 
 import android.speech.tts.TextToSpeech
+import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.GestureAction
 import gestureDetect.action.ActionItem
 import java.util.*
@@ -27,6 +28,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
             }
         }catch (e:Exception){
             e.printStackTrace()
+            FirebaseCrash.report(e)
         }
 
         return false
@@ -44,6 +46,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
             tts?.shutdown()
         }catch (e:Exception){
             e.printStackTrace()
+            FirebaseCrash.report(e)
         }
         tts = null
     }
@@ -56,6 +59,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
                 tts?.shutdown()
             }catch (e:Exception){
                 e.printStackTrace()
+                FirebaseCrash.report(e)
             }
             tts = null
             return
@@ -68,6 +72,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
             }
         }catch (e:Exception){
             e.printStackTrace()
+            FirebaseCrash.report(e)
         }
     }
 }

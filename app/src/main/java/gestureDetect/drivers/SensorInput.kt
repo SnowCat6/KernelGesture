@@ -193,7 +193,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Exit")
             }
-        }
+        }.priority = Thread.MAX_PRIORITY
     }
 
     companion object

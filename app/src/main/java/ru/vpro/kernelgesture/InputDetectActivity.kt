@@ -51,7 +51,7 @@ class InputDetectActivity : AppCompatActivity() {
                 isEnabled = false
                 sendButton?.isEnabled = false
 
-                dlg?.hide()
+                dlg?.dismiss()
                 with(AlertDialog.Builder(context)){
                     setTitle("Collecting data....")
                     setMessage("Wait until you find the data, it may take a long time!")
@@ -65,9 +65,9 @@ class InputDetectActivity : AppCompatActivity() {
 
                 thread{
                     doStartDetect()
+                    updateProgress()
                     Handler(Looper.getMainLooper()).post {
-                        updateProgress()
-                        dlg?.hide()
+                        dlg?.dismiss()
                         isEnabled = true
                         sendButton?.isEnabled = true
                     }
@@ -79,10 +79,10 @@ class InputDetectActivity : AppCompatActivity() {
             isEnabled = false
             setOnClickListener {
                 isEnabled = false
+                dlg?.dismiss()
                 thread {
                     Handler(mainLooper).post {
 
-                        dlg?.hide()
                         with(AlertDialog.Builder(context))
                         {
                             if (reportError()) {

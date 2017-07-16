@@ -101,6 +101,9 @@ abstract class InputHandler(val gesture:GestureDetect)
         if (timeout !in 0.025 .. 0.500 || radius > maxR)
             return null
 
+        if (!gesture.settings.getEnable("KEY_U_ON"))
+            return null
+
         if (!gesture.hw.isHomeScreen())
             return null
 
