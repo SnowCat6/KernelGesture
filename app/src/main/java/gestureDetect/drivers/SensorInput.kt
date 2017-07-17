@@ -102,98 +102,103 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                 Log.d("SensorInput", "Start")
             }
 
-            var device = ""
-            var bQueryFound = false
-            val queryIx = System.currentTimeMillis()
+            while(bRunThread){
+                if (!gesture.su.checkRootAccess(context)) break
+                threadLoop()
+            }
+            bRunThread = false
 
-            //  For each device
-            var ix = 0
-            inputDevices.forEach {
+            if (BuildConfig.DEBUG){
+                Log.d("SensorInput", "Exit")
+            }
+        }
+    }
 
-                //  Run input event detector
-                evCmd(queryIx, ++ix, it, 2, 5)
-                evCmd(queryIx, ++ix, it, 4, 2)
+    private fun threadLoop()
+    {
+        var device = ""
+        var bQueryFound = false
+        val queryIx = System.currentTimeMillis()
+
+        //  For each device
+        var ix = 0
+        inputDevices.forEach {
+
+            //  Run input event detector
+            evCmd(queryIx, ++ix, it, 2, 5)
+            evCmd(queryIx, ++ix, it, 4, 2)
+        }
+
+        var coordinates = Point(-1, -1)
+        var lastEventTime = 0.0
+        var eqEvents = emptyList<String>()
+        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
+
+        while(bRunThread)
+        {
+            //  Read line from input
+            val rawLine = gesture.su.readErrorLine() ?: break
+            //  Stop if gesture need stop run
+            if (!bRunThread) break
+
+            //  Check query number for skip old events output
+            if (!bQueryFound){
+                bQueryFound = rawLine == "query$queryIx"
+                continue
             }
 
-            var coordinates = Point(-1, -1)
-            var lastEventTime = 0.0
-            var eqEvents = emptyList<String>()
-            val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
+            if (rawLine == "CLOSE_EVENTS")
+                break
 
-            while(bRunThread)
-            {
-                //  Read line from input
-                val rawLine = gesture.su.readErrorLine() ?: break
-                //  Stop if gesture need stop run
-                if (!bRunThread) break
+            if (gesture.disabled) continue
+            //  Check device is near screen
+            if (gesture.isNearProximity) continue
+            if (eqEvents.contains(rawLine)) continue
+            eqEvents += rawLine
 
-                //  Check query number for skip old events output
-                if (!bQueryFound){
-                    bQueryFound = rawLine == "query$queryIx"
-                    continue
-                }
-
-                if (rawLine == "CLOSE_EVENTS")
-                    break
-
-                if (gesture.disabled) continue
-                //  Check device is near screen
-                if (gesture.isNearProximity) continue
-                if (eqEvents.contains(rawLine)) continue
-                eqEvents += rawLine
-
-                val ev = regSplit.find(rawLine)
-                if (ev == null){
-                    //  Detect current input device
-                    if (rawLine.contains("/dev/input/")) device = rawLine
-                    continue
-                }
+            val ev = regSplit.find(rawLine)
+            if (ev == null){
+                //  Detect current input device
+                if (rawLine.contains("/dev/input/")) device = rawLine
+                continue
+            }
 /*
                 Log.d("Sensor", device)
                 inputDevices.forEach {
                     Log.d("Sensors", it.first)
                 }
 */
-                val timeLine = ev.groupValues[1].toDoubleOrNull() ?: continue
-                val timeout = timeLine - lastEventTime
-                if (timeout < 0) continue
-                if (timeout > 0) eqEvents = listOf(rawLine)
-                lastEventTime = timeLine
+            val timeLine = ev.groupValues[1].toDoubleOrNull() ?: continue
+            val timeout = timeLine - lastEventTime
+            if (timeout < 0) continue
+            if (timeout > 0) eqEvents = listOf(rawLine)
+            lastEventTime = timeLine
 
-                //  Check only key events
-                if (ev.groupValues[3] == "ABS_MT_POSITION_X"){
-                    coordinates.x = ev.groupValues[4].toInt(16)
-                    continue
-                }
-                if (ev.groupValues[3] == "ABS_MT_POSITION_Y"){
-                    coordinates.y = ev.groupValues[4].toInt(16)
-                    continue
-                }
+            //  Check only key events
+            if (ev.groupValues[3] == "ABS_MT_POSITION_X"){
+                coordinates.x = ev.groupValues[4].toInt(16)
+                continue
+            }
+            if (ev.groupValues[3] == "ABS_MT_POSITION_Y"){
+                coordinates.y = ev.groupValues[4].toInt(16)
+                continue
+            }
 
-                if (ev.groupValues[2] != "EV_KEY") continue
+            if (ev.groupValues[2] != "EV_KEY") continue
 //                if (ev.groupValues[4] != "DOWN") continue
 
-                val evInput = EvData(ev.groupValues[2],
-                        ev.groupValues[3],
-                        ev.groupValues[4],
-                        timeLine, coordinates)
-                coordinates = Point(-1, -1)
+            val evInput = EvData(ev.groupValues[2],
+                    ev.groupValues[3],
+                    ev.groupValues[4],
+                    timeLine, coordinates)
+            coordinates = Point(-1, -1)
 
-                inputDevices
-                        .find { it.first == device }
-                        ?.second?.onEvent(evInput)
-                        ?.apply { sensorEvent(this) }
-            }
-
-            gesture.su.exec("kill -s SIGINT \$(jobs -p)")
-            bRunThread = false
-
-            Thread.sleep(1*1000)
-
-            if (BuildConfig.DEBUG){
-                Log.d("SensorInput", "Exit")
-            }
+            inputDevices
+                    .find { it.first == device }
+                    ?.second?.onEvent(evInput)
+                    ?.apply { sensorEvent(this) }
         }
+        gesture.su.exec("kill -s SIGINT \$(jobs -p)")
     }
 
     companion object

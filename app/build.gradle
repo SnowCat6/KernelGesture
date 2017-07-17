@@ -9,8 +9,8 @@ android {
         applicationId "ru.vpro.kernelgesture"
         minSdkVersion 21
         targetSdkVersion 25
-        versionCode 118
-        versionName "1.1.20 (beta)"
+        versionCode 119
+        versionName "1.1.21 (beta)"
         setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

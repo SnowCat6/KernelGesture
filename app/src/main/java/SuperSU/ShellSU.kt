@@ -130,6 +130,7 @@ class ShellSU
             {
                 if (processSU == null) return
                 try {
+                    if (exec("exit")) Thread.sleep(500)
                     processSU?.destroy()
                 } catch (e: Exception) {
                     e.printStackTrace()

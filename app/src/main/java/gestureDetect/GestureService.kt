@@ -188,7 +188,7 @@ class GestureService :
         gestureActions?.close()
         gestureActions = null
 
-//        su.close()
+        su.close()
     }
     /************************************/
     /*
