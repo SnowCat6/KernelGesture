@@ -564,13 +564,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     return lInflater.inflate(R.layout.adapter_splitter, parent, false)
                 }
                 // используем созданные, но не используемые view
-                val view:View = if (bSplitView == null) lInflater.inflate(R.layout.adapter_choose_item, parent, false) else convertView
+                val view:View = if (bSplitView != null || convertView == null)
+                    lInflater.inflate(R.layout.adapter_choose_item, parent, false)
+                else convertView
 
                 val nameView:View? = view.findViewById(R.id.title)
                 (nameView as TextView?)?.text = uiName(thisItem)
 
                 val icon = uiIcon(thisItem)
-                val iconView:View = view.findViewById(R.id.icon)
+                val iconView:View? = view.findViewById(R.id.icon)
                 (iconView as ImageView?)?.setImageDrawable(icon)
 
                 if (currentAction != null && currentAction.isNotEmpty() &&
