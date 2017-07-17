@@ -556,21 +556,22 @@ class SettingsActivity : AppCompatPreferenceActivity()
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
             {
                 val thisItem = getItem(position)
-                if (thisItem is String && thisItem == "-") {
-                    if (convertView != null && convertView.findViewById(R.id.splitter) != null)
-                        return convertView
+                val bSplitView:View? = convertView?.findViewById(R.id.splitter)
+
+                if (thisItem == "-")
+                {
+                    if (bSplitView != null) return convertView
                     return lInflater.inflate(R.layout.adapter_splitter, parent, false)
                 }
                 // используем созданные, но не используемые view
-                val view: View
-                if (convertView == null || convertView.findViewById(R.id.splitter) != null) {
-                    view = lInflater.inflate(R.layout.adapter_choose_item, parent, false)
-                }else view = convertView
+                val view:View = if (bSplitView == null) lInflater.inflate(R.layout.adapter_choose_item, parent, false) else convertView
 
-                (view.findViewById(R.id.title) as TextView).text = uiName(thisItem)
+                val nameView:View? = view.findViewById(R.id.title)
+                (nameView as TextView?)?.text = uiName(thisItem)
 
                 val icon = uiIcon(thisItem)
-                (view.findViewById(R.id.icon) as ImageView).setImageDrawable(icon)
+                val iconView:View = view.findViewById(R.id.icon)
+                (iconView as ImageView?)?.setImageDrawable(icon)
 
                 if (currentAction != null && currentAction.isNotEmpty() &&
                         currentAction == uiAction(thisItem))

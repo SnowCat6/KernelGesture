@@ -27,13 +27,13 @@ class GestureSwitchPreference : SwitchPreference
             onPreferenceClickListener?.onPreferenceClick(this)
         }
 
-        val checkableView:Switch? = view.findViewById(R.id.switch_widget) as Switch?
-        checkableView?.setOnCheckedChangeListener({ compoundButton: CompoundButton, b: Boolean ->
+        val checkableView:View? = view.findViewById(R.id.switch_widget)
+        (checkableView as Switch?)?.setOnCheckedChangeListener({ compoundButton: CompoundButton, b: Boolean ->
 
             if (!callChangeListener(b)) {
                 // Listener didn't like it, change it back.
                 // CompoundButton will make sure we don't recurse.
-                checkableView.isChecked = !b
+                checkableView?.isChecked = !b
             }else {
                 isChecked = b
             }

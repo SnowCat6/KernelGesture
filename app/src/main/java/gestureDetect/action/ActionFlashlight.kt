@@ -53,7 +53,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     {
         enable = !enable
         action.vibrate()
-        if (enable) action.playNotify()
+//        if (enable) action.playNotify()
         return false
     }
 
