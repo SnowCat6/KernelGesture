@@ -61,7 +61,12 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
         getInputEvents().forEach { (input, name) ->
             inputHandlers.forEach {
-                if (it.onDetect(name)) inputDevices += Pair(input, it)
+                if (it.onDetect(name)){
+                    if (BuildConfig.DEBUG){
+                        Log.d("SensorInput", "device $name => $input")
+                    }
+                    inputDevices += Pair(input, it)
+                }
             }
         }
 
@@ -79,7 +84,8 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     /**
      * Exec command for get events from getevent linux binary
      */
-    private fun evCmd(queryIx:Long, ix:Int, device:Pair<String, InputHandler>, nLimit:Int, nRepeat:Int){
+    private fun evCmd(queryIx:Long, ix:Int, device:Pair<String, InputHandler>, nLimit:Int, nRepeat:Int)
+    {
         val CR = "\\\\n"
         val seq =(1 .. nRepeat).joinToString(" ")
         gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl ${device.first} | grep ${device.second.rawFilter}) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR${device.first}$CR\"\$v$ix\">&2 ; done ; done &")

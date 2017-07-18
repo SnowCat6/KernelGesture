@@ -41,6 +41,7 @@ abstract class InputHandler(val gesture:GestureDetect)
             GESTURE_IO = it
             break
         }
+
         return false
     }
 

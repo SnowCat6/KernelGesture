@@ -18,8 +18,10 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     )
     override fun onDetect(name:String):Boolean
     {
-        if (!arrayOf("mtk-tpd", "ft5x06_ts", "atmel-maxtouch", "fts_ts")
-                .contains(name.toLowerCase()))
+        //  "ft5x06_ts", "ft5435_ts", "fts_ts"
+        val n = name.toLowerCase()
+        if (!arrayOf("mtk-tpd", "atmel-maxtouch")
+                .contains(n) && !n.contains(Regex("ft.*_ts")))
             return false
 
         super.onDetect(name)
