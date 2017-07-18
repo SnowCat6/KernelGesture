@@ -16,7 +16,7 @@ import kotlin.concurrent.thread
 class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
     var bRunning = false
-    var bRunThread = false
+    var runThread:Thread? = null
 
     /**
      * Input devices
@@ -44,8 +44,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     {
         bRunning = false
 
-        if (bRunThread) {
-            bRunThread = false
+        if (runThread?.isAlive == true) {
             //  Many execute for flush process buffer
             for (ix in 0..15) gesture.su.exec("echo CLOSE_EVENTS>&2")
         }
@@ -71,6 +70,12 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         return inputDevices.isNotEmpty()
     }
 
+    override fun onScreenState(bScreenON: Boolean) {
+        //  TRY re run thread if killed
+        startThread()
+        super.onScreenState(bScreenON)
+    }
+
     /**
      * Exec command for get events from getevent linux binary
      */
@@ -83,30 +88,27 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     override fun onStart()
     {
         bRunning = true
-        if (gesture.su.checkRootAccess(context) && inputDevices.isNotEmpty())
-            startThread()
-    }
-
-    override fun onStop() {
-        bRunning = false
+        startThread()
     }
 
     private fun startThread()
     {
-        if (bRunThread || !bRunning) return
-        bRunThread = true
+        if (runThread?.isAlive == true || !bRunning)
+            return
+        if (!gesture.su.checkRootAccess(context) || inputDevices.isEmpty())
+            return
 
-        thread(priority = Thread.MAX_PRIORITY){
+        runThread = thread(priority = Thread.MAX_PRIORITY){
 
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Start")
             }
 
-            while(bRunThread){
+            while(bRunning){
                 if (!gesture.su.checkRootAccess(context)) break
                 threadLoop()
             }
-            bRunThread = false
+            runThread = null
 
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Exit")
@@ -134,12 +136,12 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         var eqEvents = emptyList<String>()
         val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
 
-        while(bRunThread)
+        while(bRunning)
         {
             //  Read line from input
             val rawLine = gesture.su.readErrorLine() ?: break
             //  Stop if gesture need stop run
-            if (!bRunThread) break
+            if (!bRunning) break
 
             //  Check query number for skip old events output
             if (!bQueryFound){

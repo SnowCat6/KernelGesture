@@ -205,7 +205,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             preferenceItems.forEach {
 
-                it.action
                 findPreference(it.key)?.apply {
                     icon = it.icon
                     onPreferenceChangeListener = changeListener()
