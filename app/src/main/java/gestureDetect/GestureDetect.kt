@@ -37,7 +37,7 @@ class GestureDetect (val context:Context)
     /**
      * Disable event detection
      */
-    var disabled: Boolean = false
+    var bClosed: Boolean = false
         get() = field
         set(value) {
             field = value
@@ -101,7 +101,7 @@ class GestureDetect (val context:Context)
 
     fun close()
     {
-        disabled = true
+        bClosed = true
 
         onStop()
         sensorDevices.forEach{ it.close() }
@@ -169,7 +169,7 @@ class GestureDetect (val context:Context)
         var thisEvent:String?
         do{
             thisEvent = getCurrentEvent()
-            if (disabled) break
+            if (bClosed) break
 
             thisEvent?.apply {
 
@@ -198,7 +198,7 @@ class GestureDetect (val context:Context)
                     }?.second
                 }
             }
-        }while (!disabled && !settings.getEnable(thisEvent))
+        }while (!bClosed && !settings.getEnable(thisEvent))
 
         onStop()
 
@@ -233,7 +233,7 @@ class GestureDetect (val context:Context)
 
     fun sensorEvent(value:String):Boolean
     {
-        if (disabled) return false
+        if (bClosed) return false
         if (!bStart) return false
         if (!isEventEnable(value)) return false
 

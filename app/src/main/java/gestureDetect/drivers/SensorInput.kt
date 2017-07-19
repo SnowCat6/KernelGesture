@@ -133,7 +133,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         inputDevices.forEach {
 
             //  Run input event detector
-            evCmd(queryIx, ++ix, it, 2, 5)
+            evCmd(queryIx, ++ix, it, 2, 4)
             evCmd(queryIx, ++ix, it, 4, 2)
         }
 
@@ -149,16 +149,18 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             //  Stop if gesture need stop run
             if (!bRunning) break
 
+            Log.d("SensorInput", rawLine)
             //  Check query number for skip old events output
+/*
             if (!bQueryFound){
                 bQueryFound = rawLine == "query$queryIx"
                 continue
             }
-
+*/
+ /*
             if (rawLine == "CLOSE_EVENTS")
                 break
-
-            if (gesture.disabled) continue
+*/
             //  Check device is near screen
             if (gesture.isNearProximity) continue
             if (eqEvents.contains(rawLine)) continue
@@ -178,6 +180,8 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 */
             val timeLine = ev.groupValues[1].toDoubleOrNull() ?: continue
             val timeout = timeLine - lastEventTime
+            Log.d("SensorInput", "event device:$timeout")
+
             if (timeout < 0) continue
             if (timeout > 0) eqEvents = listOf(rawLine)
             lastEventTime = timeLine
@@ -194,7 +198,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
             if (ev.groupValues[2] != "EV_KEY") continue
 //                if (ev.groupValues[4] != "DOWN") continue
-
+            Log.d("SensorInput", "event device:$device")
             val evInput = EvData(ev.groupValues[2],
                     ev.groupValues[3],
                     ev.groupValues[4],

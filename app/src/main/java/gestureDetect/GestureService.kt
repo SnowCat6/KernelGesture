@@ -57,7 +57,7 @@ class GestureService :
         gestureDetector = gesture
 
         actions.onStart()
-        gesture.disabled = false
+        gesture.bClosed = false
 
         //  If proximity sensor used, register event
         val bProximityEnable = settings.getEnable( "GESTURE_PROXIMITY")
@@ -68,7 +68,7 @@ class GestureService :
 
         //  Main gesture loop
         //  Wait gesture while live
-        while (!gesture.disabled)
+        while (!gesture.bClosed)
         {
             val ev = gesture.waitGesture() ?: break
             try {
