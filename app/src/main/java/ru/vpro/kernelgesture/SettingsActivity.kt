@@ -86,6 +86,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
         return super.onCreateOptionsMenu(menu)
     }
 
+    var dlg:AlertDialog? = null
     override fun onOptionsItemSelected(item: MenuItem?): Boolean
     {
         when(item?.itemId)
@@ -95,8 +96,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     super.onBackPressed()
             }
             R.id.menu_adv -> {
+                val ctx = this
                 mInterstitialAd?.apply {
                     if (isLoaded) mInterstitialAd?.show()
+                    else with(AlertDialog.Builder(ctx)){
+                        setTitle("No adv loaded")
+                        setMessage("Please look at this page later")
+                        dlg = create()
+                        dlg?.show()
+                    }
                 }
                 Log.d("TAG", "The interstitial wasn't loaded yet.")
             }
@@ -327,7 +335,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 {
                     setTitle(getString(R.string.iu_choose_action))
                     setAdapter(adapter, onClickListener)
-                    create().show()
+                    dlg = create()
+                    dlg?.show()
                 }
 
                 true
