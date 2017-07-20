@@ -149,7 +149,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             //  Stop if gesture need stop run
             if (!bRunning) break
 
-            Log.d("SensorInput", rawLine)
+//            Log.d("SensorInput", rawLine)
             //  Check query number for skip old events output
 
             if (!bQueryFound){
@@ -180,7 +180,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 */
             val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
             var timeout = timeLine - lastEventTime
-            Log.d("SensorInput", "event timeout:$timeout, old value:$lastEventTime, new value:$timeLine")
+//            Log.d("SensorInput", "event timeout:$timeout, old value:$lastEventTime, new value:$timeLine")
             if (timeout < -1.0) timeout = 1.0
 
             if (timeout < 0) continue

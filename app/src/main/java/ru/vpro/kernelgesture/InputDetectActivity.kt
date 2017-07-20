@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.view.MenuItem
+import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
@@ -41,9 +42,14 @@ class InputDetectActivity : AppCompatActivity() {
 
         firebaseAnalytics = FirebaseAnalytics.getInstance(this)
 
-        logList = findViewById(R.id.logList) as ListView?
-        startButton = findViewById(R.id.startLog) as Button?
-        sendButton = findViewById(R.id.seendLog) as Button?
+        var view: View? = findViewById(R.id.logList)
+        logList = view as ListView?
+
+        view = findViewById(R.id.startLog)
+        startButton = view as Button?
+
+        view = findViewById(R.id.seendLog)
+        sendButton = view as Button?
 
         startButton?.apply {
             setOnClickListener {
@@ -199,7 +205,7 @@ class InputDetectActivity : AppCompatActivity() {
     private fun updateProgress(){
         Handler(Looper.getMainLooper()).post {
             logListAdapter = ArrayAdapter<String>(logList!!.context, android.R.layout.simple_list_item_1, log)
-            logList?.adapter = logListAdapter
+            logList?.adapter = logListAdapter!!
         }
     }
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
