@@ -151,12 +151,12 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
             Log.d("SensorInput", rawLine)
             //  Check query number for skip old events output
-/*
+
             if (!bQueryFound){
                 bQueryFound = rawLine == "query$queryIx"
                 continue
             }
-*/
+
  /*
             if (rawLine == "CLOSE_EVENTS")
                 break
@@ -178,9 +178,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                     Log.d("Sensors", it.first)
                 }
 */
-            val timeLine = ev.groupValues[1].toDoubleOrNull() ?: continue
-            val timeout = timeLine - lastEventTime
-            Log.d("SensorInput", "event device:$timeout")
+            val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
+            var timeout = timeLine - lastEventTime
+            Log.d("SensorInput", "event timeout:$timeout, old value:$lastEventTime, new value:$timeLine")
+            if (timeout < -1.0) timeout = 1.0
 
             if (timeout < 0) continue
             if (timeout > 0) eqEvents = listOf(rawLine)

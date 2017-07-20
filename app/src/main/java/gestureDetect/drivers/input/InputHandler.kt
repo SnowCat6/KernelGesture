@@ -77,7 +77,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     /**
      * Реакция на событие от устройства ввода
      */
-    var lastTouchTime:Double = 0.0
+    var lastTouchTime = 0.0
     open fun onEvent(ev: SensorInput.EvData): String?
     {
         if (ev.evButton != "BTN_TOUCH")

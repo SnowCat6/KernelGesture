@@ -225,7 +225,7 @@ class GestureService :
                 }
                 //  Enable gestures
                 GestureSettings.EVENT_ENABLE ->{
-                    val key = intent.getSerializableExtra("key") as String
+                    val key = intent.getSerializableExtra("key") as String?
                     if (key != "GESTURE_ENABLE") return
 
                     val bEnable = intent.getSerializableExtra("value") as Boolean? ?: false
