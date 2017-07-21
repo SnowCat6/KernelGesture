@@ -22,12 +22,20 @@ abstract class InputHandler(val gesture:GestureDetect)
     var GESTURE_IO: GS? = null
     open val GESTURE_PATH = arrayOf<GS>()
 
-    data class GS(
+    inner class GS(
             val powerFile: String,
             val setPowerON: String = "1",
             val setPowerOFF: String = "0",
             val getGesture: String = ""
-    )
+    ){
+        fun setEnable(bEnable:Boolean)
+        {
+            val io = if (bEnable) setPowerON else setPowerOFF
+            if (io.isNotEmpty()) gesture.su.exec("echo $io > $powerFile")
+        }
+        fun getGesture():String?
+                = if (getGesture.isNotEmpty()) gesture.su.getFileLine(getGesture) else null
+    }
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */
@@ -125,11 +133,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     open fun setEnable(enable:Boolean) {
         //  Change state when screen is off cause sensor freeze!! Touchscreen driver BUG!!
         if (!gesture.hw.isScreenOn()) return
-
-        GESTURE_IO?.apply {
-            val io = if (enable) setPowerON else setPowerOFF
-            if (io.isNotEmpty()) gesture.su.exec("echo $io > $powerFile")
-        }
+        GESTURE_IO?.setEnable(enable)
     }
     /**
      * Получить текущее состояние

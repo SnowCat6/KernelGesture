@@ -98,7 +98,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             R.id.menu_adv -> {
                 val ctx = this
                 mInterstitialAd?.apply {
-                    if (isLoaded) mInterstitialAd?.show()
+                    if (isLoaded) show()
                     else with(AlertDialog.Builder(ctx)){
                         setTitle(getString(R.string.ui_adv_title))
                         setMessage(getString(R.string.ui_adv_content))

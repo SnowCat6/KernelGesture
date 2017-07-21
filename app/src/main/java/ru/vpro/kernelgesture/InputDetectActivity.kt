@@ -167,7 +167,7 @@ class InputDetectActivity : AppCompatActivity() {
         updateProgress()
 
         log += "Run find cmd to search /sys/ devices"
-        doSearch(su, "/sys", listOf("i2c", "*gesture*", "*gesenable*", "*wakeup_mode*"))
+        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup_mode*"))
 
         log += "Run find cmd to search /proc/ functions"
         doSearch(su, "/proc", listOf("*goodix*"))

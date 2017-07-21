@@ -17,7 +17,11 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
             // Android 6.x HCT gestures
             GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
                     "on", "off",
-                    "/sys/devices/bus/bus\\:touch@/tpgesture")
+                    "/sys/devices/bus/bus\\:touch@/tpgesture"),
+                    // Android 7.x Oukitel K6000 Plus
+            GS("/sys/devices/soc/soc:touch/tpgesture_status",
+            "on", "off",
+            "/sys/devices/soc/soc:touch/tpgesture")
     )
 
     override fun onDetect(name:String): Boolean
@@ -78,7 +82,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         )
 
         GESTURE_IO?.apply {
-            return filter(ev, gesture.su.getFileLine(getGesture), keys)
+            return filter(ev, getGesture(), keys)
         }
         return null
     }
