@@ -24,7 +24,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
             tts?.apply {
                 language = Locale.getDefault()
                 speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
-                if (!bNotify) Thread.sleep(500)
+                Thread.sleep(1000)
             }
         }catch (e:Exception){
             e.printStackTrace()
