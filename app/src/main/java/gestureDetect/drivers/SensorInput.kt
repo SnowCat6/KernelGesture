@@ -25,7 +25,8 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             InputTouchscreen(gesture),
             InputMTK_KPD(gesture),
             InputQCOMM_KPD(gesture),
-            InputSunXi_KPD(gesture)
+            InputSunXi_KPD(gesture),
+            InputCypressTPD(gesture)
     )
     data class EvData(
             val evName:String,
@@ -75,12 +76,6 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         return inputDevices.isNotEmpty()
     }
 
-    override fun onScreenState(bScreenON: Boolean) {
-        //  TRY re run thread if killed
-        startThread()
-        super.onScreenState(bScreenON)
-    }
-
     /**
      * Exec command for get events from getevent linux binary
      */
@@ -91,7 +86,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl ${device.first} | grep ${device.second.rawFilter}) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR${device.first}$CR\"\$v$ix\">&2 ; done ; done &")
     }
 
-    override fun onStart()
+    override fun onResume()
     {
         bRunning = true
         startThread()
@@ -101,6 +96,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     {
         if (runThread?.isAlive == true || !bRunning)
             return
+
         if (!gesture.su.checkRootAccess(context) || inputDevices.isEmpty())
             return
 

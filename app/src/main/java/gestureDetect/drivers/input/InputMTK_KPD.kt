@@ -17,39 +17,17 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
             // Android 6.x HCT gestures
             GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
                     "on", "off",
-                    "/sys/devices/bus/bus\\:touch@/tpgesture"),
-            //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
-            GS("/sys/class/syna/gesenable",
-                    "1","0"),
-            //  Doogee x5 Max Pro
-            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-0038/gesture",
-                    "1", "0"),
-            GS("/sys/devices/bus/11008000.i2c/i2c-1/1-0038/gesture",
-                    "1", "0"),
-
-            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-005d/gesture",
-            "1", "0"),
-            GS("/sys/devices/bus/11008000.i2c/i2c-1/1-005d/gesture",
-                    "1", "0"),
-
-            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-0020/gesture",
-                    "1", "0"),
-            GS("/sys/devices/bus/11008000.i2c/i2c-1/1-0020/gesture",
-                    "1", "0"),
-
-            GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-004b/gesture",
-                    "1", "0"),
-            GS("/sys/devices/bus/11008000.i2c/i2c-1/1-004b/gesture",
-                    "1", "0")
+                    "/sys/devices/bus/bus\\:touch@/tpgesture")
     )
 
     override fun onDetect(name:String): Boolean
     {
-        if (!arrayOf("mtk-kpd")
-                .contains(name.toLowerCase())) return false
+        if (!onDetect(name, arrayOf("mtk-kpd")))
+            return false
 
         super.onDetect(name)
-        return onDetectKeys(name)
+        onDetectKeys(name)
+        return true
     }
 
     override fun onEvent(ev: SensorInput.EvData):String?
@@ -100,7 +78,7 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
         )
 
         GESTURE_IO?.apply {
-            return filter(ev, gesture.su.getFileLine(this.getGesture), keys)
+            return filter(ev, gesture.su.getFileLine(getGesture), keys)
         }
         return null
     }

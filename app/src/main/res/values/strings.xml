@@ -73,6 +73,8 @@
     <string name="ui_action_music_playpause">Play/Pause music</string>
     <string name="ui_action_music_prev">Previous track</string>
     <string name="ui_action_music_next">Next track</string>
+    <string name="ui_adv_title">No adv loaded</string>
+    <string name="ui_adv_content">Please look at this page later</string>
 
     <!-- Strings related to Settings -->
 

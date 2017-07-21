@@ -100,8 +100,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 mInterstitialAd?.apply {
                     if (isLoaded) mInterstitialAd?.show()
                     else with(AlertDialog.Builder(ctx)){
-                        setTitle("No adv loaded")
-                        setMessage("Please look at this page later")
+                        setTitle(getString(R.string.ui_adv_title))
+                        setMessage(getString(R.string.ui_adv_content))
                         dlg = create()
                         dlg?.show()
                     }

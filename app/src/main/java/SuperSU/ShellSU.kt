@@ -151,6 +151,9 @@ class ShellSU
     fun isFileExists(name: String): Boolean
             = exec("[ -f $name ] && echo 1 || echo 0") && readExecLine() == "1"
 
+    fun execExists(cmd:String):Boolean
+            = exec("[ $(command -v $cmd) ] && echo 1 || echo 0") && readExecLine() == "1"
+
     fun readExecLine(): String?
     {
         try {

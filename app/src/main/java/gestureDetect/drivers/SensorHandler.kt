@@ -21,12 +21,12 @@ abstract class SensorHandler(val gesture:GestureDetect)
     /**
      * Начало процесса детектирования событий
      */
-    open fun onStart() {}
+    open fun onResume() {}
 
     /**
      * Окончание процесса детектирование событий
      */
-    open fun onStop() {}
+    open fun onPause() {}
 
     /**
      * Завершение работы сервиса, выход из программы

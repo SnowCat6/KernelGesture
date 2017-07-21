@@ -23,10 +23,10 @@ abstract class InputHandler(val gesture:GestureDetect)
     open val GESTURE_PATH = arrayOf<GS>()
 
     data class GS(
-        val detectPowerFile: String,
-        val setPowerON: String,
-        val setPowerOFF: String,
-        val getGesture: String = ""
+            val powerFile: String,
+            val setPowerON: String = "1",
+            val setPowerOFF: String = "0",
+            val getGesture: String = ""
     )
     /**
      * Определить возможность получения событий по имени /dev/input устройства
@@ -35,7 +35,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     {
         for (it in GESTURE_PATH)
         {
-            if (!gesture.su.isFileExists(it.detectPowerFile)) continue
+            if (!gesture.su.isFileExists(it.powerFile)) continue
             gesture.addSupport("GESTURE_HW")
             gesture.addSupport(allowGestures)
             GESTURE_IO = it
@@ -44,6 +44,15 @@ abstract class InputHandler(val gesture:GestureDetect)
 
         return false
     }
+    fun onDetect(name:String, names:Array<String>):Boolean
+            = names.contains(name.toLowerCase())
+
+    fun onDetect(name:String, regs:Array<Regex>):Boolean{
+        val n = name.toLowerCase()
+        return regs.firstOrNull { n.contains(it) } != null
+    }
+    fun onDetect(name:String, names:Array<String>, regs:Array<Regex>):Boolean
+            = onDetect(name, names) || onDetect(name, regs)
 
     open fun onDetectTouch(name:String):Boolean
     {
@@ -119,7 +128,7 @@ abstract class InputHandler(val gesture:GestureDetect)
 
         GESTURE_IO?.apply {
             val io = if (enable) setPowerON else setPowerOFF
-            if (io.isNotEmpty()) gesture.su.exec("echo $io > $detectPowerFile")
+            if (io.isNotEmpty()) gesture.su.exec("echo $io > $powerFile")
         }
     }
     /**
@@ -135,15 +144,7 @@ abstract class InputHandler(val gesture:GestureDetect)
         if (key == null || key.isEmpty() || ev.evPress != "DOWN")
             return null
 
-        var gesture = key
-        if (convert != null) {
-            for ((first, second) in convert) {
-                if (key != first) continue
-                gesture = second
-                break
-            }
-        }
-
+        val gesture = convert?.firstOrNull { it.first == key }?.second ?: key
         return if (gesture in allowGestures) gesture else null
     }
 

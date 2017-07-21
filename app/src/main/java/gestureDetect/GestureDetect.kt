@@ -103,7 +103,7 @@ class GestureDetect (val context:Context)
     {
         bClosed = true
 
-        onStop()
+        onPause()
         sensorDevices.forEach{ it.close() }
 
         eventMutex.unlock()
@@ -127,34 +127,34 @@ class GestureDetect (val context:Context)
 
         if (bStart){
             sensorDevices.subtract(prevSensor).forEach {
-                it.onStart()
+                it.onResume()
             }
         }
 
         prevSensor.subtract(sensorDevices).forEach {
-            if (bStart) it.onStop()
+            if (bStart) it.onPause()
             it.close()
         }
     }
 
     private var bStart = false
-    private fun onStart(){
+    private fun onResume(){
         if (bStart) return
         bStart = true
 
         if (BuildConfig.DEBUG){
             Log.d("GestureDetect", "start")
         }
-        sensorDevices.forEach { it.onStart() }
+        sensorDevices.forEach { it.onResume() }
     }
-    private fun onStop(){
+    private fun onPause(){
         if (!bStart) return
         bStart = false
 
         if (BuildConfig.DEBUG){
             Log.d("GestureDetect", "stop")
         }
-        sensorDevices.forEach { it.onStop() }
+        sensorDevices.forEach { it.onPause() }
     }
 
     private  var sensorEventGesture = LinkedList<String>()
@@ -164,7 +164,7 @@ class GestureDetect (val context:Context)
     private fun getEventThread():String?
     {
         sensorEventGesture.clear()
-        onStart()
+        onResume()
 
         var thisEvent:String?
         do{
@@ -200,7 +200,7 @@ class GestureDetect (val context:Context)
             }
         }while (!bClosed && !settings.getEnable(thisEvent))
 
-        onStop()
+        onPause()
 
         return thisEvent
     }

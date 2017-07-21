@@ -163,10 +163,11 @@ class InputDetectActivity : AppCompatActivity() {
             log += "No ROOT access to more search"
             return
         }
+
         updateProgress()
 
         log += "Run find cmd to search /sys/ devices"
-        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup_mode*"))
+        doSearch(su, "/sys", listOf("i2c", "*gesture*", "*gesenable*", "*wakeup_mode*"))
 
         log += "Run find cmd to search /proc/ functions"
         doSearch(su, "/proc", listOf("*goodix*"))
@@ -180,27 +181,53 @@ class InputDetectActivity : AppCompatActivity() {
         doSearch(su, "/data/tp", listOf("*wakeup*"))
     }
 
-    private fun doSearch(su:ShellSU, path:String,search: List<String>)
+    private fun doSearch(su:ShellSU, path:String,search: List<String>):Boolean
     {
-        var rawCmd = emptyList<String>()
-        search.forEach { rawCmd += "-name $it" }
-        val cmd = rawCmd.joinToString(" -or ")
-
         var files = emptyList<String>()
-        if (su.exec("find $path $cmd") && su.exec("echo --END--"))
-        {
+
+        if (!su.execExists("find")){
+            log += "No \"find\" command found, try setup \"BusyBox\" and repeat!"
+/*
+            var rawCmd = emptyList<String>()
+            search.forEach { rawCmd += "-e $it" }
+            val cmd = rawCmd.joinToString(" ")
+
+            if (!su.exec("ls -lR $path | grep $cmd")) return false
+            if (!su.exec("echo --END--")) return false
+
+            while (true) {
+                val line = su.readExecLine() ?: break
+                if (line == "--END--") break
+
+                val split = line.split(Regex("\\s\\d{2}:\\d{2}\\s"), 2)
+                if (split.size == 2) files += split[1]
+            }
+            files.forEach {
+                log += "path:$it"
+            }
+ */
+        }else {
+            var rawCmd = emptyList<String>()
+            search.forEach { rawCmd += "-name $it" }
+            val cmd = rawCmd.joinToString(" -or ")
+
+            if (!su.exec("find $path $cmd")) return false
+            if (!su.exec("echo --END--")) return false
+
             while (true) {
                 val line = su.readExecLine() ?: break
                 if (line == "--END--") break
 
                 files += line
             }
+            files.forEach {
+                val value = su.getFileLine(it)
+                log += "path:$it=>$value"
+            }
         }
-        files.forEach {
-            val value = su.getFileLine(it)
-            log += "path:$it=>$value"
-        }
+
         updateProgress()
+        return true
     }
     private fun updateProgress(){
         Handler(Looper.getMainLooper()).post {

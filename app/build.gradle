@@ -9,7 +9,7 @@ android {
         applicationId "ru.vpro.kernelgesture"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 124
+        versionCode 126
         versionName "1.1.21 (beta)"
         setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

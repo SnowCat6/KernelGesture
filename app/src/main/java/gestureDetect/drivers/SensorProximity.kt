@@ -40,18 +40,18 @@ open class SensorProximity(gesture: GestureDetect) :
     }
 
     override fun onScreenState(bScreenON: Boolean)
-            = onStart()
+            = onResume()
 
-    override fun onStart()
+    override fun onResume()
     {
         if (gesture.screenOnMode){
             if (!gesture.settings.getEnable("KEY_PROXIMITY_ON")) {
-                onStop()
+                onPause()
                 return
             }
         }else{
             if (!gesture.settings.getEnable("KEY_PROXIMITY")) {
-                onStop()
+                onPause()
                 return
             }
         }
@@ -67,7 +67,7 @@ open class SensorProximity(gesture: GestureDetect) :
         mSensorManager?.registerListener(this, mProximity, SensorManager.SENSOR_DELAY_NORMAL)
     }
 
-    override fun onStop() {
+    override fun onPause() {
         if (!bRegisterEvent) return
         bRegisterEvent = false
 
