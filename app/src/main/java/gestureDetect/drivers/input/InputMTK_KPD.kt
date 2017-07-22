@@ -12,16 +12,20 @@ open class InputMTK_KPD(gesture: GestureDetect) : InputHandler(gesture)
     override val GESTURE_PATH = arrayOf(
             //  Android 5.x HCT gestures
             GS("/sys/devices/platform/mtk-tpd/tpgesture_status",
-                    "on","off",
-                    "/sys/devices/platform/mtk-tpd/tpgesture"),
+                "on","off",
+                "/sys/devices/platform/mtk-tpd/tpgesture"),
             // Android 6.x HCT gestures
             GS("/sys/devices/bus/bus\\:touch@/tpgesture_status",
-                    "on", "off",
-                    "/sys/devices/bus/bus\\:touch@/tpgesture"),
+                "on", "off",
+                "/sys/devices/bus/bus\\:touch@/tpgesture"),
                     // Android 7.x Oukitel K6000 Plus
             GS("/sys/devices/soc/soc:touch/tpgesture_status",
-            "on", "off",
-            "/sys/devices/soc/soc:touch/tpgesture")
+                "on", "off",
+                "/sys/devices/soc/soc:touch/tpgesture"),
+            //  Oukitel K6000 Pro
+            GS("/sys/devices/bus/bus:touch@/tpgesture_status",
+                "on", "off",
+                "/sys/devices/bus/bus:touch@/tpgesture")
     )
 
     override fun onDetect(name:String): Boolean

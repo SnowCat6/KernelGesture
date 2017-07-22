@@ -100,11 +100,6 @@ abstract class InputHandler(val gesture:GestureDetect)
         if (ev.evButton != "BTN_TOUCH")
             return filter(ev, ev.evButton)
 
-        val timeout = ev.evMilliTime - lastTouchTime
-
-        val dx = (coordinates.x-ev.coordinates.x).toDouble()
-        val dy = (coordinates.y-ev.coordinates.y).toDouble()
-        val radius = Math.sqrt(dx*dx + dy*dy).toInt()
 
         coordinates = ev.coordinates
         lastTouchTime = ev.evMilliTime
@@ -112,7 +107,12 @@ abstract class InputHandler(val gesture:GestureDetect)
         if (ev.coordinates.y !in 0 .. size.y ||
                 ev.coordinates.x !in 0 .. size.x) return null
 
+        val dx = (coordinates.x-ev.coordinates.x).toDouble()
+        val dy = (coordinates.y-ev.coordinates.y).toDouble()
+        val radius = Math.sqrt(dx*dx + dy*dy).toInt()
         val maxR = Math.min(size.x, size.y)/16
+        val timeout = ev.evMilliTime - lastTouchTime
+
         if (BuildConfig.DEBUG) {
             Log.d("Double tap", "r:$radius, rMax:$maxR, t:$timeout")
         }

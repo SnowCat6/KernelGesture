@@ -81,9 +81,13 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
      */
     private fun evCmd(queryIx:Long, ix:Int, device:Pair<String, InputHandler>, nLimit:Int, nRepeat:Int)
     {
-        val CR = "\\\\n"
-        val seq =(1 .. nRepeat).joinToString(" ")
-        gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl ${device.first} | grep ${device.second.rawFilter}) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR${device.first}$CR\"\$v$ix\">&2 ; done ; done &")
+        if (nLimit > 0) {
+            val CR = "\\\\n"
+            val seq = (1..nRepeat).joinToString(" ")
+            gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl ${device.first} | grep ${device.second.rawFilter}) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR${device.first}$CR\"\$v$ix\">&2 ; done ; done &")
+        }else{
+            gesture.su.exec("getevent -tl ${device.first}>&2 &")
+        }
     }
 
     override fun onResume()
@@ -145,7 +149,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             //  Stop if gesture need stop run
             if (!bRunning) break
 
-//            Log.d("SensorInput", rawLine)
+            Log.d("SensorInput", rawLine)
             //  Check query number for skip old events output
 
             if (!bQueryFound){
@@ -153,32 +157,22 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                 continue
             }
 
- /*
-            if (rawLine == "CLOSE_EVENTS")
-                break
-*/
             //  Check device is near screen
             if (gesture.isNearProximity) continue
             if (eqEvents.contains(rawLine)) continue
-            eqEvents += rawLine
 
-            val ev = regSplit.find(rawLine)
-            if (ev == null){
-                //  Detect current input device
-                if (rawLine.contains("/dev/input/")) device = rawLine
+            if (rawLine.contains("/dev/input/")){
+                device = rawLine
                 continue
             }
-/*
-                Log.d("Sensor", device)
-                inputDevices.forEach {
-                    Log.d("Sensors", it.first)
-                }
-*/
+
+            val ev = regSplit.find(rawLine) ?: continue
+            eqEvents += rawLine
+
             val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
             var timeout = timeLine - lastEventTime
-//            Log.d("SensorInput", "event timeout:$timeout, old value:$lastEventTime, new value:$timeLine")
-            if (timeout < -1.0) timeout = 1.0
 
+            if (timeout < -1.0) timeout = 1.0
             if (timeout < 0) continue
             if (timeout > 0) eqEvents = listOf(rawLine)
             lastEventTime = timeLine
