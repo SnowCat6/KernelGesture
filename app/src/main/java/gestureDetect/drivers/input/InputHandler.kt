@@ -64,11 +64,13 @@ abstract class InputHandler(val gesture:GestureDetect)
     {
         rawFilter = "-e EV_KEY -e ABS_MT_POSITION"
 
-        gesture.addSupport("GESTURE_ON")
-        gesture.registerScreenEvents("KEY_U_ON", "KEY_U_ON")
+        with(gesture){
+            addSupport("GESTURE_ON")
+            registerScreenEvents("KEY_U_ON", "KEY_U_ON")
 
-        gesture.addSupport("GESTURE")
-        gesture.addSupport(allowGestures)
+            addSupport("GESTURE")
+            addSupport(allowGestures)
+        }
 
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val display = wm.defaultDisplay
@@ -78,13 +80,15 @@ abstract class InputHandler(val gesture:GestureDetect)
     }
     open fun onDetectKeys(name:String):Boolean
     {
-        gesture.addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
+        with(gesture){
+            addSupport(listOf("KEYS", "KEY_VOLUMEUP", "KEY_VOLUMEDOWN"))
 
-        gesture.registerDelayEvents("KEY_VOLUMEUP", "KEY_VOLUMEUP_DELAY")
-        gesture.registerDelayEvents("KEY_VOLUMEDOWN", "KEY_VOLUMEDOWN_DELAY")
+            registerDelayEvents("KEY_VOLUMEUP", "KEY_VOLUMEUP_DELAY")
+            registerDelayEvents("KEY_VOLUMEDOWN", "KEY_VOLUMEDOWN_DELAY")
 
-        gesture.registerScreenEvents("KEY_VOLUMEUP_DELAY", "KEY_VOLUMEUP_DELAY_ON")
-        gesture.registerScreenEvents("KEY_VOLUMEDOWN_DELAY", "KEY_VOLUMEDOWN_DELAY_ON")
+            registerScreenEvents("KEY_VOLUMEUP_DELAY", "KEY_VOLUMEUP_DELAY_ON")
+            registerScreenEvents("KEY_VOLUMEDOWN_DELAY", "KEY_VOLUMEDOWN_DELAY_ON")
+        }
 
         return true
     }

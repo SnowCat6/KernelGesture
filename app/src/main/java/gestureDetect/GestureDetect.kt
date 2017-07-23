@@ -273,24 +273,7 @@ class GestureDetect (val context:Context)
             = value.forEach { addSupport(it) }
 
     fun getSupport():List<String>
-    {
-/*
-        if (SU.exec("find /sys -name *gesture*") && SU.exec("echo --END--"))
-        {
-            while (true) {
-                val line = SU.readExecLine() ?: break
-                Log.d("Read line", line)
-                if (line == "--END--") break
-
-                val path =  line.substring(line.lastIndexOf("/")+1)
-                when(path){
-//                        "tpgesture_status" -> { addSupport("GESTURE") }
-                }
-            }
-        }
- */
-        return supported
-    }
+            = supported
 
     class Mutex
     {

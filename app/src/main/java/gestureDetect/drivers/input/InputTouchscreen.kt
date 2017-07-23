@@ -34,7 +34,7 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     {
         //  "ft5x06_ts", "ft5435_ts", "fts_ts"
         if (!onDetect(name,
-                arrayOf("mtk-tpd", "atmel-maxtouch", Regex("ft.*_ts"))))
+                arrayOf("mtk-tpd", "atmel-maxtouch", "touch_dev", Regex("ft.*_ts"))))
             return false
 
         super.onDetect(name)
