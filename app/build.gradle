@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
-
 apply plugin: 'kotlin-android'
+
+def code = new Date().format('yyMMddHHmm').toInteger()
 
 android {
     compileSdkVersion 26
@@ -9,8 +10,8 @@ android {
         applicationId "ru.vpro.kernelgesture"
         minSdkVersion 21
         targetSdkVersion 26
-        versionCode 129
-        versionName "1.1.22 (beta)"
+        versionCode code
+        versionName "1.1.23 (beta)"
         setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

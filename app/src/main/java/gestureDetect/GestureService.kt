@@ -183,10 +183,7 @@ class GestureService :
         unregisterReceiver(onEventIntent)
 
         gestureDetector?.close()
-        gestureDetector = null
-
         gestureActions?.close()
-        gestureActions = null
 
         su.close()
     }

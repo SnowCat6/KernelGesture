@@ -137,7 +137,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             evCmd(queryIx, ++ix, it, 4, 2)
         }
 
-        var coordinates = Point(-1, -1)
+        val coordinates = Point(-1, -1)
         var lastEventTime = 0.0
         var eqEvents = emptyList<String>()
         val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
@@ -149,7 +149,6 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             //  Stop if gesture need stop run
             if (!bRunning) break
 
-            Log.d("SensorInput", rawLine)
             //  Check query number for skip old events output
 
             if (!bQueryFound){
@@ -168,6 +167,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
             val ev = regSplit.find(rawLine) ?: continue
             eqEvents += rawLine
+            Log.d("SensorInput", rawLine)
 
             val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
             var timeout = timeLine - lastEventTime
@@ -189,12 +189,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
             if (ev.groupValues[2] != "EV_KEY") continue
 //                if (ev.groupValues[4] != "DOWN") continue
-            Log.d("SensorInput", "event device:$device")
             val evInput = EvData(ev.groupValues[2],
                     ev.groupValues[3],
                     ev.groupValues[4],
                     timeLine, coordinates)
-            coordinates = Point(-1, -1)
 
             inputDevices
                     .find { it.first == device }
@@ -202,6 +200,11 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                     ?.apply { sensorEvent(this) }
         }
         gesture.su.exec("kill -s SIGINT \$(jobs -p)")
+    }
+
+    override fun onScreenState(bScreenON: Boolean) {
+        super.onScreenState(bScreenON)
+        enable(true)
     }
 
     companion object

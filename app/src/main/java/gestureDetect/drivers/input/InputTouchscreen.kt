@@ -9,7 +9,7 @@ MT touchscreen with gestures
 open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
 {
     //  HCT version gesture for Android 5x and Android 6x
-    override val GESTURE_PATH = arrayOf(
+    override var GESTURE_PATH = arrayOf(
             //  Unknown 3.10 FTS touchscreen gestures for driver FT6206_X2605
             GS("/sys/class/syna/gesenable"),
 
@@ -34,8 +34,7 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     {
         //  "ft5x06_ts", "ft5435_ts", "fts_ts"
         if (!onDetect(name,
-                arrayOf("mtk-tpd", "atmel-maxtouch"),
-                arrayOf(Regex("ft.*_ts"))))
+                arrayOf("mtk-tpd", "atmel-maxtouch", Regex("ft.*_ts"))))
             return false
 
         super.onDetect(name)

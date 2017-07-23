@@ -41,26 +41,24 @@ abstract class InputHandler(val gesture:GestureDetect)
      */
     open fun onDetect(name:String):Boolean
     {
-        for (it in GESTURE_PATH)
-        {
-            if (!gesture.su.isFileExists(it.powerFile)) continue
+        GESTURE_IO = GESTURE_PATH.firstOrNull { gesture.su.isFileExists(it.powerFile) }?.also {
             gesture.addSupport("GESTURE_HW")
             gesture.addSupport(allowGestures)
-            GESTURE_IO = it
-            break
         }
 
         return false
     }
-    fun onDetect(name:String, names:Array<String>):Boolean
-            = names.contains(name.toLowerCase())
-
-    fun onDetect(name:String, regs:Array<Regex>):Boolean{
+    fun onDetect(name:String, names:Array<Any>):Boolean
+    {
         val n = name.toLowerCase()
-        return regs.firstOrNull { n.contains(it) } != null
+        return names.firstOrNull {
+            when(it){
+                is String -> n == it
+                is Regex -> n.contains(it)
+                else -> false
+            }
+        } != null
     }
-    fun onDetect(name:String, names:Array<String>, regs:Array<Regex>):Boolean
-            = onDetect(name, names) || onDetect(name, regs)
 
     open fun onDetectTouch(name:String):Boolean
     {
@@ -101,22 +99,23 @@ abstract class InputHandler(val gesture:GestureDetect)
             return filter(ev, ev.evButton)
 
 
+        val timeout = ((ev.evMilliTime - lastTouchTime)*1000).toInt()
+        val dx = (coordinates.x-ev.coordinates.x).toDouble()
+        val dy = (coordinates.y-ev.coordinates.y).toDouble()
+
         coordinates = ev.coordinates
         lastTouchTime = ev.evMilliTime
 
         if (ev.coordinates.y !in 0 .. size.y ||
                 ev.coordinates.x !in 0 .. size.x) return null
 
-        val dx = (coordinates.x-ev.coordinates.x).toDouble()
-        val dy = (coordinates.y-ev.coordinates.y).toDouble()
         val radius = Math.sqrt(dx*dx + dy*dy).toInt()
         val maxR = Math.min(size.x, size.y)/16
-        val timeout = ev.evMilliTime - lastTouchTime
 
         if (BuildConfig.DEBUG) {
             Log.d("Double tap", "r:$radius, rMax:$maxR, t:$timeout")
         }
-        if (timeout !in 0.025 .. 0.500 || radius > maxR)
+        if (timeout > 500 || radius > maxR)
             return null
 
         if (!gesture.settings.getEnable("KEY_U_ON"))

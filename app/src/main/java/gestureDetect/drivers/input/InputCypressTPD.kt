@@ -17,8 +17,7 @@ open class InputCypressTPD(gesture: GestureDetect) : InputHandler(gesture)
     override fun onDetect(name:String):Boolean
     {
         if (!onDetect(name,
-                arrayOf("cyttsp5_mt"),
-                arrayOf(Regex("hisi_gpio_key"))))
+                arrayOf("cyttsp5_mt", Regex("hisi_gpio_key"))))
             return false
 
         super.onDetect(name)
