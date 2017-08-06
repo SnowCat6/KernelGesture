@@ -27,6 +27,14 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
             GS("/sys/devices/bus/11008000.i2c/i2c-1/1-004b/gesture"),
 
             GS("/sys/class/gesture/gesture_ft5x06/enable"),
+            //  Lenovo K920 (ROW)?
+            GS("/sys/devices/f9924000.i2c/i2c-2/2-0038/gesture"),
+            GS("/sys/devices/virtual/touchscreen/device/gesture"),
+            //  T02 - [on/off]1 [I]1 [Z]0 [C]0 [V]0
+            //  acer_z530?
+            GS("/sys/devices/bus.3/11008000.I2C1/i2c-1/1-0038/gesturewordset",
+                    "11111", "00000"),
+
             //  Xiaomi?
             GS("/data/tp/wakeup_mode")
     )
@@ -34,7 +42,8 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     {
         //  "ft5x06_ts", "ft5435_ts", "fts_ts"
         if (!onDetect(name,
-                arrayOf("mtk-tpd", "atmel-maxtouch", "touch_dev", Regex("ft.*_ts"))))
+                arrayOf("mtk-tpd", "atmel-maxtouch", "touch_dev",
+                        Regex("ft.*_ts"), Regex("synaptics"))))
             return false
 
         super.onDetect(name)
