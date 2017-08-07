@@ -168,7 +168,6 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
             val ev = regSplit.find(rawLine) ?: continue
             eqEvents += rawLine
-//            Log.d("SensorInput", rawLine)
 
             val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
             var timeout = timeLine - lastEventTime
@@ -193,7 +192,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             val evInput = EvData(ev.groupValues[2],
                     ev.groupValues[3],
                     ev.groupValues[4],
-                    timeLine, coordinates)
+                    lastEventTime, coordinates)
 
             inputDevices
                     .find { it.first == device }

@@ -136,10 +136,10 @@ class ShellSU
                         flush()
                         Thread.sleep(500)
                     }
-                    processSU?.destroy()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+                processSU?.destroy()
                 processSU = null
                 writerSU = null
                 readerSU = null
