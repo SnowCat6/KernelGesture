@@ -22,7 +22,7 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
 
             GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-0020/gesture"),
             GS("/sys/devices/bus/11008000.i2c/i2c-1/1-0020/gesture"),
-            //  S3? MTK
+            //  Jiayu S3 Advanced android 7.1.2
             GS("/sys/devices/bus.2/11007000.I2C0/i2c-0/0-0020/gesture"),
 
             GS("/sys/devices/platform/mt-i2c.0/i2c-0/0-004b/gesture"),
