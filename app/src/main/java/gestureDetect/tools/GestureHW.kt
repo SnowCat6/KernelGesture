@@ -8,8 +8,7 @@ import android.os.PowerManager
 import android.os.Vibrator
 import android.view.Display
 import android.app.ActivityManager.RunningTaskInfo
-
-
+import android.os.Build
 
 
 class GestureHW(val context:Context)
@@ -65,11 +64,10 @@ class GestureHW(val context:Context)
         }
 
 
-
+        val packageName:String
         val mActivityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-
- //       val packageName = mActivityManager.runningAppProcesses[0].processName
-        val packageName = mActivityManager.getRunningTasks(1).get(0).topActivity.getPackageName()
+//        packageName = mActivityManager.getRunningTasks(1).get(0).topActivity.getPackageName()
+        packageName = mActivityManager.runningAppProcesses[0].processName
 
         return homeScreenActivity.firstOrNull {
             it == packageName } != null
