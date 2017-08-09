@@ -9,6 +9,7 @@ import android.os.Vibrator
 import android.view.Display
 import android.app.ActivityManager.RunningTaskInfo
 import android.os.Build
+import gestureDetect.GestureService
 
 
 class GestureHW(val context:Context)
@@ -28,6 +29,9 @@ class GestureHW(val context:Context)
                         PowerManager.ACQUIRE_CAUSES_WAKEUP,
                 "KernelGesture")
         wakeLock?.acquire(500)
+    }
+    fun screenUnlock(){
+        GestureService.keyguardLock?.disableKeyguard()
     }
     fun powerON()
     {

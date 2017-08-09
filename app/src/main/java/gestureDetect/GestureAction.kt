@@ -14,6 +14,9 @@ import gestureDetect.action.application.*
 import gestureDetect.action.music.ActionMusicNext
 import gestureDetect.action.music.ActionMusicPlayPause
 import gestureDetect.action.music.ActionMusicPrev
+import gestureDetect.action.screen.ActionScreenOff
+import gestureDetect.action.screen.ActionScreenOn
+import gestureDetect.action.screen.ActionScreenUnlock
 import gestureDetect.action.speech.ActionSpeechBattery
 import gestureDetect.action.speech.ActionSpeechTime
 import gestureDetect.tools.GestureHW
@@ -25,6 +28,7 @@ class GestureAction(val context:Context)
 {
     private val allActions = arrayOf(
             ActionScreenOn(this),
+            ActionScreenUnlock(this),
             ActionScreenOff(this),
             ActionGoogleNow(this),
             ActionSpeechTime(this),
@@ -153,7 +157,7 @@ class GestureAction(val context:Context)
     fun screenUnlock()
     {
         if (settings.getEnable("GESTURE_UNLOCK_SCREEN")) {
-            GestureService.keyguardLock?.disableKeyguard()
+            hw.screenUnlock()
         }
     }
     fun screenON()
@@ -180,8 +184,9 @@ class GestureAction(val context:Context)
         return false
     }
     fun vibrate(){
-        if (settings.getEnable("GESTURE_VIBRATION"))
+        if (settings.getEnable("GESTURE_VIBRATION")) {
             hw.vibrate()
+        }
     }
 
 }

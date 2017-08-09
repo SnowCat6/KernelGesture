@@ -75,4 +75,5 @@
     <string name="ui_action_music_next">Следующий трек</string>
     <string name="ui_adv_title">Реклама не загружена</string>
     <string name="ui_adv_content">Пожалуйста посмотрите позже</string>
+    <string name="ui_screen_unlock">Разблокировать экран</string>
 </resources>

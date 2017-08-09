@@ -1,7 +1,8 @@
-package gestureDetect.action
+package gestureDetect.action.screen
 
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
+import gestureDetect.action.ActionItem
 import ru.vpro.kernelgesture.R
 
 /**

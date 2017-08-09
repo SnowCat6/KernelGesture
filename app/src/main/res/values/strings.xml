@@ -75,6 +75,7 @@
     <string name="ui_action_music_next">Next track</string>
     <string name="ui_adv_title">No adv loaded</string>
     <string name="ui_adv_content">Please look at this page later</string>
+    <string name="ui_screen_unlock">Unlock screen</string>
 
     <!-- Strings related to Settings -->
 
