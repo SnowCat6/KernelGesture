@@ -172,7 +172,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
             var timeout = timeLine - lastEventTime
 
-            if (timeout < -1.0) timeout = 1.0
+            if (timeout < -1000.0) timeout = 1.0
             if (timeout < 0) continue
             if (timeout > 0) eqEvents = listOf(rawLine)
             lastEventTime = timeLine
