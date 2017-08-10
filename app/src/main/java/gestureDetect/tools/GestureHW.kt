@@ -7,17 +7,18 @@ import android.hardware.display.DisplayManager
 import android.os.PowerManager
 import android.os.Vibrator
 import android.view.Display
-import android.app.ActivityManager.RunningTaskInfo
-import android.os.Build
-import gestureDetect.GestureService
+import android.app.KeyguardManager
 
 
 class GestureHW(val context:Context)
 {
-    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
-    val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-    val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
+    private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+    private val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+    private val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
 
+    companion object {
+        private var keyguardLock: KeyguardManager.KeyguardLock? = null
+    }
     /*
         <uses-permission android:name="android.permission.WAKE_LOCK" />
     */
@@ -30,15 +31,27 @@ class GestureHW(val context:Context)
                 "KernelGesture")
         wakeLock?.acquire(500)
     }
-    fun screenUnlock(){
-        GestureService.keyguardLock?.disableKeyguard()
-    }
     fun powerON()
     {
         val wakeLock = powerManager?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK,
                 "KernelGestureCPU")
         wakeLock?.acquire(1000)
     }
+/**
+    <uses-permission android:name="android.permission.CONTROL_KEYGUARD" />
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+*/
+    fun screenUnlock(){
+        if (keyguardLock != null) return
+        val keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+        keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
+        keyguardLock?.disableKeyguard()
+    }
+    fun screenLock(){
+        keyguardLock?.reenableKeyguard()
+        keyguardLock = null
+    }
+
     /*
     <uses-permission android:name="android.permission.VIBRATE"/>
      */

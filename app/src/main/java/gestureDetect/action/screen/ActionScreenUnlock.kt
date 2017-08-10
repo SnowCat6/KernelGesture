@@ -21,8 +21,9 @@ class ActionScreenUnlock(action: GestureAction) : ActionItem(action)
             = context.getDrawable(R.drawable.icon_screen_on)
 
     override fun run(): Boolean {
-        action.screenON()
+        action.hw.powerON()
         action.hw.screenUnlock()
+        action.screenON()
         return true
     }
 }

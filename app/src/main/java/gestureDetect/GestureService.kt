@@ -27,10 +27,6 @@ class GestureService :
 //        IntentService("AnyKernelGesture"),
         SensorEventListener
 {
-    companion object {
-        var keyguardLock: KeyguardManager.KeyguardLock? = null
-    }
-
     private var mSensorManager: SensorManager? = null
     private var mProximity: Sensor? = null
 
@@ -143,9 +139,6 @@ class GestureService :
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
 
-        val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
-        keyguardLock = keyguardManager.newKeyguardLock("KernelGesture")
-
         val gesture = gestureDetector ?: GestureDetect(this)
         gestureDetector = gesture
 
@@ -181,6 +174,7 @@ class GestureService :
         LocalBroadcastManager.getInstance(this).unregisterReceiver(onEventIntent)
         unregisterReceiver(onEventIntent)
 
+        gestureDetector?.hw?.screenLock()
         gestureDetector?.close()
         gestureActions?.close()
 
@@ -209,9 +203,10 @@ class GestureService :
                 //  Screen ON
                 Intent.ACTION_SCREEN_OFF -> {
                     setServiceForeground(true)
-                    keyguardLock?.reenableKeyguard()
+
                     gestureDetector?.screenOnMode = false
                     gestureActions?.screenOnMode = false
+                    gestureDetector?.hw?.screenLock()
                 }
                 //  Screen OFF
                 Intent.ACTION_SCREEN_ON -> {
