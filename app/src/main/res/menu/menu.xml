@@ -5,8 +5,8 @@
     <item
         android:id="@+id/menu_settings"
         android:icon="@android:drawable/ic_menu_preferences"
-        android:title="@string/ui_menu_settings"
-        app:showAsAction="ifRoom" />
+        android:title="@string/ui_menu_detect"
+        app:showAsAction="never" />
     <item
         android:id="@+id/menu_adv"
         android:icon="@android:drawable/ic_menu_info_details"
