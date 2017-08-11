@@ -1,4 +1,4 @@
-package ru.vpro.kernelgesture
+package ru.vpro.kernelgesture.detect
 
 import SuperSU.ShellSU
 import android.app.AlertDialog
@@ -14,8 +14,8 @@ import android.view.View
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.ListView
-import com.google.firebase.analytics.FirebaseAnalytics
 import gestureDetect.drivers.SensorInput
+import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
 
 
@@ -28,19 +28,15 @@ class InputDetectActivity : AppCompatActivity() {
     private var sendButton:Button? = null
 
     private var log = emptyList<String>()
-    private var firebaseAnalytics: FirebaseAnalytics? = null
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_input_detect)
+        setContentView(R.layout.activity_detect_1)
 
         supportActionBar?.apply {
             subtitle = "Detect and sent to developer"
             setDisplayHomeAsUpEnabled(true)
         }
-
-        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
 
         var view: View? = findViewById(R.id.logList)
         logList = view as ListView?
@@ -76,6 +72,7 @@ class InputDetectActivity : AppCompatActivity() {
                         dlg?.dismiss()
                         isEnabled = true
                         sendButton?.isEnabled = true
+                        doStartDetect2()
                     }
                 }
             }
@@ -109,22 +106,24 @@ class InputDetectActivity : AppCompatActivity() {
         }
 
     }
+    private fun doStartDetect2(){
+        InputDetect2Activity.startActivity(this)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
+    {
+        InputDetect2Activity.getActivityResult(requestCode, resultCode, data)?.apply {
+            log += "Gesture events"
+            log += this
+            updateProgress()
+            return
+        }
+
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 
     private fun reportError(): Boolean {
-/*
-        log.forEach {
-            val ix = it.indexOf(":")
-            if (ix > 0)
-            {
-                val bundle = Bundle()
-                val type = it.substring(0, ix)
-                val value = it.substring(ix+1)
-                bundle.putString(FirebaseAnalytics.Param.ITEM_ID, value)
-                bundle.putString(FirebaseAnalytics.Param.CONTENT_TYPE, type)
-                firebaseAnalytics?.logEvent(FirebaseAnalytics.Event.SELECT_CONTENT, bundle);
-            }
-        }
-*/
+
         val mailAddress = "snowcat6@gmail.com"
         val intent = Intent(Intent.ACTION_SENDTO)
         intent.type = "text/rfc822"

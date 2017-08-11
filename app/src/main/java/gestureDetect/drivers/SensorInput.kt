@@ -199,7 +199,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                     ?.second?.onEvent(evInput)
                     ?.apply { sensorEvent(this) }
         }
-        gesture.su.exec("kill -s SIGINT \$(jobs -p)")
+        gesture.su.killJobs()
     }
 
     override fun onScreenState(bScreenON: Boolean) {

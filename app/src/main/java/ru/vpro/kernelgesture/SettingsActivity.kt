@@ -28,6 +28,7 @@ import gestureDetect.GestureDetect
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureSettings
 import gestureDetect.action.ActionItem
+import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
 import kotlin.concurrent.thread
 

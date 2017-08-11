@@ -206,7 +206,7 @@ class GestureService :
         override fun onReceive(context: Context, intent: Intent)
         {
             when (intent.action) {
-                //  Screen ON
+                //  Screen OFF
                 Intent.ACTION_SCREEN_OFF -> {
                     setServiceForeground(true)
 
@@ -214,7 +214,7 @@ class GestureService :
                     gestureActions?.screenOnMode = false
                     gestureDetector?.hw?.screenLock()
                 }
-                //  Screen OFF
+                //  Screen ON
                 Intent.ACTION_SCREEN_ON -> {
                     setServiceForeground(false)
                     gestureDetector?.screenOnMode = true

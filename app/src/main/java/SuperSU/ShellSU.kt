@@ -150,6 +150,10 @@ class ShellSU
         }
     }
 
+    fun killJobs(){
+        exec("kill -s SIGINT \$(jobs -p)")
+    }
+
     fun getFileLine(name: String): String?
             = if (exec("echo $(cat $name)")) readExecLine() else null
 

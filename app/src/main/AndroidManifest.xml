@@ -61,7 +61,8 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".InputDetectActivity"></activity>
+        <activity android:name=".detect.InputDetectActivity"></activity>
+        <activity android:name=".detect.InputDetect2Activity" />
     </application>
 
 </manifest>
