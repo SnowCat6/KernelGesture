@@ -15,6 +15,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import gestureDetect.GestureDetect
 import gestureDetect.GestureService
+import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
@@ -89,6 +90,8 @@ class InputDetect2Activity : AppCompatActivity()
 
                         startThread()
 
+                       GestureHW(context).screenON()
+
                         if (bEnable) {
                             startService(serviceIntent)
                         }
@@ -108,6 +111,9 @@ class InputDetect2Activity : AppCompatActivity()
 
     fun startThread(){
 
+        val hw = GestureHW(this)
+        hw.vibrate()
+
         try {
             val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             val r = RingtoneManager.getRingtone(applicationContext, notification)
@@ -116,17 +122,24 @@ class InputDetect2Activity : AppCompatActivity()
             e.printStackTrace()
         }
 
-        if (!su.exec("getevent -l &")) return
+        if (!su.exec("while(true) do getevent -c 2 -l ; done &")) return
+        if (!su.exec("while(true) do getevent -c 4 -l ; done &")) return
 
         bRunThread = true
         var events = arrayOf<String>()
+        var passEvents = listOf<String>()
 
         while(bRunThread){
             val line = su.readExecLine() ?: break
             if (line == "--END--") break
-            if (line.contains("EV_KEY")) {
-                events += line
-            }
+
+            if (!line.contains("EV_KEY")) continue
+
+            if (passEvents.contains(line)) continue
+            passEvents += line
+
+            events += line
+            hw.vibrate()
         }
 
         Handler(Looper.getMainLooper()).post {

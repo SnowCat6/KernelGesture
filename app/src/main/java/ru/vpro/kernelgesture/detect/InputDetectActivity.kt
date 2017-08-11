@@ -113,6 +113,7 @@ class InputDetectActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
     {
         InputDetect2Activity.getActivityResult(requestCode, resultCode, data)?.apply {
+            log += String()
             log += "Gesture events"
             log += this
             updateProgress()

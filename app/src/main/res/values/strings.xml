@@ -76,7 +76,7 @@
     <string name="ui_adv_title">No adv loaded</string>
     <string name="ui_adv_content">Please look at this page later</string>
     <string name="ui_screen_unlock">Unlock screen</string>
-    <string name="ui_detect2_help">1. Power off screen\n2. Make gesture after notify\n3. After gesture power on screen.\n\nBe sure what standard gestures is ON!</string>
+    <string name="ui_detect2_help">1. Power off screen\n2. Make gesture after notify (each new gesture make vibrate)\n3. After gesture power on screen.\n\nBe sure what standard gestures is ON!</string>
     <string name="ui_detect2_title">Step 2</string>
     <string name="ui_detect_title">Step 1</string>
     <string name="ui_detect_help">Press start and wait for next step!</string>
