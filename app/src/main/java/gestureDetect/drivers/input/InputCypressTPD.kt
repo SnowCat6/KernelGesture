@@ -1,7 +1,6 @@
 package gestureDetect.drivers.input
 
 import gestureDetect.GestureDetect
-import gestureDetect.drivers.SensorInput
 
 /*
 ALE-L21

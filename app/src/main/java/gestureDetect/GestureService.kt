@@ -2,7 +2,6 @@ package gestureDetect
 
 import SuperSU.ShellSU
 import android.app.IntentService
-import android.app.KeyguardManager
 import android.app.Notification
 import android.app.Service
 import android.content.BroadcastReceiver
@@ -21,7 +20,6 @@ import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
-import kotlin.concurrent.thread
 
 class GestureService :
 //        Service(),

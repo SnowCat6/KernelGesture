@@ -7,18 +7,16 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.media.RingtoneManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
-import ru.vpro.kernelgesture.R
-import kotlin.concurrent.thread
-import android.media.RingtoneManager
-import android.media.Ringtone
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureSettings
+import ru.vpro.kernelgesture.R
+import kotlin.concurrent.thread
 
 
 class InputDetect2Activity : AppCompatActivity()
@@ -151,7 +149,7 @@ class InputDetect2Activity : AppCompatActivity()
         dlg?.dismiss()
         with(AlertDialog.Builder(this))
         {
-            setTitle("Events capture OK")
+            setTitle("Events captured: ${events.size}")
             setMessage("Tap on screen for close window!")
 
             setOnDismissListener {
