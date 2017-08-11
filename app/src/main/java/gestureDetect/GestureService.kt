@@ -1,6 +1,7 @@
 package gestureDetect
 
 import SuperSU.ShellSU
+import android.app.IntentService
 import android.app.KeyguardManager
 import android.app.Notification
 import android.app.Service
@@ -23,8 +24,8 @@ import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
 
 class GestureService :
-        Service(),
-//        IntentService("AnyKernelGesture"),
+//        Service(),
+        IntentService("AnyKernelGesture"),
         SensorEventListener
 {
     private var mSensorManager: SensorManager? = null
@@ -33,12 +34,14 @@ class GestureService :
     private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
 
-    val su = ShellSU()
+    private val su = ShellSU()
+//    private var thisThread:Thread? = null
+    private var bForeground = false
     /************************************/
     /*
     GESTURE DETECT
      */
-    fun onHandleIntent(intent: Intent?)
+    override fun onHandleIntent(intent: Intent?)
     {
         su.checkRootAccess(this)
         val hw = GestureHW(this)
@@ -83,8 +86,8 @@ class GestureService :
         gesture.close()
 
         setServiceForeground(false)
+//        thisThread = null
     }
-    var bForeground = false
     fun setServiceForeground(bSetForeground:Boolean)
     {
         if (bForeground == bSetForeground)
@@ -120,11 +123,14 @@ class GestureService :
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
-        thread(priority = Thread.MAX_PRIORITY) {
+/*
+        thisThread = thread(priority = Thread.MAX_PRIORITY) {
             onHandleIntent(null)
         }
-
         return super.onStartCommand(intent, flags, startId)
+*/
+        super.onStartCommand(intent, flags, startId)
+        return Service.START_STICKY
     }
 
     override fun onCreate()
