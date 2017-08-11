@@ -152,7 +152,7 @@ class InputDetectActivity : AppCompatActivity() {
 
         log += "Add input devices list"
         SensorInput.getInputEvents().forEach {
-            log += "device:${it.second}"
+            log += "device:${it.second}=>${it.first}"
         }
         log += String()
         updateProgress()

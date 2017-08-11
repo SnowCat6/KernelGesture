@@ -17,6 +17,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:lineSpacingExtra="8sp"
         android:singleLine="false"
         android:text="@string/ui_detect2_help" />
 </LinearLayout>

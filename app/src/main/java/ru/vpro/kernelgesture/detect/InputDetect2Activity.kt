@@ -13,6 +13,7 @@ import android.os.Handler
 import android.os.Looper
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import gestureDetect.GestureDetect
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.R
@@ -80,14 +81,16 @@ class InputDetect2Activity : AppCompatActivity()
                     thread {
                         val settings = GestureSettings(context)
                         val bEnable = settings.getAllEnable()
-                        settings.setAllEnable(false)
-                        Thread.sleep(1000)
+                        val serviceIntent = Intent(context, GestureService::class.java)
+                        if (bEnable) {
+                            stopService(serviceIntent)
+                            Thread.sleep(1000)
+                        }
 
                         startThread()
 
                         if (bEnable) {
-                            settings.setAllEnable(bEnable)
-                            startService(Intent(context, GestureService::class.java))
+                            startService(serviceIntent)
                         }
                     }
                 }
