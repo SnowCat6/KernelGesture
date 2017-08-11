@@ -17,7 +17,8 @@ import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
 import android.media.RingtoneManager
 import android.media.Ringtone
-
+import gestureDetect.GestureService
+import gestureDetect.tools.GestureSettings
 
 
 class InputDetect2Activity : AppCompatActivity()
@@ -78,7 +79,19 @@ class InputDetect2Activity : AppCompatActivity()
             when (intent.action) {
             //  Screen OFF
                 Intent.ACTION_SCREEN_OFF -> {
-                    thread { startThread() }
+                    thread {
+                        val settings = GestureSettings(context)
+                        val bEnable = settings.getAllEnable()
+                        settings.setAllEnable(false)
+                        Thread.sleep(1000)
+
+                        startThread()
+
+                        if (bEnable) {
+                            settings.setAllEnable(bEnable)
+                            startService(Intent(context, GestureService::class.java))
+                        }
+                    }
                 }
             //  Screen ON
                 Intent.ACTION_SCREEN_ON -> {
@@ -119,7 +132,8 @@ class InputDetect2Activity : AppCompatActivity()
             reportLog(events)
         }
     }
-    fun stopThread(){
+    fun stopThread()
+    {
         thread{
             su.killJobs()
             Thread.sleep(1000)
