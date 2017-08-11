@@ -80,6 +80,18 @@
     <string name="ui_detect2_title">Step 2</string>
     <string name="ui_detect_title">Step 1</string>
     <string name="ui_detect_help">Press start and wait for next step!</string>
+    <string name="ui_detect_start">Start</string>
+    <string name="ui_detect_send_log">Send</string>
+    <string name="ui_detect_subtitle">Detect and sent to developer</string>
+    <string name="ui_detect_dlg_title">Collecting data....</string>
+    <string name="ui_detect_dlg_content">Wait until you find the data, it may take a long time!</string>
+    <string name="ui_detect_send_title">Report sending....</string>
+    <string name="ui_detect_send_no_title">No email app found</string>
+    <string name="ui_detect_send_no_content">Please install any email app to send report!</string>
+    <string name="ui_collect_send_content">Email app opening!\nThanks you for report!</string>
+    <string name="ui_detect2_dlg_content">Tap on screen for close window!</string>
+    <string name="ui_detect2_dlg_title">Events captured:</string>
+    <string name="ui_detect2_subtitle">Detect gesture events</string>
 
     <!-- Strings related to Settings -->
 

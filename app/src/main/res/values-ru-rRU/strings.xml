@@ -79,5 +79,17 @@
     <string name="ui_detect2_title">Шаг 2</string>
     <string name="ui_detect_title">Шаг 1</string>
     <string name="ui_detect2_help">1. Выключите экран\n2. Сделайте жест после уведомления\n3. Включите экран\n\nУбедитесь, что стандартные жесты ВКЛЮЧЕНЫ</string>
-    <string name="ui_detect_help">Назмите Старт и ожидайте следующий шаг</string>
+    <string name="ui_detect_help">Нажмите Старт и ожидайте следующий шаг</string>
+    <string name="ui_detect_start">Старт</string>
+    <string name="ui_detect_send_log">Отправить</string>
+    <string name="ui_detect_subtitle">Найти и отправить разработчику</string>
+    <string name="ui_detect_dlg_title">Сбор данных...</string>
+    <string name="ui_detect_dlg_content">Погодите пока собираются данные, это может занять много времени...</string>
+    <string name="ui_detect_send_title">Отправка отчета</string>
+    <string name="ui_detect_send_no_title">Не программы отправки почты</string>
+    <string name="ui_detect_send_no_content">Установите любую почтовую программу</string>
+    <string name="ui_collect_send_content">Почтовая программа открывается...</string>
+    <string name="ui_detect2_dlg_content">Нажмите на экран чтобы закрыть окно!</string>
+    <string name="ui_detect2_dlg_title">Событий получено:</string>
+    <string name="ui_detect2_subtitle">Получение событий жестов</string>
 </resources>

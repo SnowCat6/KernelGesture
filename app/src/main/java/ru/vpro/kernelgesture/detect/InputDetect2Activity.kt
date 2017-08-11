@@ -27,7 +27,7 @@ class InputDetect2Activity : AppCompatActivity()
         setContentView(R.layout.activity_detect_2)
 
         supportActionBar?.apply {
-            subtitle = "Detect gesture events"
+            subtitle = getString(R.string.ui_detect2_subtitle)
             setDisplayHomeAsUpEnabled(true)
         }
 
@@ -152,8 +152,9 @@ class InputDetect2Activity : AppCompatActivity()
         dlg?.dismiss()
         with(AlertDialog.Builder(this))
         {
-            setTitle("Events captured: ${events.size}")
-            setMessage("Tap on screen for close window!")
+            val title = getString(R.string.ui_detect2_dlg_title)
+            setTitle("$title ${events.size}")
+            setMessage(getString(R.string.ui_detect2_dlg_content))
 
             setOnDismissListener {
                 thisActivity.finish()

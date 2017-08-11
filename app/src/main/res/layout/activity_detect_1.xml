@@ -18,7 +18,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/item_margin"
             android:layout_weight="1"
-            android:text="Start detect"
+            android:text="@string/ui_detect_start"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 
@@ -28,7 +28,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/item_margin"
             android:layout_weight="1"
-            android:text="Send log" />
+            android:text="@string/ui_detect_send_log" />
     </LinearLayout>
 
     <LinearLayout

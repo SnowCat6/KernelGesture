@@ -34,7 +34,7 @@ class InputDetectActivity : AppCompatActivity() {
         setContentView(R.layout.activity_detect_1)
 
         supportActionBar?.apply {
-            subtitle = "Detect and sent to developer"
+            subtitle = getString(R.string.ui_detect_subtitle)
             setDisplayHomeAsUpEnabled(true)
         }
 
@@ -55,8 +55,8 @@ class InputDetectActivity : AppCompatActivity() {
 
                 dlg?.dismiss()
                 with(AlertDialog.Builder(context)){
-                    setTitle("Collecting data....")
-                    setMessage("Wait until you find the data, it may take a long time!")
+                    setTitle(getString(R.string.ui_detect_dlg_title))
+                    setMessage(getString(R.string.ui_detect_dlg_content))
                     setCancelable(false)
                     dlg = create()
                     dlg?.show()
@@ -89,11 +89,11 @@ class InputDetectActivity : AppCompatActivity() {
                         with(AlertDialog.Builder(context))
                         {
                             if (reportError()) {
-                                setTitle("Report sending....")
-                                setMessage("Email app opening!\n\nThanks you for report!")
+                                setTitle(getString(R.string.ui_detect_send_title))
+                                setMessage(getString(R.string.ui_collect_send_content))
                             } else {
-                                setTitle("No email app found")
-                                setMessage("Please install any email app to send report!")
+                                setTitle(getString(R.string.ui_detect_send_no_title))
+                                setMessage(getString(R.string.ui_detect_send_no_content))
                             }
                             dlg = create()
                             dlg?.show()
