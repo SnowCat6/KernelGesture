@@ -5,6 +5,7 @@ import android.graphics.drawable.Drawable
 import android.hardware.Camera
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.R
+import ru.vpro.kernelgesture.tools.getDrawable
 
 class ActionFlashlight(action: GestureAction) : ActionItem(action)
 {
@@ -47,7 +48,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             = context.getString(R.string.ui_action_flashlight)
 
     override fun icon(): Drawable
-            = context.getDrawable(R.drawable.icon_flashlight)
+            = getDrawable(context, R.drawable.icon_flashlight)
 
     override fun run(): Boolean
     {

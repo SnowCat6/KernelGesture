@@ -31,6 +31,7 @@ import gestureDetect.tools.GestureSettings
 import gestureDetect.action.ActionItem
 import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
+import ru.vpro.kernelgesture.tools.getDrawable
 import kotlin.concurrent.thread
 
 
@@ -235,7 +236,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     val item = preferenceClass.newInstance()
                     if (item.iconResource > 0)
-                        icon = context.getDrawable(item.iconResource)
+                        icon = getDrawable(context, item.iconResource)
 
                     setOnPreferenceClickListener {
                         fragmentManager
@@ -591,7 +592,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 if (currentAction != null && currentAction.isNotEmpty() &&
                         currentAction == uiAction(thisItem))
                 {
-                    view.background = context.getDrawable(android.R.color.holo_orange_light)
+                    view.background = getDrawable(context, android.R.color.holo_orange_light)
                 }else{
                     view.background = null
                 }
@@ -636,9 +637,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 is ActionListItem -> return item.icon
                 is ApplicationInfo -> return activity.packageManager.getApplicationIcon(item)
                 is ActionItem -> return item.icon()
-                is String -> return gestureAction?.getAction(item)?.icon() ?: activity.getDrawable(android.R.color.transparent)
+                is String -> return gestureAction?.getAction(item)?.icon() ?: getDrawable(activity, android.R.color.transparent)
             }
-            return activity.getDrawable(android.R.color.transparent)
+            return getDrawable(activity, android.R.color.transparent)
         }
         fun uiAppInfo(action:String):ApplicationInfo?
         {

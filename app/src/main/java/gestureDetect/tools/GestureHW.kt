@@ -8,6 +8,10 @@ import android.os.PowerManager
 import android.os.Vibrator
 import android.view.Display
 import android.app.KeyguardManager
+import android.os.Build
+import android.content.Context.POWER_SERVICE
+
+
 
 
 class GestureHW(val context:Context)
@@ -59,8 +63,13 @@ class GestureHW(val context:Context)
         vibrator?.vibrate(200)
     }
 
-    fun isScreenOn(): Boolean
-            = displayManager?.displays?.any { it.state != Display.STATE_OFF } ?: false
+    fun isScreenOn(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            return displayManager?.displays?.any { it.state != Display.STATE_OFF } ?: false
+
+        val powerManager = context.getSystemService(POWER_SERVICE) as PowerManager
+        return powerManager.isScreenOn
+    }
     /*
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
      */

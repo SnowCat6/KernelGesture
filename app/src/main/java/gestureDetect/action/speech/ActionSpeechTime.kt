@@ -5,6 +5,7 @@ import android.util.Log
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
+import ru.vpro.kernelgesture.tools.getDrawable
 import java.text.MessageFormat
 import java.util.*
 
@@ -14,13 +15,13 @@ import java.util.*
 class ActionSpeechTime(action: GestureAction) : ActionSpeechItem(action)
 {
     override fun action(): String
-            = "speech.time"
+            = if (isSpeechSupport()) "speech.time" else ""
 
     override fun name(): String
             = context.getString(R.string.ui_action_speech_time)
 
     override fun icon(): Drawable
-            = context.getDrawable(R.drawable.icon_speech_time)
+            = getDrawable(context, R.drawable.icon_speech_time)
 
     override fun run(): Boolean {
         val result = MessageFormat.format("{0,time,short}", Date())

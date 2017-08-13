@@ -1,5 +1,6 @@
 package gestureDetect.action.speech
 
+import android.os.Build
 import android.speech.tts.TextToSpeech
 import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.GestureAction
@@ -15,15 +16,20 @@ abstract class ActionSpeechItem(action: GestureAction) :
 {
     var tts: TextToSpeech? = null
 
+    fun isSpeechSupport():Boolean{
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
+    }
+
     fun doSpeech(value: String): Boolean
     {
         action.vibrate()
-        val bNotify = action.playNotifyToEnd()
 
         try {
             tts?.apply {
                 language = Locale.getDefault()
-                speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    speak(value, TextToSpeech.QUEUE_FLUSH, null, "")
+                }
                 Thread.sleep(1000)
             }
         }catch (e:Exception){
@@ -68,7 +74,9 @@ abstract class ActionSpeechItem(action: GestureAction) :
         try {
             tts?.apply {
                 language = Locale.getDefault()
-                speak("", TextToSpeech.QUEUE_FLUSH, null, "")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                    speak("", TextToSpeech.QUEUE_FLUSH, null, "")
+                }
             }
         }catch (e:Exception){
             e.printStackTrace()

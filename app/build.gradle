@@ -20,7 +20,6 @@ def getReleaseVersionCode() {
     }
     return version
 }
-
 android {
     def code = getReleaseVersionCode()
 
@@ -28,7 +27,7 @@ android {
     buildToolsVersion '26.0.0'
     defaultConfig {
         applicationId "ru.vpro.kernelgesture"
-        minSdkVersion 21
+        minSdkVersion 19
         targetSdkVersion 26
         versionCode code
         versionName "1.1.26 (beta)"

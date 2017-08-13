@@ -13,7 +13,6 @@ import android.os.Handler
 import android.os.Looper
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
-import gestureDetect.GestureDetect
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
