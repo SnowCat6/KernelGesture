@@ -29,6 +29,7 @@ import gestureDetect.GestureDetect
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureSettings
 import gestureDetect.action.ActionItem
+import gestureDetect.tools.GestureHW
 import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
 import ru.vpro.kernelgesture.tools.getDrawable
@@ -195,6 +196,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
             settings = GestureSettings(activity)
             gestureAction = GestureAction(activity)
+            val hw = GestureHW(activity)
 
             findPreference("GESTURE_ENABLE")?.apply{
                 onPreferenceChangeListener = enableAllListener()
@@ -215,6 +217,13 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
                     true
                 }
+            }
+
+            findPreference("GESTURE_PROXIMITY")?.apply {
+                isEnabled = hw.hasProximity()
+            }
+            findPreference("GESTURE_VIBRATION")?.apply {
+                isEnabled = hw.hasVibrate()
             }
 
             preferenceItems.forEach {

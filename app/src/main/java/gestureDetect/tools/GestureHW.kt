@@ -10,8 +10,8 @@ import android.view.Display
 import android.app.KeyguardManager
 import android.os.Build
 import android.content.Context.POWER_SERVICE
-
-
+import android.hardware.Sensor
+import android.hardware.SensorManager
 
 
 class GestureHW(val context:Context)
@@ -97,5 +97,16 @@ class GestureHW(val context:Context)
 
         return homeScreenActivity.firstOrNull {
             it == packageName } != null
+    }
+    fun hasProximity():Boolean
+    {
+        val mSensorManager: SensorManager? = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        val mProximity: Sensor? = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+        return mProximity != null
+    }
+    fun hasVibrate():Boolean
+    {
+        val mVibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        return mVibrator.hasVibrator()
     }
 }
