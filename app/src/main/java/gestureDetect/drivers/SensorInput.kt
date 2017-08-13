@@ -23,7 +23,6 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
      */
     private val inputHandlers = arrayOf(
             InputTouchscreen(gesture),
-            InputMTK_KPD(gesture),
             InputQCOMM_KPD(gesture),
             InputSunXi_KPD(gesture),
             InputCypressTPD(gesture)
