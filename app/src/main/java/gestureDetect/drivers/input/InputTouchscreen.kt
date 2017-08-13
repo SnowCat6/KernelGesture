@@ -56,6 +56,7 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     {
         val keys = arrayOf(
                 Pair("KEY_WAKEUP",          "KEY_U"),
+                //  T02 gestures convert
                 Pair("KEY_GESTURE_UP",      "KEY_UP"),
                 Pair("KEY_GESTURE_DOWN",    "KEY_DOWN"),
                 Pair("KEY_GESTURE_LEFT",    "KEY_LEFT"),

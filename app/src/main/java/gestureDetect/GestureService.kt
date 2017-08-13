@@ -179,8 +179,12 @@ class GestureService :
         if (BuildConfig.DEBUG){
             Log.d("Stop service", "**************************")
         }
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(onEventIntent)
-        unregisterReceiver(onEventIntent)
+        try {
+            LocalBroadcastManager.getInstance(this).unregisterReceiver(onEventIntent)
+        }catch (e:Exception){}
+        try {
+            unregisterReceiver(onEventIntent)
+        }catch (e:Exception){}
 
         gestureDetector?.hw?.screenLock()
         gestureDetector?.close()
@@ -202,7 +206,7 @@ class GestureService :
     /**
      * SCREEN Events
      */
-    val onEventIntent = object : BroadcastReceiver()
+    private val onEventIntent = object : BroadcastReceiver()
     {
         //  Events for screen on and screen off
         override fun onReceive(context: Context, intent: Intent)

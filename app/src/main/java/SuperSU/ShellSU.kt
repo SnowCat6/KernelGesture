@@ -111,7 +111,7 @@ class ShellSU
             }
         }catch (e:Exception){
             e.printStackTrace()
-            FirebaseCrash.report(e)
+//            FirebaseCrash.report(e)
             return false
         }
 
