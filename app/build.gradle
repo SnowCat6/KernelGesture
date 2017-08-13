@@ -31,7 +31,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 26
         versionCode code
-        versionName "1.1.25 (beta)"
+        versionName "1.1.26 (beta)"
         setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }

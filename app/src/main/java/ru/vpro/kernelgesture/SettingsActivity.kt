@@ -23,6 +23,7 @@ import android.widget.TextView
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
+import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.GestureService
@@ -51,6 +52,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
+        if (BuildConfig.DEBUG){
+            FirebaseCrash.setCrashCollectionEnabled(false)
+        }
         setupActionBar()
 
         mInterstitialAd = InterstitialAd(this)

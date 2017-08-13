@@ -134,6 +134,10 @@ class GestureService :
     override fun onCreate()
     {
         if (BuildConfig.DEBUG){
+            FirebaseCrash.setCrashCollectionEnabled(false)
+        }
+
+        if (BuildConfig.DEBUG){
             Log.d("Start service", "**************************")
         }
 

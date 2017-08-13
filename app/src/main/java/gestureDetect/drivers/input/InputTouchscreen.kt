@@ -55,7 +55,20 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     override fun onEvent(ev: SensorInput.EvData): String?
     {
         val keys = arrayOf(
-            Pair("KEY_WAKEUP",  "KEY_U")
+                Pair("KEY_WAKEUP",          "KEY_U"),
+                Pair("KEY_GESTURE_UP",      "KEY_UP"),
+                Pair("KEY_GESTURE_DOWN",    "KEY_DOWN"),
+                Pair("KEY_GESTURE_LEFT",    "KEY_LEFT"),
+                Pair("KEY_GESTURE_RIGHT",   "KEY_RIGHT"),
+                Pair("KEY_GESTURE_O",       "KEY_O"),
+                Pair("KEY_GESTURE_E",       "KEY_E"),
+                Pair("KEY_GESTURE_M",       "KEY_M"),
+                Pair("KEY_GESTURE_L",       "KEY_L"),
+                Pair("KEY_GESTURE_W",       "KEY_W"),
+                Pair("KEY_GESTURE_S",       "KEY_S"),
+                Pair("KEY_GESTURE_V",       "KEY_V"),
+                Pair("KEY_GESTURE_C",       "KEY_C"),
+                Pair("KEY_GESTURE_Z",       "KEY_Z")
         )
         return super.onEvent(ev) ?: filter(ev, ev.evButton, keys)
     }
