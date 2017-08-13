@@ -92,13 +92,16 @@ class InputDetect2Activity : AppCompatActivity()
                        GestureHW(context).screenON()
 
                         if (bEnable) {
+                            stopService(serviceIntent)
                             startService(serviceIntent)
                         }
                     }
                 }
             //  Screen ON
                 Intent.ACTION_SCREEN_ON -> {
-                    stopThread()
+                    if (bRunThread) {
+                        stopThread()
+                    }
                 }
             }
         }
@@ -121,16 +124,16 @@ class InputDetect2Activity : AppCompatActivity()
             e.printStackTrace()
         }
 
-        if (!su.exec("while(true) do getevent -c 2 -l ; done &")) return
-        if (!su.exec("while(true) do getevent -c 4 -l ; done &")) return
+        if (!su.exec("while(true) do getevent -c 2 -l ; done>&2 &")) return
+        if (!su.exec("while(true) do getevent -c 4 -l ; done>&2 &")) return
 
         bRunThread = true
         var events = arrayOf<String>()
         var passEvents = listOf<String>()
 
-        while(bRunThread){
-            val line = su.readExecLine() ?: break
-            if (line == "--END--") break
+        while(true){
+            val line = su.readErrorLine() ?: break
+            if (line == "--END_DETECT--") break
 
             if (!line.contains("EV_KEY")) continue
 
@@ -149,9 +152,9 @@ class InputDetect2Activity : AppCompatActivity()
     {
         thread{
             su.killJobs()
-            Thread.sleep(1000)
+            Thread.sleep(2000)
+            su.exec("echo --END_DETECT-->&2")
             bRunThread = false
-            su.exec("echo --END--")
         }
     }
     fun reportLog(events:Array<String>)
