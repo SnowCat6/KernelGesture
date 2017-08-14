@@ -54,6 +54,7 @@ class InputDetectActivity : AppCompatActivity() {
                 sendButton?.isEnabled = false
 
                 dlg?.dismiss()
+                dlg = null
                 with(AlertDialog.Builder(context)){
                     setTitle(getString(R.string.ui_detect_dlg_title))
                     setMessage(getString(R.string.ui_detect_dlg_content))
@@ -70,6 +71,7 @@ class InputDetectActivity : AppCompatActivity() {
                     updateProgress()
                     Handler(Looper.getMainLooper()).post {
                         dlg?.dismiss()
+                        dlg = null
                         isEnabled = true
                         sendButton?.isEnabled = true
                         doStartDetect2()
@@ -145,6 +147,7 @@ class InputDetectActivity : AppCompatActivity() {
         log = emptyList()
         val su = ShellSU()
 
+        log += "Android SDK:" + android.os.Build.VERSION.SDK_INT
         log += "Device name:" + android.os.Build.MODEL
         val pInfo = packageManager.getPackageInfo(packageName, 0)
         log += "App version:${pInfo.versionName}"
@@ -160,7 +163,7 @@ class InputDetectActivity : AppCompatActivity() {
 
         if (!su.checkRootAccess(this))
         {
-            log += "No ROOT access to more search"
+            log += "No ROOT access to more search, please install SuperSU"
             return
         }
 

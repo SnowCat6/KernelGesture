@@ -31,6 +31,8 @@ class InputDetect2Activity : AppCompatActivity()
             setDisplayHomeAsUpEnabled(true)
         }
 
+        GestureHW(this).screenON()
+
         //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
@@ -78,6 +80,7 @@ class InputDetect2Activity : AppCompatActivity()
             when (intent.action) {
             //  Screen OFF
                 Intent.ACTION_SCREEN_OFF -> {
+                    bRunThread = true
                     thread {
                         val settings = GestureSettings(context)
                         val bEnable = settings.getAllEnable()
@@ -92,7 +95,6 @@ class InputDetect2Activity : AppCompatActivity()
                        GestureHW(context).screenON()
 
                         if (bEnable) {
-                            stopService(serviceIntent)
                             startService(serviceIntent)
                         }
                     }
@@ -100,6 +102,7 @@ class InputDetect2Activity : AppCompatActivity()
             //  Screen ON
                 Intent.ACTION_SCREEN_ON -> {
                     if (bRunThread) {
+                        bRunThread = false
                         stopThread()
                     }
                 }
@@ -109,7 +112,7 @@ class InputDetect2Activity : AppCompatActivity()
 
     val su = ShellSU()
     var bRunThread = false
-    var dlg: android.app.AlertDialog? = null
+    var dlg: AlertDialog? = null
 
     fun startThread(){
 
@@ -127,7 +130,6 @@ class InputDetect2Activity : AppCompatActivity()
         if (!su.exec("while(true) do getevent -c 2 -l ; done>&2 &")) return
         if (!su.exec("while(true) do getevent -c 4 -l ; done>&2 &")) return
 
-        bRunThread = true
         var events = arrayOf<String>()
         var passEvents = listOf<String>()
 
@@ -148,15 +150,16 @@ class InputDetect2Activity : AppCompatActivity()
             reportLog(events)
         }
     }
+
     fun stopThread()
     {
         thread{
             su.killJobs()
             Thread.sleep(2000)
             su.exec("echo --END_DETECT-->&2")
-            bRunThread = false
         }
     }
+
     fun reportLog(events:Array<String>)
     {
         val intent = Intent()
@@ -165,6 +168,7 @@ class InputDetect2Activity : AppCompatActivity()
 
         val thisActivity = this
         dlg?.dismiss()
+        dlg = null
         with(AlertDialog.Builder(this))
         {
             val title = getString(R.string.ui_detect2_dlg_title)
