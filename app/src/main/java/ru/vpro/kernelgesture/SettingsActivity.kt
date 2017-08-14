@@ -27,9 +27,9 @@ import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.GestureService
-import gestureDetect.tools.GestureSettings
 import gestureDetect.action.ActionItem
 import gestureDetect.tools.GestureHW
+import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
 import ru.vpro.kernelgesture.tools.getDrawableEx
@@ -272,7 +272,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             super.onDestroy()
         }
 
-        private var mReceiver = object : BroadcastReceiver() {
+        private val mReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent?) {
                 activity?.apply {
                     updateControls(intent)
@@ -287,21 +287,16 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 preference as TwoStatePreference
                 val context = preference.context
 
-                if (value) su.enable(true)
-                settings?.setAllEnable(value)
-                updateControls(context)
-                if (value) context.startService(Intent(context, GestureService::class.java))
+                thread{
 
-                if (value == true && !su.hasRootProcess())
-                {
-                    thread{
-                        if (su.checkRootAccess(context)) {
-                            settings?.setAllEnable(value)
-                            updateControls(context)
-                        }
+                    settings?.setAllEnable(value)
+                    if (value){
+                        su.enable(true)
+                        su.checkRootAccess(context)
+                        context.startService(Intent(context, GestureService::class.java))
                     }
+                    updateControls(context)
                 }
-
 /*
             if (value){
                 val fileName = "/dev/input/event5"

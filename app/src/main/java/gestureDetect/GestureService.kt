@@ -232,13 +232,14 @@ class GestureService :
                     if (key != "GESTURE_ENABLE") return
 
                     val bEnable = intent.getSerializableExtra("value") as Boolean? ?: false
-                    if (bEnable)
-                    {
+
+                    if (bEnable) {
                         gestureActions?.onDetect()
                         gestureDetector?.enable(true)
-                    }else {
+                    } else {
                         stopSelf()
                     }
+
                 }
             }
         }
