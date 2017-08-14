@@ -5,7 +5,7 @@ import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
 import gestureDetect.action.ActionItem
 import ru.vpro.kernelgesture.R
-import ru.vpro.kernelgesture.tools.getDrawable
+import ru.vpro.kernelgesture.tools.getDrawableEx
 
 abstract class ActionMusic(action: GestureAction, val cmd:String):ActionItem(action)
 {
@@ -39,7 +39,7 @@ class ActionMusicPlayPause(action:GestureAction):
     override fun name(): String
             = context.getString(R.string.ui_action_music_playpause)
     override fun icon(): Drawable
-            = getDrawable(context, R.drawable.icon_music_playstop)
+            = context.getDrawableEx(R.drawable.icon_music_playstop)
 }
 
 class ActionMusicPrev(action:GestureAction):
@@ -50,7 +50,7 @@ class ActionMusicPrev(action:GestureAction):
     override fun name(): String
             = context.getString(R.string.ui_action_music_prev)
     override fun icon(): Drawable
-            = getDrawable(context, R.drawable.icon_music_prev)
+            = context.getDrawableEx(R.drawable.icon_music_prev)
 }
 
 class ActionMusicNext(action:GestureAction):
@@ -61,5 +61,5 @@ class ActionMusicNext(action:GestureAction):
     override fun name(): String
             = context.getString(R.string.ui_action_music_next)
     override fun icon(): Drawable
-            = getDrawable(context, R.drawable.icon_music_next)
+            = context.getDrawableEx(R.drawable.icon_music_next)
 }

@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
 import gestureDetect.action.ActionItem
 import ru.vpro.kernelgesture.R
-import ru.vpro.kernelgesture.tools.getDrawable
+import ru.vpro.kernelgesture.tools.getDrawableEx
 
 /**
  * Screen ON
@@ -18,7 +18,7 @@ class ActionScreenUnlock(action: GestureAction) : ActionItem(action)
             = context.getString(R.string.ui_screen_unlock)
 
     override fun icon(): Drawable
-            = getDrawable(context, R.drawable.icon_screen_on)
+            = context.getDrawableEx(R.drawable.icon_screen_on)
 
     override fun run(): Boolean {
         action.hw.powerON()

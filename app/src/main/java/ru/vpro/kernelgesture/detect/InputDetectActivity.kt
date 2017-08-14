@@ -85,6 +85,7 @@ class InputDetectActivity : AppCompatActivity() {
             setOnClickListener {
                 isEnabled = false
                 dlg?.dismiss()
+                dlg = null
                 thread {
                     Handler(mainLooper).post {
 

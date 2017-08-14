@@ -4,7 +4,7 @@ import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
 import gestureDetect.action.ActionItem
 import ru.vpro.kernelgesture.R
-import ru.vpro.kernelgesture.tools.getDrawable
+import ru.vpro.kernelgesture.tools.getDrawableEx
 
 /**
  * Screen OFF
@@ -18,7 +18,7 @@ class ActionScreenOff(action: GestureAction) : ActionItem(action)
             = context.getString(R.string.ui_action_screen_off)
 
     override fun icon(): Drawable
-            = getDrawable(context, R.drawable.icon_screen_off)
+            = context.getDrawableEx(R.drawable.icon_screen_off)
 
     override fun run(): Boolean {
         action.hw.vibrate()

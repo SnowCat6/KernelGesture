@@ -1,6 +1,9 @@
 package ru.vpro.kernelgesture.tools
 
+import android.content.Context
 import android.content.res.Configuration
+import android.graphics.drawable.Drawable
+import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceActivity
 import android.support.annotation.LayoutRes
@@ -91,4 +94,10 @@ abstract class AppCompatPreferenceActivity : PreferenceActivity() {
             if (mDelegate == null) mDelegate = AppCompatDelegate.create(this, null)
             return mDelegate!!
         }
+}
+
+fun Context.getDrawableEx(nResID:Int): Drawable
+{
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) return getDrawable(nResID)
+    return resources.getDrawable(nResID)
 }

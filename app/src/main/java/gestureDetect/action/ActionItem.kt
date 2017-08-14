@@ -2,7 +2,7 @@ package gestureDetect.action
 
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
-import ru.vpro.kernelgesture.tools.getDrawable
+import ru.vpro.kernelgesture.tools.getDrawableEx
 
 /**
  * Базовый класс для всех собственных действий
@@ -49,7 +49,7 @@ abstract class ActionItem(val action: GestureAction)
     /**
      * Вернуть иконку действия
      */
-    open fun icon(): Drawable = getDrawable(action.context, android.R.color.transparent)
+    open fun icon(): Drawable = action.context.getDrawableEx(android.R.color.transparent)
 
     /**
      * Выполнитть действие

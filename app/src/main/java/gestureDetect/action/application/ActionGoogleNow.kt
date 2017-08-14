@@ -4,7 +4,7 @@ import android.content.Intent
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.R
-import ru.vpro.kernelgesture.tools.getDrawable
+import ru.vpro.kernelgesture.tools.getDrawableEx
 
 /**
  * Action OK Google
@@ -21,7 +21,7 @@ class ActionGoogleNow(action: GestureAction) : ActionApp(action)
             = context.getString(R.string.ui_action_ok_google)
 
     override fun icon(): Drawable
-            = getDrawable(context, R.drawable.icon_ok_google)
+            = context.getDrawableEx(R.drawable.icon_ok_google)
 
     override fun run(): Boolean
     {

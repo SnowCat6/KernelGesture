@@ -6,7 +6,7 @@ import android.os.BatteryManager
 import android.os.Build
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.R
-import ru.vpro.kernelgesture.tools.getDrawable
+import ru.vpro.kernelgesture.tools.getDrawableEx
 import java.io.File
 
 /**
@@ -21,7 +21,7 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
             = context.getString(R.string.ui_action_speech_battery)
 
     override fun icon(): Drawable
-            = getDrawable(context, R.drawable.icon_speech_battery)
+            = context.getDrawableEx(R.drawable.icon_speech_battery)
 
     override fun run(): Boolean
     {
