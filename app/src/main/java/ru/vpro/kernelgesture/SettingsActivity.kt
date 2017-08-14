@@ -423,14 +423,15 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     return defaultAction
                 }
                 set(value) {
-                    _icon = null
+                    icon = null
                     applicationInfo = null
                     settings?.setAction(key, value)
                 }
+
             var enable:Boolean
                 get() = settings?.getEnable(key) ?: false
                 set(value){
-                    _icon = null
+                    icon = null
                     settings?.setEnable(key, value)
                 }
 
@@ -449,14 +450,17 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     return uiName(action)
                 }
 
-            var _icon:Drawable? = null
-            val icon:Drawable?
+            var icon:Drawable? = null
                 get(){
-                    if (_icon == null) {
-                        if (getAppInfo() != null) _icon = uiIcon(getAppInfo())
-                        else _icon = uiIcon(action)
+                    field?.apply { return field }
+
+                    getAppInfo()?.apply {
+                        field = uiIcon(this)
+                        return field
                     }
-                    return _icon
+
+                    field = uiIcon(action)
+                    return field
                 }
 
             private fun getAppInfo():ApplicationInfo?
