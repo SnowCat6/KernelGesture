@@ -18,7 +18,6 @@ class GestureHW(val context:Context)
 {
     private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
     private val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-    private val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
 
     companion object {
         private var keyguardLock: KeyguardManager.KeyguardLock? = null
@@ -64,8 +63,10 @@ class GestureHW(val context:Context)
     }
 
     fun isScreenOn(): Boolean {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
             return displayManager?.displays?.any { it.state != Display.STATE_OFF } == true
+        }
 
         val powerManager = context.getSystemService(POWER_SERVICE) as PowerManager
         return powerManager.isScreenOn
