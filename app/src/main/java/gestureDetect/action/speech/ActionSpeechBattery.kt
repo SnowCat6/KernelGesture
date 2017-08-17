@@ -30,20 +30,20 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
     }
     fun getBatteryLevel():Int?
     {
+        var batLevel: Int = 0
         try {
-            var batLevel: Int = 0
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 val bm = context.getSystemService(BATTERY_SERVICE) as BatteryManager
                 batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                if (batLevel > 0) return  batLevel
             }
-            if (batLevel == 0) {
-                try {
-                    val f = File("/sys/class/power_supply/battery/capacity")
-                    batLevel = f.readText().trim().toInt()
-                } catch (e: Exception) {
-                }
-            }
-        }catch (e:Exception){}
+        }catch (e:Exception) {}
+
+        try {
+            val f = File("/sys/class/power_supply/battery/capacity")
+            return f.readText().trim().toInt()
+        } catch (e:Exception) {}
+
         return null
     }
 }
