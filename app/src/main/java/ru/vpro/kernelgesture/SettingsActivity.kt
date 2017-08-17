@@ -209,6 +209,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             findPreference("pref_ROOT")?.apply{
                 setOnPreferenceClickListener {
                     thread {
+                        val su = ShellSU()
                         su.enable(true)
                         if (su.checkRootAccess(context))
                             settings?.setAllEnable(true)
@@ -289,6 +290,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
                     settings?.setAllEnable(value)
                     if (value){
+                        val su = ShellSU()
                         su.enable(true)
                         su.checkRootAccess(context)
                         context.startService(Intent(context, GestureService::class.java))
@@ -463,6 +465,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
         private var dlg:AlertDialog? = null
         private fun updateControls(intent:Intent? = null)
         {
+            val su = ShellSU()
             if (su.hasRootProcess()) preferenceScreen.findPreference("pref_ROOT")?.apply {
                 preferenceScreen.removePreference(this)
             }
@@ -655,9 +658,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
     companion object
     {
-        val su = ShellSU()
         var bShowAlertDlg = true
-
         fun updateControls(context:Context)
         {
             val intent = Intent(ShellSU.EVENT_UPDATE_ROOT_STATE)
