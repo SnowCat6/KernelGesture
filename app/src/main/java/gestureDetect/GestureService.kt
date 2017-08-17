@@ -174,7 +174,7 @@ class GestureService :
         super.onTaskRemoved(rootIntent)
     }
 
-    fun closeService()
+    private fun closeService()
     {
         if (BuildConfig.DEBUG){
             Log.d("Stop service", "**************************")
@@ -231,7 +231,7 @@ class GestureService :
                     val key = intent.getSerializableExtra("key") as String?
                     if (key != "GESTURE_ENABLE") return
 
-                    val bEnable = intent.getSerializableExtra("value") as Boolean? ?: false
+                    val bEnable = intent.getSerializableExtra("value") as Boolean? == true
 
                     if (bEnable) {
                         gestureActions?.onDetect()

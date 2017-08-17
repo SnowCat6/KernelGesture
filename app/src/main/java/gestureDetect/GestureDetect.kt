@@ -252,7 +252,7 @@ class GestureDetect (val context:Context)
     /**
      * Once event or double tap events enable
      */
-    fun isEventEnable(event:String):Boolean
+    private fun isEventEnable(event:String):Boolean
     {
         if (screenOnMode){
             var ev = event

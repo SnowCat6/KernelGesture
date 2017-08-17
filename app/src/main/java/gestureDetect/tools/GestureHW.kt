@@ -65,7 +65,7 @@ class GestureHW(val context:Context)
 
     fun isScreenOn(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            return displayManager?.displays?.any { it.state != Display.STATE_OFF } ?: false
+            return displayManager?.displays?.any { it.state != Display.STATE_OFF } == true
 
         val powerManager = context.getSystemService(POWER_SERVICE) as PowerManager
         return powerManager.isScreenOn
@@ -74,7 +74,7 @@ class GestureHW(val context:Context)
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
      */
 
-    var homeScreenActivity = listOf<String>()
+    private var homeScreenActivity = listOf<String>()
     fun isHomeScreen():Boolean
     {
         if (homeScreenActivity.isEmpty())

@@ -45,7 +45,7 @@ class GestureAction(val context:Context)
     )
     val hw = GestureHW(context)
     val su = ShellSU()
-    val settings = GestureSettings(context)
+    private val settings = GestureSettings(context)
 
     init {
         onDetect()
@@ -132,7 +132,7 @@ class GestureAction(val context:Context)
         return false
     }
 
-    var ringtone: Ringtone? = null
+    private var ringtone: Ringtone? = null
 
     fun startNewActivity(packageName: String):Boolean
     {
@@ -166,7 +166,7 @@ class GestureAction(val context:Context)
         vibrate()
         hw.screenON()
     }
-    fun playNotify():Boolean
+    private fun playNotify():Boolean
     {
         ringtone?.apply {
             play()

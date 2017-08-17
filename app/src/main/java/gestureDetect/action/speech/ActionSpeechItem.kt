@@ -14,7 +14,7 @@ import java.util.*
 abstract class ActionSpeechItem(action: GestureAction) :
         ActionItem(action), TextToSpeech.OnInitListener
 {
-    var tts: TextToSpeech? = null
+    private var tts: TextToSpeech? = null
 
     fun isSpeechSupport():Boolean{
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP

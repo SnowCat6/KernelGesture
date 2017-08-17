@@ -18,8 +18,6 @@ import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import android.view.*
 import android.widget.BaseAdapter
-import android.widget.ImageView
-import android.widget.TextView
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
@@ -30,11 +28,11 @@ import gestureDetect.GestureService
 import gestureDetect.action.ActionItem
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import kotlinx.android.synthetic.main.adapter_choose_item.view.*
 import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
 import ru.vpro.kernelgesture.tools.getDrawableEx
 import kotlin.concurrent.thread
-
 
 /**
  * A [PreferenceActivity] that presents a set of application settings. On
@@ -93,7 +91,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
         return super.onCreateOptionsMenu(menu)
     }
 
-    var dlg:AlertDialog? = null
+    private var dlg:AlertDialog? = null
     override fun onOptionsItemSelected(item: MenuItem?): Boolean
     {
         when(item?.itemId)
@@ -402,9 +400,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
         private fun getItemInstance(key:String):GestureItem?
                 = preferenceItems.find { it.key == key }
 
-        inner class GestureItem(val key:String, var defaultAction:String)
+        inner class GestureItem(val key:String, private var defaultAction:String)
         {
-            var applicationInfo:ApplicationInfo? = null
+            private var applicationInfo:ApplicationInfo? = null
 
             var action:String
                 get() {
@@ -424,7 +422,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 }
 
             var enable:Boolean
-                get() = settings?.getEnable(key) ?: false
+                get() = settings?.getEnable(key) == true
                 set(value){
                     icon = null
                     settings?.setEnable(key, value)
@@ -462,7 +460,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     = applicationInfo ?: uiAppInfo(action)
         }
 
-        var dlg:AlertDialog? = null
+        private var dlg:AlertDialog? = null
         private fun updateControls(intent:Intent? = null)
         {
             if (su.hasRootProcess()) preferenceScreen.findPreference("pref_ROOT")?.apply {
@@ -494,8 +492,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
             if (bProximity) titles += context.getString(R.string.ui_title_gesture)
 
             (activity as AppCompatPreferenceActivity?)?.supportActionBar?.apply {
-                if (!titles.isEmpty()) subtitle = titles.joinToString(", ")
-                else subtitle = context.getString(R.string.ui_title_no_any_support)
+                subtitle = if (!titles.isEmpty()) titles.joinToString(", ")
+                else context.getString(R.string.ui_title_no_any_support)
             }
 
             if (titles.isEmpty())
@@ -590,20 +588,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     lInflater.inflate(R.layout.adapter_choose_item, parent, false)
                 else convertView
 
-                val nameView:View? = view.findViewById(R.id.title)
-                (nameView as TextView?)?.text = uiName(thisItem)
+                view.title?.text = uiName(thisItem)
+                view.icon?.setImageDrawable(uiIcon(thisItem))
 
-                val icon = uiIcon(thisItem)
-                val iconView:View? = view.findViewById(R.id.icon)
-                (iconView as ImageView?)?.setImageDrawable(icon)
-
-                if (currentAction != null && currentAction.isNotEmpty() &&
-                        currentAction == uiAction(thisItem))
-                {
-                    view.background = context.getDrawableEx(android.R.color.holo_orange_light)
-                }else{
-                    view.background = null
-                }
+                view.background = if (currentAction == uiAction(thisItem)) context.getDrawableEx(android.R.color.holo_orange_light)
+                else null
 
                 return view
             }

@@ -9,7 +9,7 @@ import ru.vpro.kernelgesture.tools.getDrawableEx
 
 class ActionFlashlight(action: GestureAction) : ActionItem(action)
 {
-    val devices = arrayOf(
+    private val devices = arrayOf(
             "/sys/class/leds/flashlight/brightness"
     )
     override fun onDetect():Boolean
@@ -63,9 +63,9 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         closeCamera()
     }
 
-    var bHasFlash = false
-    var flashlightDirect:String? = null
-    var camera:Camera? = null
+    private var bHasFlash = false
+    private var flashlightDirect:String? = null
+    private var camera:Camera? = null
 
     var enable:Boolean = false
         get() = field
@@ -85,8 +85,8 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
 
         if (camera == null)
         {
-            try {
-                camera = Camera.open()
+            camera = try {
+                Camera.open()
             } catch (e: RuntimeException) {
                 e.printStackTrace()
                 closeCamera()

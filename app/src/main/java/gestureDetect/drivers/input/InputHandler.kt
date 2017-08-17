@@ -16,17 +16,17 @@ abstract class InputHandler(val gesture:GestureDetect)
 {
     val context = gesture.context
     var rawFilter = "EV_KEY"
-    val size = Point()
-    var coordinates = Point()
+    private val size = Point()
+    private var coordinates = Point()
 
     var GESTURE_IO: GS? = null
     open val GESTURE_PATH = arrayOf<GS>()
 
     inner class GS(
             val powerFile: String,
-            val setPowerON: String = "1",
-            val setPowerOFF: String = "0",
-            val getGesture: String = ""
+            private val setPowerON: String = "1",
+            private val setPowerOFF: String = "0",
+            private val getGesture: String = ""
     ){
         fun setEnable(bEnable:Boolean)
         {
@@ -96,7 +96,7 @@ abstract class InputHandler(val gesture:GestureDetect)
     /**
      * Реакция на событие от устройства ввода
      */
-    var lastTouchTime = 0.0
+    private var lastTouchTime = 0.0
     open fun onEvent(ev: SensorInput.EvData): String?
     {
         if (ev.evButton != "BTN_TOUCH")

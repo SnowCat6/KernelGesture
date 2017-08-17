@@ -20,14 +20,14 @@ open class SensorProximity(gesture: GestureDetect) :
     private var mProximity: Sensor? = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
     private var bRegisterEvent = false
 
-    var bNearSensor = false
+    private var bNearSensor = false
 
-    var longTimeFar = System.currentTimeMillis()
-    var nearTimeNear = System.currentTimeMillis()
-    var bLongTrigger = false
+    private var longTimeFar = System.currentTimeMillis()
+    private var nearTimeNear = System.currentTimeMillis()
+    private var bLongTrigger = false
 
-    val sensor1wait = 1*1000
-    val sensor2wait = 1*1000
+    private val sensor1wait = 1*1000
+    private val sensor2wait = 1*1000
 
     override fun onDetect(): Boolean
     {

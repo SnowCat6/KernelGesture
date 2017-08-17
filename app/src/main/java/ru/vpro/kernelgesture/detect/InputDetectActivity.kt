@@ -5,28 +5,20 @@ import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
-import android.view.View
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ListView
 import gestureDetect.drivers.SensorInput
+import kotlinx.android.synthetic.main.activity_detect_1.*
 import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
 
-
 class InputDetectActivity : AppCompatActivity() {
 
-    private var logList:ListView? = null
     private var logListAdapter:ArrayAdapter<String>? = null
-
-    private var startButton:Button? = null
-    private var sendButton:Button? = null
-
     private var log = emptyList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,20 +30,11 @@ class InputDetectActivity : AppCompatActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        var view: View? = findViewById(R.id.logList)
-        logList = view as ListView?
-
-        view = findViewById(R.id.startLog)
-        startButton = view as Button?
-
-        view = findViewById(R.id.seendLog)
-        sendButton = view as Button?
-
-        startButton?.apply {
+        startLog?.apply {
             setOnClickListener {
 
                 isEnabled = false
-                sendButton?.isEnabled = false
+                seendLog?.isEnabled = false
 
                 dlg?.dismiss()
                 dlg = null
@@ -73,14 +56,14 @@ class InputDetectActivity : AppCompatActivity() {
                         dlg?.dismiss()
                         dlg = null
                         isEnabled = true
-                        sendButton?.isEnabled = true
+                        seendLog?.isEnabled = true
                         doStartDetect2()
                     }
                 }
             }
         }
 
-        sendButton?.apply {
+        seendLog?.apply {
             isEnabled = false
             setOnClickListener {
                 isEnabled = false
@@ -142,7 +125,7 @@ class InputDetectActivity : AppCompatActivity() {
         return true
     }
 
-    var dlg: android.app.AlertDialog? = null
+    private var dlg: android.app.AlertDialog? = null
     private fun doStartDetect() {
 
         log = emptyList()
@@ -235,7 +218,7 @@ class InputDetectActivity : AppCompatActivity() {
     }
     private fun updateProgress(){
         Handler(Looper.getMainLooper()).post {
-            logListAdapter = ArrayAdapter<String>(logList!!.context, android.R.layout.simple_list_item_1, log)
+            logListAdapter = ArrayAdapter(logList!!.context, android.R.layout.simple_list_item_1, log)
             logList?.adapter = logListAdapter!!
         }
     }

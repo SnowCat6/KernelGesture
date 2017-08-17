@@ -12,7 +12,7 @@ import gestureDetect.action.ActionItem
  */
 abstract class ActionApp(action: GestureAction) : ActionItem(action)
 {
-    var applicationInfo: ApplicationInfo? = null
+    private var applicationInfo: ApplicationInfo? = null
     var intent:Intent? = null
 
     override fun onDetect(): Boolean = false

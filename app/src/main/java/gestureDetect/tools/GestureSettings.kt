@@ -12,7 +12,7 @@ class GestureSettings(val context: Context)
     companion object {
         val EVENT_ENABLE = "EVENT_ENABLE"
     }
-    val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context) as SharedPreferences
+    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context) as SharedPreferences
 
     fun getAllEnable(): Boolean
             = getEnable("GESTURE_ENABLE")

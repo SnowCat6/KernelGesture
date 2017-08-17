@@ -56,7 +56,7 @@ class InputDetect2Activity : AppCompatActivity()
 
     companion object
     {
-        val RESULT_ID = R.layout.activity_detect_2 and 0xFF
+        private val RESULT_ID = R.layout.activity_detect_2 and 0xFF
         fun startActivity(activity: Activity){
             val intent = Intent(activity, InputDetect2Activity::class.java)
             activity.startActivityForResult(intent, RESULT_ID)
@@ -73,7 +73,7 @@ class InputDetect2Activity : AppCompatActivity()
     /**
      * SCREEN Events
      */
-    val onEventIntent = object : BroadcastReceiver() {
+    private val onEventIntent = object : BroadcastReceiver() {
         //  Events for screen on and screen off
         override fun onReceive(context: Context, intent: Intent)
         {
@@ -112,7 +112,7 @@ class InputDetect2Activity : AppCompatActivity()
 
     val su = ShellSU()
     var bRunThread = false
-    var dlg: AlertDialog? = null
+    private var dlg: AlertDialog? = null
 
     fun startThread(){
 
@@ -160,7 +160,7 @@ class InputDetect2Activity : AppCompatActivity()
         }
     }
 
-    fun reportLog(events:Array<String>)
+    private fun reportLog(events:Array<String>)
     {
         val intent = Intent()
         intent.putExtra("geteventResult", events)

@@ -15,8 +15,8 @@ import kotlin.concurrent.thread
 
 class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
-    var bRunning = false
-    var runThread:Thread? = null
+    private var bRunning = false
+    private var runThread:Thread? = null
 
     /**
      * Input devices

@@ -28,13 +28,12 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
         val prefix = context.getString(R.string.ui_action_battery)
         return doSpeech("$prefix ${getBatteryLevel()}%")
     }
-    fun getBatteryLevel():Int?
+    private fun getBatteryLevel():Int?
     {
-        var batLevel: Int = 0
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 val bm = context.getSystemService(BATTERY_SERVICE) as BatteryManager
-                batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                val batLevel = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
                 if (batLevel > 0) return  batLevel
             }
         }catch (e:Exception) {}
