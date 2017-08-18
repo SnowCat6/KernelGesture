@@ -54,6 +54,9 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
             GS("/sys/devices/bus.3/11008000.I2C1/i2c-1/1-0038/gesturewordset",
                     "11111", "00000"),
 
+            //  KINGZONE_N5
+            GS(getGesture = "/data/tp_wake_data"),
+
             //  Xiaomi?
             GS("/data/tp/wakeup_mode")
     )
@@ -82,14 +85,18 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     override fun onEvent(ev: SensorInput.EvData): String?
     {
         when(ev.evButton){
+            //  Gesture events
             "KEY_PROG3" ->  return onEventHCT(ev)
+            "00fb" -> return onEventKING(ev)
+            //  Volume keys
             "KEY_VOLUMEUP",
             "KEY_VOLUMEDOWN" ->  return filter(ev, ev.evButton)
         }
 
         val keys = arrayOf(
+                //  Common CM based gesture key
                 Pair("KEY_WAKEUP",          "KEY_U"),
-                //  T02 gestures convert
+                //  T02 gestures
                 Pair("KEY_GESTURE_UP",      "KEY_UP"),
                 Pair("KEY_GESTURE_DOWN",    "KEY_DOWN"),
                 Pair("KEY_GESTURE_LEFT",    "KEY_LEFT"),
@@ -121,6 +128,34 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
         )
         return super.onEvent(ev) ?: filter(ev, ev.evButton, keys)
     }
+
+    //  KINGZONE_N5, doubletap and other gestures.. Need find gesture file
+    private fun onEventKING(ev: SensorInput.EvData): String?
+    {
+        val keys = arrayOf(
+                Pair("U",           "KEY_UP"),
+                Pair("C",           "KEY_DOWN"),
+                Pair("s",           "KEY_LEFT"),
+                Pair("S",           "KEY_RIGHT"),
+                Pair("d",           "KEY_U"),
+
+                Pair("c",           "KEY_C"),
+                Pair("o",           "KEY_O"),
+                Pair("w",           "KEY_W"),
+                Pair("e",           "KEY_E"),
+                Pair("v",           "KEY_V"),
+                Pair("m",           "KEY_M"),
+                Pair("z",           "KEY_Z"),
+                Pair("s",           "KEY_S")
+        )
+
+        GESTURE_IO?.apply {
+            val gs = getGesture()?.let { if (it.isNotEmpty()) it.substring(0, 1) else it }
+            return filter(ev, gs, keys)
+        }
+        return null
+    }
+
     //  HCT gesture give from file
     private fun onEventHCT(ev: SensorInput.EvData):String?
     {

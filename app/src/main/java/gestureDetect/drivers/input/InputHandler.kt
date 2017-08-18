@@ -23,10 +23,11 @@ abstract class InputHandler(val gesture:GestureDetect)
     open val GESTURE_PATH = arrayOf<GS>()
 
     inner class GS(
-            val powerFile: String,
-            private val setPowerON: String = "1",
-            private val setPowerOFF: String = "0",
-            private val getGesture: String = ""
+            val powerFile: String = "",
+            val setPowerON: String = "1",
+            val setPowerOFF: String = "0",
+            val getGesture: String = "",
+            val allowGesture:List<String> = emptyList()
     ){
         fun setEnable(bEnable:Boolean)
         {
@@ -35,15 +36,25 @@ abstract class InputHandler(val gesture:GestureDetect)
         }
         fun getGesture():String?
                 = if (getGesture.isNotEmpty()) gesture.su.getFileLine(getGesture) else null
+
+        fun onDetect():Boolean {
+            if (powerFile.isNotEmpty()) return gesture.su.isFileExists(powerFile)
+            if (getGesture.isNotEmpty()) return gesture.su.isFileExists(getGesture)
+            return false
+        }
     }
     /**
      * Определить возможность получения событий по имени /dev/input устройства
      */
     open fun onDetect(name:String):Boolean
     {
-        GESTURE_IO = GESTURE_PATH.firstOrNull { gesture.su.isFileExists(it.powerFile) }?.also {
-            gesture.addSupport("GESTURE_HW")
-            gesture.addSupport(allowGestures)
+        GESTURE_IO = GESTURE_PATH.firstOrNull { it.onDetect() }?.also {
+
+            with(gesture){
+                addSupport("GESTURE_HW")
+                if (it.allowGesture.isNotEmpty()) addSupport(it.allowGesture)
+                else addSupport(allowGestures)
+            }
         }
 
         return false
@@ -69,7 +80,8 @@ abstract class InputHandler(val gesture:GestureDetect)
             registerScreenEvents("KEY_U_ON", "KEY_U_ON")
 
             addSupport("GESTURE")
-            addSupport(allowGestures)
+            if (GESTURE_IO == null)
+                addSupport(allowGestures)
         }
 
         val wm = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
@@ -101,7 +113,6 @@ abstract class InputHandler(val gesture:GestureDetect)
     {
         if (ev.evButton != "BTN_TOUCH")
             return filter(ev, ev.evButton)
-
 
         val timeout = ((ev.evMilliTime - lastTouchTime)*1000).toInt()
         val dx = (coordinates.x-ev.coordinates.x).toDouble()
