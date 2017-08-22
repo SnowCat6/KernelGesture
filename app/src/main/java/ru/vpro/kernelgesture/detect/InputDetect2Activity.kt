@@ -22,6 +22,8 @@ import kotlin.concurrent.thread
 
 class InputDetect2Activity : AppCompatActivity()
 {
+    private var detectThread:Thread? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detect_2)
@@ -41,6 +43,8 @@ class InputDetect2Activity : AppCompatActivity()
 
     override fun onDestroy() {
         unregisterReceiver(onEventIntent)
+        detectThread?.interrupt()
+        detectThread = null
         super.onDestroy()
     }
 
@@ -81,7 +85,7 @@ class InputDetect2Activity : AppCompatActivity()
             //  Screen OFF
                 Intent.ACTION_SCREEN_OFF -> {
                     bRunThread = true
-                    thread {
+                    detectThread = thread {
                         val settings = GestureSettings(context)
                         val bEnable = settings.getAllEnable()
                         val serviceIntent = Intent(context, GestureService::class.java)
@@ -97,6 +101,7 @@ class InputDetect2Activity : AppCompatActivity()
                         if (bEnable) {
                             startService(serviceIntent)
                         }
+                        detectThread = null
                     }
                 }
             //  Screen ON

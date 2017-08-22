@@ -222,8 +222,9 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                                 name = groupValues[1]
                             } ?:
                             regHandlers.find(line)?.apply {
-                                groupValues[1].split(" ")
-                                        .filter { it.contains("event") }
+                                groupValues[1]
+                                        .split(" ")
+                                        .filter { it.startsWith("event") }
                                         .forEach { inputs += Pair("/dev/input/$it", name) }
                             }
                         }

@@ -368,10 +368,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     preference.summary = getString(R.string.ui_no_notify)
                 }else{
                     val ringtone = RingtoneManager.getRingtone(activity, Uri.parse(notify))
-                    when (ringtone) {
-                        null -> preference.summary = getString(R.string.ui_sound_default)
-                        else -> preference.summary = ringtone.getTitle(activity)
-                    }
+                    preference.summary = ringtone?.getTitle(activity) ?: getString(R.string.ui_sound_default)
                 }
 
                 true
@@ -603,43 +600,44 @@ class SettingsActivity : AppCompatPreferenceActivity()
 
         fun uiAction(item:Any?):String
         {
-            when(item)
+            return when(item)
             {
-                "none" -> return ""
-                is ActionListItem -> return item.action
-                is ApplicationInfo -> return item.packageName
-                is ActionItem -> return item.action()
+                "none" -> ""
+                is ActionListItem -> item.action
+                is ApplicationInfo -> item.packageName
+                is ActionItem -> item.action()
                 is String -> {
                     gestureAction?.getAction(item)?.apply { return item  }
                     uiAppInfo(item)?.apply { return item }
+                    ""
                 }
+                else -> ""
             }
-            return ""
         }
 
         fun uiName(item:Any?):String
         {
-            when(item){
-                is ActionListItem -> return item.name
-                is ApplicationInfo -> return activity.packageManager
-                        .getApplicationLabel(item).toString()
+            return when(item){
+                is ActionListItem -> item.name
+                is ApplicationInfo -> activity.packageManager
+                        .getApplicationLabel(item)?.toString() ?: ""
 
-                "" ->  return activity.getString(R.string.ui_default_action)
-                "none"  -> return activity.getString(R.string.ui_no_action)
-                is ActionItem -> return item.name()
-                is String -> return gestureAction?.getAction(item)?.name() ?: ""
+                "" ->  activity.getString(R.string.ui_default_action)
+                "none"  -> activity.getString(R.string.ui_no_action)
+                is ActionItem -> item.name()
+                is String -> gestureAction?.getAction(item)?.name() ?: ""
+                else -> ""
             }
-            return ""
         }
         fun uiIcon(item:Any?): Drawable
         {
-            when(item){
-                is ActionListItem -> return item.icon
-                is ApplicationInfo -> return activity.packageManager.getApplicationIcon(item)
-                is ActionItem -> return item.icon()
-                is String -> return gestureAction?.getAction(item)?.icon() ?: activity.getDrawableEx(android.R.color.transparent)
+            return when(item){
+                is ActionListItem -> item.icon
+                is ApplicationInfo -> activity.packageManager.getApplicationIcon(item)?: activity.getDrawableEx(android.R.color.transparent)
+                is ActionItem -> item.icon()
+                is String -> gestureAction?.getAction(item)?.icon() ?: activity.getDrawableEx(android.R.color.transparent)
+                else -> activity.getDrawableEx(android.R.color.transparent)
             }
-            return activity.getDrawableEx(android.R.color.transparent)
         }
         fun uiAppInfo(action:String):ApplicationInfo?
         {

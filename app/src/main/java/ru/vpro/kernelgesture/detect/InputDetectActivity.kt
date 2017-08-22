@@ -20,6 +20,7 @@ class InputDetectActivity : AppCompatActivity() {
 
     private var logListAdapter:ArrayAdapter<String>? = null
     private var log = emptyList<String>()
+    private var detectThread:Thread? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +50,7 @@ class InputDetectActivity : AppCompatActivity() {
                 log = emptyList()
                 updateProgress()
 
-                thread{
+                detectThread = thread{
                     doStartDetect()
                     updateProgress()
                     Handler(Looper.getMainLooper()).post {
@@ -59,6 +60,7 @@ class InputDetectActivity : AppCompatActivity() {
                         seendLog?.isEnabled = true
                         doStartDetect2()
                     }
+                    detectThread = null
                 }
             }
         }
@@ -69,29 +71,31 @@ class InputDetectActivity : AppCompatActivity() {
                 isEnabled = false
                 dlg?.dismiss()
                 dlg = null
-                thread {
-                    Handler(mainLooper).post {
 
-                        with(AlertDialog.Builder(context))
-                        {
-                            if (reportError()) {
-                                setTitle(getString(R.string.ui_detect_send_title))
-                                setMessage(getString(R.string.ui_collect_send_content))
-                            } else {
-                                setTitle(getString(R.string.ui_detect_send_no_title))
-                                setMessage(getString(R.string.ui_detect_send_no_content))
-                            }
-                            dlg = create()
-                            dlg?.show()
-                        }
-
-                        isEnabled = true
+                with(AlertDialog.Builder(context))
+                {
+                    if (reportError()) {
+                        setTitle(getString(R.string.ui_detect_send_title))
+                        setMessage(getString(R.string.ui_collect_send_content))
+                    } else {
+                        setTitle(getString(R.string.ui_detect_send_no_title))
+                        setMessage(getString(R.string.ui_detect_send_no_content))
                     }
+                    dlg = create()
+                    dlg?.show()
                 }
+                isEnabled = true
             }
         }
 
     }
+
+    override fun onDestroy() {
+        detectThread?.interrupt()
+        detectThread = null
+        super.onDestroy()
+    }
+
     private fun doStartDetect2(){
         InputDetect2Activity.startActivity(this)
     }
