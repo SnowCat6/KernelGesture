@@ -53,7 +53,8 @@ class InputDetectActivity : AppCompatActivity() {
                 detectThread = thread{
                     doStartDetect()
                     updateProgress()
-                    Handler(Looper.getMainLooper()).post {
+
+                    runOnUiThread {
                         closeDialog()
                         isEnabled = true
                         seendLog?.isEnabled = true
@@ -224,10 +225,11 @@ class InputDetectActivity : AppCompatActivity() {
         updateProgress()
         return true
     }
-    private fun updateProgress(){
-        Handler(Looper.getMainLooper()).post {
-            logListAdapter = ArrayAdapter(logList!!.context, android.R.layout.simple_list_item_1, log)
-            logList?.adapter = logListAdapter!!
+    private fun updateProgress()
+    {
+        runOnUiThread {
+            logListAdapter = ArrayAdapter(logList.context, android.R.layout.simple_list_item_1, log)
+            logList?.adapter = logListAdapter
         }
     }
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

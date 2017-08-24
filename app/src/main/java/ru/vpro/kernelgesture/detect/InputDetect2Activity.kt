@@ -86,6 +86,7 @@ class InputDetect2Activity : AppCompatActivity()
                 Intent.ACTION_SCREEN_OFF -> {
                     bRunThread = true
                     detectThread = thread {
+
                         val settings = GestureSettings(context)
                         val bEnable = settings.getAllEnable()
                         val serviceIntent = Intent(context, GestureService::class.java)
@@ -158,8 +159,10 @@ class InputDetect2Activity : AppCompatActivity()
             hw.vibrate()
         }
 
-        Handler(Looper.getMainLooper()).post {
-            reportLog(events)
+        if (detectThread != null) {
+            runOnUiThread {
+                reportLog(events)
+            }
         }
     }
 

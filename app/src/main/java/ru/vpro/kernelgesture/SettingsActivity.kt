@@ -13,6 +13,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
 import android.preference.*
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
@@ -561,7 +562,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         }
                     }
 
-                    Handler(context.mainLooper).post {
+                    Handler(Looper.getMainLooper()).post {
                         objects += items
                         notifyDataSetChanged()
                     }
