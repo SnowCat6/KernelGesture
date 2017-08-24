@@ -117,8 +117,15 @@ class InputDetect2Activity : AppCompatActivity()
 
     val su = ShellSU()
     var bRunThread = false
-    private var dlg: AlertDialog? = null
 
+    private var dlg: AlertDialog? = null
+    private fun closeDialog(){
+        try{
+            dlg?.dismiss()
+        }
+        catch (e:Exception){ }
+        dlg = null
+    }
     fun startThread(){
 
         val hw = GestureHW(this)
@@ -172,8 +179,8 @@ class InputDetect2Activity : AppCompatActivity()
         setResult(Activity.RESULT_OK, intent)
 
         val thisActivity = this
-        dlg?.dismiss()
-        dlg = null
+
+        closeDialog()
         with(AlertDialog.Builder(this))
         {
             val title = getString(R.string.ui_detect2_dlg_title)

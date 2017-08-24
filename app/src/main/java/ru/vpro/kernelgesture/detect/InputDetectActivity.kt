@@ -37,12 +37,12 @@ class InputDetectActivity : AppCompatActivity() {
                 isEnabled = false
                 seendLog?.isEnabled = false
 
-                dlg?.dismiss()
-                dlg = null
+                closeDialog()
                 with(AlertDialog.Builder(context)){
                     setTitle(getString(R.string.ui_detect_dlg_title))
                     setMessage(getString(R.string.ui_detect_dlg_content))
                     setCancelable(false)
+
                     dlg = create()
                     dlg?.show()
                 }
@@ -54,8 +54,7 @@ class InputDetectActivity : AppCompatActivity() {
                     doStartDetect()
                     updateProgress()
                     Handler(Looper.getMainLooper()).post {
-                        dlg?.dismiss()
-                        dlg = null
+                        closeDialog()
                         isEnabled = true
                         seendLog?.isEnabled = true
                         doStartDetect2()
@@ -69,9 +68,8 @@ class InputDetectActivity : AppCompatActivity() {
             isEnabled = false
             setOnClickListener {
                 isEnabled = false
-                dlg?.dismiss()
-                dlg = null
 
+                closeDialog()
                 with(AlertDialog.Builder(context))
                 {
                     if (reportError()) {
@@ -87,7 +85,6 @@ class InputDetectActivity : AppCompatActivity() {
                 isEnabled = true
             }
         }
-
     }
 
     override fun onDestroy() {
@@ -130,6 +127,13 @@ class InputDetectActivity : AppCompatActivity() {
     }
 
     private var dlg: android.app.AlertDialog? = null
+    private fun closeDialog(){
+        try{
+            dlg?.dismiss()
+        }
+        catch (e:Exception){ }
+        dlg = null
+    }
     private fun doStartDetect() {
 
         log = emptyList()
