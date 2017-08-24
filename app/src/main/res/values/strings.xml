@@ -45,7 +45,7 @@
     <string name="ui_unlock_screen">Screen lock</string>
     <string name="ui_unlock_screen_off">Do not unlock after action</string>
     <string name="ui_unlock_screen_on">Auto unlock screen after action</string>
-    <string name="ui_adv_menu">Adv</string>
+    <string name="ui_adv_menu">Interesting advertising</string>
     <string name="ui_service">Background service</string>
     <string name="ui_draw_z">Draw Z letter</string>
     <string name="ui_key_actions">Screen off actions</string>

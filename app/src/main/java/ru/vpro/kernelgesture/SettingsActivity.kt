@@ -377,9 +377,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
         private val onClickListener = DialogInterface.OnClickListener { dialogInterface: DialogInterface, i: Int ->
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
-            val item = adapter.getItem(i) as? ActionListItem ?: return@OnClickListener
+            val item = adapter.getItem(i) as? BoxAdapter.ActionListItem ?: return@OnClickListener
             val preference = adapter.preference as TwoStatePreference
-            val itemAction =  uiAction(item)
+            val itemAction =  uiAction(activity, item)
 
             if (BuildConfig.DEBUG) {
                 Log.d("Set gesture action", itemAction)
@@ -406,9 +406,9 @@ class SettingsActivity : AppCompatPreferenceActivity()
             var action:String
                 get() {
                     val a = settings?.getAction(key)
-                    if (uiAction(a).isNotEmpty()) return a!!
+                    if (uiAction(activity, a).isNotEmpty()) return a!!
                     if (a != null) return ""
-                    if (uiAction(defaultAction).isEmpty()) return ""
+                    if (uiAction(activity, defaultAction).isEmpty()) return ""
 
                     action = defaultAction
                     enable = true
@@ -430,7 +430,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val actionName:String
                 get() {
                     getAppInfo()?.apply {
-                        return uiName(this)
+                        return uiName(activity, this)
                     }
 
                     if (action.isEmpty()){
@@ -439,7 +439,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         if (!enable) return getString(R.string.ui_no_action)
                     }
 
-                    return uiName(action)
+                    return uiName(activity, action)
                 }
 
             var icon:Drawable? = null
@@ -447,16 +447,16 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     field?.apply { return field }
 
                     getAppInfo()?.apply {
-                        field = uiIcon(this)
+                        field = uiIcon(activity, this)
                         return field
                     }
 
-                    field = uiIcon(action)
+                    field = uiIcon(activity, action)
                     return field
                 }
 
             private fun getAppInfo():ApplicationInfo?
-                    = applicationInfo ?: uiAppInfo(action)
+                    = applicationInfo ?: uiAppInfo(activity, action)
         }
 
         private var dlg:AlertDialog? = null
@@ -524,19 +524,21 @@ class SettingsActivity : AppCompatPreferenceActivity()
             }
         }
 
-        inner class ActionListItem(val action:String, val name:String, val icon:Drawable)
-        {
-            constructor(action:Any) :
-                    this(uiAction(action), uiName(action), uiIcon(action))
-        }
+
 
         inner class BoxAdapter internal constructor(
                 internal val preference: Preference) : BaseAdapter()
         {
             private var objects = emptyList<Any>()
-            private val lInflater = preference.context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             private val context = preference.context
+            private val lInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             private val currentAction = settings?.getAction(preference.key)
+
+            inner class ActionListItem(val action:String, val name:String, val icon:Drawable)
+            {
+                constructor(action:Any) :
+                        this(uiAction(context, action), uiName(context, action), uiIcon(context, action))
+            }
 
             init{
                 objects += ActionListItem("none")
@@ -545,7 +547,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                         ?.forEach { objects += ActionListItem(it) }
 
                 thread{
-                    val pm =  preference.context.packageManager
+                    val pm =  context.packageManager
                     val mainIntent = Intent(Intent.ACTION_MAIN, null)
                     mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
                     val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
@@ -588,61 +590,60 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     lInflater.inflate(R.layout.adapter_choose_item, parent, false)
                 else convertView
 
-                view.title?.text = uiName(thisItem)
-                view.icon?.setImageDrawable(uiIcon(thisItem))
+                view.title?.text = uiName(context, thisItem)
+                view.icon?.setImageDrawable(uiIcon(context, thisItem))
 
-                view.background = if (currentAction == uiAction(thisItem)) context.getDrawableEx(android.R.color.holo_orange_light)
+                view.background = if (currentAction == uiAction(context, thisItem)) context.getDrawableEx(android.R.color.holo_orange_light)
                 else null
 
                 return view
             }
         }
 
-        fun uiAction(item:Any?):String
+        fun uiAction(context:Context, item:Any?):String
         {
             return when(item)
             {
                 "none" -> ""
-                is ActionListItem -> item.action
+                is BoxAdapter.ActionListItem -> item.action
                 is ApplicationInfo -> item.packageName
                 is ActionItem -> item.action()
                 is String -> {
                     gestureAction?.getAction(item)?.apply { return item  }
-                    uiAppInfo(item)?.apply { return item }
+                    uiAppInfo(context, item)?.apply { return item }
                     ""
                 }
                 else -> ""
             }
         }
-
-        fun uiName(item:Any?):String
+        fun uiName(context:Context, item:Any?):String
         {
             return when(item){
-                is ActionListItem -> item.name
-                is ApplicationInfo -> activity.packageManager
+                is BoxAdapter.ActionListItem -> item.name
+                is ApplicationInfo -> context.packageManager
                         .getApplicationLabel(item)?.toString() ?: ""
 
-                "" ->  activity.getString(R.string.ui_default_action)
-                "none"  -> activity.getString(R.string.ui_no_action)
+                "" ->  context.getString(R.string.ui_default_action)
+                "none"  -> context.getString(R.string.ui_no_action)
                 is ActionItem -> item.name()
                 is String -> gestureAction?.getAction(item)?.name() ?: ""
                 else -> ""
             }
         }
-        fun uiIcon(item:Any?): Drawable
+        fun uiIcon(context:Context, item:Any?): Drawable
         {
             return when(item){
-                is ActionListItem -> item.icon
-                is ApplicationInfo -> activity.packageManager.getApplicationIcon(item)?: activity.getDrawableEx(android.R.color.transparent)
+                is BoxAdapter.ActionListItem -> item.icon
+                is ApplicationInfo -> context.packageManager.getApplicationIcon(item)?: context.getDrawableEx(android.R.color.transparent)
                 is ActionItem -> item.icon()
-                is String -> gestureAction?.getAction(item)?.icon() ?: activity.getDrawableEx(android.R.color.transparent)
-                else -> activity.getDrawableEx(android.R.color.transparent)
+                is String -> gestureAction?.getAction(item)?.icon() ?: context.getDrawableEx(android.R.color.transparent)
+                else -> context.getDrawableEx(android.R.color.transparent)
             }
         }
-        fun uiAppInfo(action:String):ApplicationInfo?
+        fun uiAppInfo(context:Context, action:String):ApplicationInfo?
         {
             try {
-                return activity.packageManager.getApplicationInfo(action, 0)
+                return context.packageManager.getApplicationInfo(action, 0)
             } catch (e: Exception) {}
             return null
         }
@@ -662,5 +663,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
             val intent = Intent(ShellSU.EVENT_UPDATE_ROOT_STATE)
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
         }
+
     }
 }
