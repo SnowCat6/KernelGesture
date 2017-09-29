@@ -261,6 +261,7 @@ class SettingsActivity :
             preferenceItems.forEach {
 
                 findPreference(it.key)?.apply {
+
                     icon = it.icon
                     onPreferenceChangeListener = changeListener()
                     onPreferenceClickListener = actionListener()
@@ -329,29 +330,6 @@ class SettingsActivity :
                     }
                     updateControls(context)
                 }
-/*
-            if (value){
-                val fileName = "/dev/input/event5"
-                Log.d("Read IO", fileName)
-                try{
-                    val f = File(fileName)
-                    f.setReadOnly()
-                    f.readBytes()
-                    Log.d("Read IO", "$fileName read OK")
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-                Log.d("Read IO", "exec shell")
-                try{
-                    val sh = Runtime.getRuntime().exec("getevent -p")
-                    sh.waitFor()
-                    val line = sh.inputStream.bufferedReader().readLine()
-                    Log.d("Read IO", "exec shell result: $line")
-                }catch (e:Exception){
-                    e.printStackTrace()
-                }
-            }
-*/
                 true
             }
         }
