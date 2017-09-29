@@ -59,6 +59,13 @@ class SettingsActivity :
     private var mInterstitialAd: InterstitialAd? = null
     private val composites = CompositeDisposable()
 
+    data class GestureConfig(
+        var gestureAction:GestureAction?=null,
+        var gestureDetect:GestureDetect?=null
+    ) {
+        fun isEmpty(): Boolean = gestureAction == null || gestureDetect == null
+    }
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
@@ -79,7 +86,6 @@ class SettingsActivity :
         }
         composites += GestureSettings.rxUpdateValue
                 .filter { it.key == GestureSettings.GESTURE_ENABLE && it.value == true }
-                .observeOn(Schedulers.computation())
                 .subscribe {
                     val su = ShellSU()
                     su.enable(true)
@@ -90,6 +96,30 @@ class SettingsActivity :
                 .subscribe {
                     supportActionBar.subtitle = it
                 }
+        composites += ShellSU.commonSU.rxRootEnable
+                .filter { it }
+                .subscribe {
+                    updateGestureConfig(true)
+                }
+
+        updateGestureConfig()
+    }
+    fun updateGestureConfig(bShowDialog : Boolean = false)
+    {
+        thread{
+            if (gestureConfig.isEmpty()){
+                gestureConfig = GestureConfig(
+                        GestureAction(this),
+                        GestureDetect(this))
+            }else {
+                gestureConfig.apply {
+                    gestureAction?.onDetect()
+                    gestureDetect?.enable(true)
+                }
+            }
+            bShowAlertDlg = bShowDialog
+            rxGestureConfig.onNext(gestureConfig)
+        }
     }
 
     override fun onDestroy() {
@@ -221,7 +251,6 @@ class SettingsActivity :
         var iconResource = 0
 
         var settings: GestureSettings? = null
-        var gestureAction:GestureAction? = null
 
         private val composites = CompositeDisposable()
 
@@ -235,12 +264,19 @@ class SettingsActivity :
             super.onActivityCreated(savedInstanceState)
 
             settings = GestureSettings(activity)
-            gestureAction = GestureAction(activity)
             val hw = GestureHW(activity)
 
             findPreference(GestureSettings.GESTURE_ENABLE)?.apply{
+                this as SwitchPreference
                 onPreferenceChangeListener = enableAllListener
                 onPreferenceChangeListener.onPreferenceChange(this, settings!!.getAllEnable())
+
+                composites += GestureSettings.rxUpdateValue
+                        .filter{ it.key == GestureSettings.GESTURE_ENABLE && it.value !=  isChecked }
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe {
+                            isChecked = it.value as Boolean
+                        }
             }
 
             findPreference("GESTURE_NOTIFY")?.apply{
@@ -306,11 +342,25 @@ class SettingsActivity :
                     .subscribe {
                         updateControls()
                     }
+
+            composites += GestureSettings.rxUpdateValue
+                    .filter { it.key ==  GestureSettings.GESTURE_ENABLE }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+                        updateControls()
+                    }
+
+            composites += rxGestureConfig
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+                        updateControls()
+                    }
+
+            updateControls()
         }
 
         override fun onDestroy(){
             settings = null
-            gestureAction = null
             composites.clear()
             super.onDestroy()
         }
@@ -463,13 +513,11 @@ class SettingsActivity :
                 preferenceScreen.removePreference(this)
             }
 
-            gestureAction?.onDetect()
-
             val fragment = fragmentManager
-                    .findFragmentById(android.R.id.content) as PreferenceFragment? ?: return
+                    .findFragmentById(android.R.id.content) as? PreferenceFragment? ?: return
 
             val context = fragment.activity
-            val support = GestureDetect(context).getSupport()
+            val support = gestureConfig.gestureDetect?.getSupport() ?: emptyList()
             val settings = GestureSettings(context)
 
             var titles = emptyList<String>()
@@ -537,7 +585,7 @@ class SettingsActivity :
             init{
                 objects += ActionListItem("none")
 
-                gestureAction?.getActions()
+                gestureConfig.gestureAction?.getActions()
                         ?.forEach { objects += ActionListItem(it) }
 
                 thread{
@@ -603,7 +651,7 @@ class SettingsActivity :
                 is ApplicationInfo -> item.packageName
                 is ActionItem -> item.action()
                 is String -> {
-                    gestureAction?.getAction(item)?.apply { return item  }
+                    gestureConfig.gestureAction?.getAction(item)?.apply { return item  }
                     uiAppInfo(context, item)?.apply { return item }
                     ""
                 }
@@ -620,7 +668,7 @@ class SettingsActivity :
                 "" ->  context.getString(R.string.ui_default_action)
                 "none"  -> context.getString(R.string.ui_no_action)
                 is ActionItem -> item.name()
-                is String -> gestureAction?.getAction(item)?.name() ?: ""
+                is String -> gestureConfig.gestureAction?.getAction(item)?.name() ?: ""
                 else -> ""
             }
         }
@@ -630,7 +678,7 @@ class SettingsActivity :
                 is BoxAdapter.ActionListItem -> item.icon
                 is ApplicationInfo -> context.packageManager.getApplicationIcon(item)?: context.getDrawableEx(android.R.color.transparent)
                 is ActionItem -> item.icon()
-                is String -> gestureAction?.getAction(item)?.icon() ?: context.getDrawableEx(android.R.color.transparent)
+                is String -> gestureConfig.gestureAction?.getAction(item)?.icon() ?: context.getDrawableEx(android.R.color.transparent)
                 else -> context.getDrawableEx(android.R.color.transparent)
             }
         }
@@ -651,7 +699,10 @@ class SettingsActivity :
 
     companion object
     {
-        var bShowAlertDlg = true
-        val rxSubTitle = BehaviorSubject.createDefault(String())
+        var bShowAlertDlg = false
+        var gestureConfig = GestureConfig()
+
+        val rxSubTitle      = BehaviorSubject.createDefault(String())
+        var rxGestureConfig = BehaviorSubject.createDefault(gestureConfig)
     }
 }

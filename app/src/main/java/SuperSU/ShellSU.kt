@@ -28,7 +28,6 @@ class ShellSU
     companion object Common
     {
        val commonSU = ProcessSU()
-//       val EVENT_UPDATE_ROOT_STATE = "UPDATE_ROOT_STATE"
     }
 
     val su = commonSU

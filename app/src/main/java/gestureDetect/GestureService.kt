@@ -138,7 +138,6 @@ class GestureService :
             Log.d("Start service", "**************************")
         }
 
-        su.checkRootAccess()
         val hw = GestureHW(this)
         //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -155,10 +154,10 @@ class GestureService :
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onEventIntent, intentFilter)
-//        LocalBroadcastManager.getInstance(this).registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
+
         composites += GestureSettings.rxUpdateValue
                 .filter { it.key ==  GestureSettings.GESTURE_ENABLE && it.value == false }
-                .observeOn(Schedulers.computation())
+                .observeOn(Schedulers.io())
                 .subscribe {
                     stopSelf()
                 }
@@ -239,23 +238,6 @@ class GestureService :
                     gestureDetector?.screenOnMode = true
                     gestureActions?.screenOnMode = true
                 }
-/*
-                //  Enable gestures
-                GestureSettings.EVENT_ENABLE ->{
-                    val key = intent.getSerializableExtra("key") as String?
-                    if (key != GestureSettings.GESTURE_ENABLE) return
-
-                    val bEnable = intent.getSerializableExtra("value") as Boolean? == true
-
-                    if (bEnable) {
-                        gestureActions?.onDetect()
-                        gestureDetector?.enable(true)
-                    } else {
-                        stopSelf()
-                    }
-
-                }
-*/
             }
         }
     }

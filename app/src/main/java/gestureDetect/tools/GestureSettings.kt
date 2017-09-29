@@ -27,10 +27,6 @@ class GestureSettings(val context: Context)
         e.apply()
 
         rxUpdateValue.onNext(PreferenceChange(key, value))
-//        val intent = Intent(EVENT_ENABLE)
-//        intent.putExtra("key", key as Serializable)
-//        intent.putExtra("value", value as Serializable)
-//        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
     fun getAction(key: String): String? {
@@ -56,7 +52,6 @@ class GestureSettings(val context: Context)
 
     companion object {
         val GESTURE_ENABLE = "GESTURE_ENABLE"
-        //        val EVENT_ENABLE = "EVENT_ENABLE"
         data class PreferenceChange(val key : String, val value : Any?)
         val rxUpdateValue = PublishSubject.create<PreferenceChange>()
     }
