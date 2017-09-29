@@ -154,7 +154,7 @@ class InputDetectActivity : AppCompatActivity() {
         log += String()
         updateProgress()
 
-        if (!su.checkRootAccess(this))
+        if (!su.checkRootAccess())
         {
             log += "No ROOT access to more search, please install SuperSU"
             return

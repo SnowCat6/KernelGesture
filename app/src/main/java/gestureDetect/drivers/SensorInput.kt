@@ -100,7 +100,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         if (runThread?.isAlive == true || !bRunning)
             return
 
-        if (!gesture.su.checkRootAccess(context) || inputDevices.isEmpty())
+        if (!gesture.su.checkRootAccess() || inputDevices.isEmpty())
             return
 
         runThread = thread(priority = Thread.MAX_PRIORITY){
@@ -110,7 +110,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             }
 
             while(bRunning){
-                if (!gesture.su.checkRootAccess(context)) break
+                if (!gesture.su.checkRootAccess()) break
                 threadLoop()
             }
             runThread = null

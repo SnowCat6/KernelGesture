@@ -30,6 +30,11 @@ import gestureDetect.GestureService
 import gestureDetect.action.ActionItem
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.adapter_choose_item.view.*
 import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
@@ -53,6 +58,7 @@ class SettingsActivity :
 
 {
     private var mInterstitialAd: InterstitialAd? = null
+    private val composites = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -72,45 +78,51 @@ class SettingsActivity :
                 mInterstitialAd?.loadAd(AdRequest.Builder().build())
             }
         }
-        fragmentManager.addOnBackStackChangedListener(this)
+        composites += GestureSettings.rxUpdateValue
+                .filter { it.key == GestureSettings.GESTURE_ENABLE && it.value == true }
+                .observeOn(Schedulers.computation())
+                .subscribe {
+                    val su = ShellSU()
+                    su.enable(true)
+                    startService(Intent(this, GestureService::class.java))
+                }
+        composites += rxSubTitle
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    supportActionBar.subtitle = it
+                }
+    }
+
+    override fun onDestroy() {
+        composites.clear()
+        super.onDestroy()
     }
 
     override fun onStart()
     {
         super.onStart()
         //  Если окно только запустилось, создать фрагмент по умолчанию
-        if (fragmentManager.backStackEntryCount >0) {
-            //  Восстановить иконтку навигатора
-            onBackStackChanged()
-        }
+         onBackStackChanged()
     }
 
     //  Количество фрагментов изменилось, надо поменять индикатор навигатора
     override fun onBackStackChanged()
     {
         //  Если есть фрагменты, то добавить кнопку назад
-        if (fragmentManager.backStackEntryCount > 0) {
-            supportActionBar.setDisplayHomeAsUpEnabled(true)
-        }else{
-            //  Урать кнопку назад
-            supportActionBar.setDisplayHomeAsUpEnabled(false)
-        }
+        supportActionBar.setDisplayHomeAsUpEnabled(fragmentManager.backStackEntryCount > 0)
     }
 
     override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration?) {
         super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
-        if (!isInMultiWindowMode) updateControls(this)
+        if (!isInMultiWindowMode) supportActionBar.subtitle = rxSubTitle.value
     }
 
     /**
      * Set up the [android.app.ActionBar], if the API is available.
      */
     private fun setupActionBar() {
-//        supportActionBar.setDisplayHomeAsUpEnabled(true)
-//        supportActionBar.setHomeAsUpIndicator(android.R.drawable.ic_menu_directions)
-        fragmentManager.addOnBackStackChangedListener {
-            supportActionBar.setDisplayHomeAsUpEnabled(fragmentManager.backStackEntryCount > 0)
-        }
+        fragmentManager.addOnBackStackChangedListener(this)
+        onBackStackChanged()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean
@@ -160,7 +172,6 @@ class SettingsActivity :
      */
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     override fun onBuildHeaders(target: List<Header>) {
-//        loadHeadersFromResource(R.xml.pref_headers, target)
         fragmentManager.beginTransaction()
                 .replace(android.R.id.content, GesturePreferenceFragment())
                 .commit()
@@ -214,6 +225,8 @@ class SettingsActivity :
         var settings: GestureSettings? = null
         var gestureAction:GestureAction? = null
 
+        private val composites = CompositeDisposable()
+
         override fun onCreate(savedInstanceState: Bundle?)
         {
             super.onCreate(savedInstanceState)
@@ -223,14 +236,12 @@ class SettingsActivity :
         override fun onActivityCreated(savedInstanceState: Bundle?) {
             super.onActivityCreated(savedInstanceState)
 
-            LocalBroadcastManager.getInstance(activity).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE_ROOT_STATE))
-
             settings = GestureSettings(activity)
             gestureAction = GestureAction(activity)
             val hw = GestureHW(activity)
 
-            findPreference("GESTURE_ENABLE")?.apply{
-                onPreferenceChangeListener = enableAllListener()
+            findPreference(GestureSettings.GESTURE_ENABLE)?.apply{
+                onPreferenceChangeListener = enableAllListener
                 onPreferenceChangeListener.onPreferenceChange(this, settings!!.getAllEnable())
             }
 
@@ -244,7 +255,7 @@ class SettingsActivity :
                     thread {
                         val su = ShellSU()
                         su.enable(true)
-                        if (su.checkRootAccess(context))
+                        if (su.checkRootAccess())
                             settings?.setAllEnable(true)
                     }
                     true
@@ -290,49 +301,27 @@ class SettingsActivity :
                     }
                 }
             }
-        }
 
-        override fun onResume() {
-            super.onResume()
-            updateControls()
+            composites += ShellSU.commonSU.rxRootEnable
+                    .filter { it }
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+                        updateControls()
+                    }
         }
 
         override fun onDestroy(){
             settings = null
             gestureAction = null
-            LocalBroadcastManager.getInstance(activity).unregisterReceiver(mReceiver)
+            composites.clear()
             super.onDestroy()
         }
 
-        private val mReceiver = object : BroadcastReceiver() {
-            override fun onReceive(context: Context, intent: Intent?) {
-                activity?.apply {
-                    updateControls(intent)
-                }
-            }
+        private val enableAllListener = Preference.OnPreferenceChangeListener { preference, value ->
+            settings?.setAllEnable(value as Boolean)
+            true
         }
 
-        private fun enableAllListener(): Preference.OnPreferenceChangeListener {
-            return Preference.OnPreferenceChangeListener { preference, value ->
-
-                value as Boolean
-                preference as TwoStatePreference
-                val context = preference.context
-
-                thread{
-
-                    settings?.setAllEnable(value)
-                    if (value){
-                        val su = ShellSU()
-                        su.enable(true)
-                        su.checkRootAccess(context)
-                        context.startService(Intent(context, GestureService::class.java))
-                    }
-                    updateControls(context)
-                }
-                true
-            }
-        }
         private fun changeListener(): Preference.OnPreferenceChangeListener {
             return Preference.OnPreferenceChangeListener { preference, value ->
 
@@ -471,7 +460,7 @@ class SettingsActivity :
         }
 
         private var dlg:AlertDialog? = null
-        private fun updateControls(intent:Intent? = null)
+        private fun updateControls()
         {
             val su = ShellSU()
             if (su.hasRootProcess()) preferenceScreen.findPreference("pref_ROOT")?.apply {
@@ -502,10 +491,9 @@ class SettingsActivity :
             val bProximity = support.contains("PROXIMITY")
             if (bProximity) titles += context.getString(R.string.ui_title_gesture)
 
-            (activity as AppCompatPreferenceActivity?)?.supportActionBar?.apply {
-                subtitle = if (!titles.isEmpty()) titles.joinToString(", ")
-                else context.getString(R.string.ui_title_no_any_support)
-            }
+            val subtitle = if (!titles.isEmpty()) titles.joinToString(", ")
+            else context.getString(R.string.ui_title_no_any_support)
+            rxSubTitle.onNext(subtitle)
 
             if (titles.isEmpty())
                 alertMessage = context.getString(R.string.ui_alert_gs_message_wo_keys)
@@ -535,8 +523,6 @@ class SettingsActivity :
                 dlg?.show()
             }
         }
-
-
 
         inner class BoxAdapter internal constructor(
                 internal val preference: Preference) : BaseAdapter()
@@ -670,11 +656,6 @@ class SettingsActivity :
     companion object
     {
         var bShowAlertDlg = true
-        fun updateControls(context:Context)
-        {
-            val intent = Intent(ShellSU.EVENT_UPDATE_ROOT_STATE)
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
-        }
-
+        val rxSubTitle = BehaviorSubject.createDefault(String())
     }
 }

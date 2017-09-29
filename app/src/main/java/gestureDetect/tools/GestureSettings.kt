@@ -1,24 +1,19 @@
 package gestureDetect.tools
 
 import android.content.Context
-import android.content.Intent
 import android.content.SharedPreferences
 import android.preference.PreferenceManager
-import android.support.v4.content.LocalBroadcastManager
-import java.io.Serializable
+import io.reactivex.subjects.PublishSubject
 
 class GestureSettings(val context: Context)
 {
-    companion object {
-        val EVENT_ENABLE = "EVENT_ENABLE"
-    }
     private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context) as SharedPreferences
 
     fun getAllEnable(): Boolean
-            = getEnable("GESTURE_ENABLE")
+            = getEnable(GESTURE_ENABLE)
 
     fun setAllEnable(value: Boolean) {
-        setEnable( "GESTURE_ENABLE", value)
+        setEnable(GESTURE_ENABLE, value)
     }
     fun getEnable(key: String?): Boolean
     {
@@ -31,10 +26,11 @@ class GestureSettings(val context: Context)
         e.putBoolean(key, value)
         e.apply()
 
-        val intent = Intent(EVENT_ENABLE)
-        intent.putExtra("key", key as Serializable)
-        intent.putExtra("value", value as Serializable)
-        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
+        rxUpdateValue.onNext(PreferenceChange(key, value))
+//        val intent = Intent(EVENT_ENABLE)
+//        intent.putExtra("key", key as Serializable)
+//        intent.putExtra("value", value as Serializable)
+//        LocalBroadcastManager.getInstance(context).sendBroadcast(intent)
     }
 
     fun getAction(key: String): String? {
@@ -54,5 +50,14 @@ class GestureSettings(val context: Context)
             e.putString("${key}_ACTION", value)
         }
         e.apply()
+
+        rxUpdateValue.onNext(PreferenceChange(key, value))
+    }
+
+    companion object {
+        val GESTURE_ENABLE = "GESTURE_ENABLE"
+        //        val EVENT_ENABLE = "EVENT_ENABLE"
+        data class PreferenceChange(val key : String, val value : Any?)
+        val rxUpdateValue = PublishSubject.create<PreferenceChange>()
     }
 }

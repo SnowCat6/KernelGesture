@@ -18,6 +18,9 @@ import android.util.Log
 import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.schedulers.Schedulers
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 
@@ -33,15 +36,16 @@ class GestureService :
     private var gestureActions:GestureAction? = null
 
     private val su = ShellSU()
-//    private var thisThread:Thread? = null
     private var bForeground = false
+
+    private val composites = CompositeDisposable()
     /************************************/
     /*
     GESTURE DETECT
      */
     override fun onHandleIntent(intent: Intent?)
     {
-        su.checkRootAccess(this)
+        su.checkRootAccess()
         val hw = GestureHW(this)
 
         setServiceForeground(!hw.isScreenOn())
@@ -84,7 +88,6 @@ class GestureService :
         gesture.close()
 
         setServiceForeground(false)
-//        thisThread = null
     }
     fun setServiceForeground(bSetForeground:Boolean)
     {
@@ -121,12 +124,6 @@ class GestureService :
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int
     {
-/*
-        thisThread = thread(priority = Thread.MAX_PRIORITY) {
-            onHandleIntent(null)
-        }
-        return super.onStartCommand(intent, flags, startId)
-*/
         super.onStartCommand(intent, flags, startId)
         return Service.START_STICKY
     }
@@ -141,7 +138,7 @@ class GestureService :
             Log.d("Start service", "**************************")
         }
 
-        su.checkRootAccess(this)
+        su.checkRootAccess()
         val hw = GestureHW(this)
         //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -158,7 +155,20 @@ class GestureService :
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onEventIntent, intentFilter)
-        LocalBroadcastManager.getInstance(this).registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
+//        LocalBroadcastManager.getInstance(this).registerReceiver(onEventIntent, IntentFilter(GestureSettings.EVENT_ENABLE))
+        composites += GestureSettings.rxUpdateValue
+                .filter { it.key ==  GestureSettings.GESTURE_ENABLE && it.value == false }
+                .observeOn(Schedulers.computation())
+                .subscribe {
+                    stopSelf()
+                }
+        composites += ShellSU.commonSU.rxRootEnable
+                .filter { it == true }
+                .observeOn(Schedulers.computation())
+                .subscribe {
+                    gestureActions?.onDetect()
+                    gestureDetector?.enable(true)
+                }
 
         super.onCreate()
     }
@@ -179,6 +189,9 @@ class GestureService :
         if (BuildConfig.DEBUG){
             Log.d("Stop service", "**************************")
         }
+
+        composites.clear()
+
         try {
             LocalBroadcastManager.getInstance(this).unregisterReceiver(onEventIntent)
         }catch (e:Exception){}
@@ -226,10 +239,11 @@ class GestureService :
                     gestureDetector?.screenOnMode = true
                     gestureActions?.screenOnMode = true
                 }
+/*
                 //  Enable gestures
                 GestureSettings.EVENT_ENABLE ->{
                     val key = intent.getSerializableExtra("key") as String?
-                    if (key != "GESTURE_ENABLE") return
+                    if (key != GestureSettings.GESTURE_ENABLE) return
 
                     val bEnable = intent.getSerializableExtra("value") as Boolean? == true
 
@@ -241,6 +255,7 @@ class GestureService :
                     }
 
                 }
+*/
             }
         }
     }

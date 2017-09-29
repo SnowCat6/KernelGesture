@@ -5,6 +5,7 @@ import android.content.Intent
 import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import com.google.firebase.crash.FirebaseCrash
+import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.OutputStream
@@ -22,37 +23,18 @@ class ShellSU
         var writerSU: OutputStream? = null
         var bEnableSU = false
         var bEnableCheck = true
+        val rxRootEnable = BehaviorSubject.createDefault(false)
     }
     companion object Common
     {
        val commonSU = ProcessSU()
-       val EVENT_UPDATE_ROOT_STATE = "UPDATE_ROOT_STATE"
+//       val EVENT_UPDATE_ROOT_STATE = "UPDATE_ROOT_STATE"
     }
 
     val su = commonSU
 
-    fun checkRootAccess(context: Context? = null):Boolean
-    {
-        val bEnable = su.processSU != null
-        if (open() == null){
-            if (bEnable) context?.apply {
-                LocalBroadcastManager.getInstance(this)
-                        .sendBroadcast(Intent(EVENT_UPDATE_ROOT_STATE))
-            }
-            return false
-        }
-        if (bEnable) return true
-
-        context?.apply {
-            LocalBroadcastManager.getInstance(this)
-                    .sendBroadcast(Intent(EVENT_UPDATE_ROOT_STATE))
-        }
-
-        return true
-    }
-
-    fun hasRootProcess():Boolean
-            = su.bEnableSU
+    fun checkRootAccess() = open() != null
+    fun hasRootProcess() = su.bEnableSU
 
     fun enable(bEnable:Boolean) {
         su.bEnableCheck = bEnable
@@ -94,6 +76,9 @@ class ShellSU
                 }
                 bEnableSU = processSU != null
                 bEnableCheck = bEnableSU
+
+                if (rxRootEnable.value != bEnableSU)
+                    rxRootEnable.onNext(bEnableSU)
 
                 return processSU
             }
@@ -145,6 +130,8 @@ class ShellSU
                 errorSU = null
 
                 bEnableSU = false
+                if (rxRootEnable.value != bEnableSU)
+                    rxRootEnable.onNext(bEnableSU)
             }
         }
     }
