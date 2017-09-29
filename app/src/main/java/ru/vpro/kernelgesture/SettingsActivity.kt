@@ -4,6 +4,7 @@ package ru.vpro.kernelgesture
 import SuperSU.ShellSU
 import android.annotation.TargetApi
 import android.app.AlertDialog
+import android.app.FragmentManager
 import android.content.*
 import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
@@ -46,7 +47,10 @@ import kotlin.concurrent.thread
    * Android Design: Settings](http://developer.android.com/design/patterns/settings.html) for design guidelines and the [Settings
    * API Guide](http://developer.android.com/guide/topics/ui/settings.html) for more information on developing a Settings UI.
  */
-class SettingsActivity : AppCompatPreferenceActivity()
+class SettingsActivity :
+        AppCompatPreferenceActivity(),
+        FragmentManager.OnBackStackChangedListener
+
 {
     private var mInterstitialAd: InterstitialAd? = null
 
@@ -67,6 +71,29 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 // Load the next interstitial.
                 mInterstitialAd?.loadAd(AdRequest.Builder().build())
             }
+        }
+        fragmentManager.addOnBackStackChangedListener(this)
+    }
+
+    override fun onStart()
+    {
+        super.onStart()
+        //  Если окно только запустилось, создать фрагмент по умолчанию
+        if (fragmentManager.backStackEntryCount >0) {
+            //  Восстановить иконтку навигатора
+            onBackStackChanged()
+        }
+    }
+
+    //  Количество фрагментов изменилось, надо поменять индикатор навигатора
+    override fun onBackStackChanged()
+    {
+        //  Если есть фрагменты, то добавить кнопку назад
+        if (fragmentManager.backStackEntryCount > 0) {
+            supportActionBar.setDisplayHomeAsUpEnabled(true)
+        }else{
+            //  Урать кнопку назад
+            supportActionBar.setDisplayHomeAsUpEnabled(false)
         }
     }
 
@@ -191,6 +218,11 @@ class SettingsActivity : AppCompatPreferenceActivity()
         {
             super.onCreate(savedInstanceState)
             addPreferencesFromResource(xmlResourceId)
+        }
+
+        override fun onActivityCreated(savedInstanceState: Bundle?) {
+            super.onActivityCreated(savedInstanceState)
+
             LocalBroadcastManager.getInstance(activity).registerReceiver(mReceiver, IntentFilter(ShellSU.EVENT_UPDATE_ROOT_STATE))
 
             settings = GestureSettings(activity)
@@ -257,7 +289,6 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     }
                 }
             }
-
         }
 
         override fun onResume() {
