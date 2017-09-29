@@ -44,6 +44,7 @@ class InputDetectActivity : AppCompatActivity() {
                     setCancelable(false)
 
                     dlg = create()
+                    dlg?.setOnDismissListener {  dlg = null }
                     dlg?.show()
                 }
 
@@ -81,6 +82,7 @@ class InputDetectActivity : AppCompatActivity() {
                         setMessage(getString(R.string.ui_detect_send_no_content))
                     }
                     dlg = create()
+                    dlg?.setOnDismissListener {  dlg = null }
                     dlg?.show()
                 }
                 isEnabled = true

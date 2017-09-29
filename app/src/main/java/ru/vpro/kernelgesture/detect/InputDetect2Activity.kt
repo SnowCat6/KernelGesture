@@ -195,6 +195,7 @@ class InputDetect2Activity : AppCompatActivity()
             }
 
             dlg = create()
+            dlg?.setOnDismissListener {  dlg = null }
             dlg?.show()
         }
     }

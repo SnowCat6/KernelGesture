@@ -1,6 +1,8 @@
 package ru.vpro.kernelgesture.tools
 
+import android.annotation.TargetApi
 import android.content.Context
+import android.os.Build
 import android.preference.SwitchPreference
 import android.util.AttributeSet
 import android.view.View
@@ -10,12 +12,15 @@ import ru.vpro.kernelgesture.R
 
 class GestureSwitchPreference : SwitchPreference
 {
-    constructor(context: Context) : super(context)
-    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
-    constructor(context:Context, attrs:AttributeSet, defStyleAttr:Int) : super(context, attrs, defStyleAttr)
-    constructor(context:Context, attrs:AttributeSet, defStyleAttr:Int, defStyleRes:Int) : super(context, attrs, defStyleAttr, defStyleRes)
+    @JvmOverloads
+    constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
+            : super(context, attrs, defStyleAttr)
 
-    init {
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int)
+            : super(context, attrs, defStyleAttr, defStyleRes)
+
+    init{
         widgetLayoutResource = R.layout.adapter_switch_item
     }
 
@@ -27,17 +32,9 @@ class GestureSwitchPreference : SwitchPreference
             onPreferenceClickListener?.onPreferenceClick(this)
         }
 
-        view.switch_widget?.setOnCheckedChangeListener({ compoundButton: CompoundButton, b: Boolean ->
-
-            if (!callChangeListener(b)) {
-                // Listener didn't like it, change it back.
-                // CompoundButton will make sure we don't recurse.
-                isChecked = !b
-            }else {
-                isChecked = b
-            }
-
-        })
+        view.switch_widget?.setOnCheckedChangeListener{ compoundButton: CompoundButton, b: Boolean ->
+            isChecked = if (!callChangeListener(b)) !b else b
+        }
         view.switch_widget?.isChecked = isChecked
     }
 }

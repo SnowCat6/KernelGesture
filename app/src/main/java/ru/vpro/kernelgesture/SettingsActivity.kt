@@ -347,6 +347,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                     setTitle(getString(R.string.iu_choose_action))
                     setAdapter(adapter, onClickListener)
                     dlg = create()
+                    dlg?.setOnDismissListener {  dlg = null }
                     dlg?.show()
                 }
 
@@ -521,6 +522,7 @@ class SettingsActivity : AppCompatPreferenceActivity()
                 setTitle(context.getString(R.string.ui_alert_gs_title))
                 setMessage(alertMessage)
                 dlg = create()
+                dlg?.setOnDismissListener {  dlg = null }
                 dlg?.show()
             }
         }
