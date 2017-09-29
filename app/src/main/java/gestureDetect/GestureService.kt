@@ -201,8 +201,6 @@ class GestureService :
         gestureDetector?.hw?.screenLock()
         gestureDetector?.close()
         gestureActions?.close()
-
-        su.close()
     }
     /************************************/
     /*

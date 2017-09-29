@@ -75,12 +75,11 @@ class ShellSU
                 }
                 bEnableSU = processSU != null
                 bEnableCheck = bEnableSU
-
-                if (rxRootEnable.value != bEnableSU)
-                    rxRootEnable.onNext(bEnableSU)
-
-                return processSU
             }
+            if (rxRootEnable.value != bEnableSU)
+                rxRootEnable.onNext(bEnableSU)
+
+            return processSU
         }
     }
 

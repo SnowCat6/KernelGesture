@@ -32,7 +32,6 @@ import gestureDetect.tools.GestureSettings
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
-import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.adapter_choose_item.view.*
 import ru.vpro.kernelgesture.detect.InputDetectActivity
@@ -58,6 +57,7 @@ class SettingsActivity :
 {
     private var mInterstitialAd: InterstitialAd? = null
     private val composites = CompositeDisposable()
+    private var bIsDetectProgess = false
 
     data class GestureConfig(
         var gestureAction:GestureAction?=null,
@@ -106,6 +106,11 @@ class SettingsActivity :
     }
     fun updateGestureConfig(bShowDialog : Boolean = false)
     {
+        synchronized(bIsDetectProgess) {
+            if (bIsDetectProgess) return
+            bIsDetectProgess = true
+        }
+
         thread{
             if (gestureConfig.isEmpty()){
                 gestureConfig = GestureConfig(
@@ -117,8 +122,12 @@ class SettingsActivity :
                     gestureDetect?.enable(true)
                 }
             }
-            bShowAlertDlg = bShowDialog
+            bShowAlertDlg = bShowDialog && ShellSU.commonSU.bEnableSU
             rxGestureConfig.onNext(gestureConfig)
+
+            synchronized(bIsDetectProgess) {
+                bIsDetectProgess = false
+            }
         }
     }
 
