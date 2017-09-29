@@ -8,9 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.media.RingtoneManager
+import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import gestureDetect.GestureService
@@ -190,8 +189,10 @@ class InputDetect2Activity : AppCompatActivity()
             setTitle("$title ${events.size}")
             setMessage(getString(R.string.ui_detect2_dlg_content))
 
-            setOnDismissListener {
-                thisActivity.finish()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                setOnDismissListener {
+                    thisActivity.finish()
+                }
             }
 
             dlg = create()

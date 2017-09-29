@@ -70,8 +70,8 @@ class SettingsActivity : AppCompatPreferenceActivity()
         }
     }
 
-    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean) {
-        super.onMultiWindowModeChanged(isInMultiWindowMode)
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration?) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
         if (!isInMultiWindowMode) updateControls(this)
     }
 

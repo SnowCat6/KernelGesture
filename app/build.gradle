@@ -12,11 +12,11 @@ def getReleaseVersionCode() {
     if (versionPropsFile.canRead()) {
         versionProps.load(new FileInputStream(versionPropsFile))
         version = versionProps['VERSION_CODE'].toInteger()
-        if (':app:assembleRelease' in runTasks){
-            version = version + 1
-            versionProps['VERSION_CODE']=version.toString()
-            versionProps.store(versionPropsFile.newWriter(), null)
-        }
+    }
+    if (':app:assembleRelease' in runTasks) {
+        version = version + 1
+        versionProps['VERSION_CODE'] = version.toString()
+        versionProps.store(versionPropsFile.newWriter(), null)
     }
     return version
 }

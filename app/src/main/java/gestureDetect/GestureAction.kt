@@ -52,7 +52,6 @@ class GestureAction(val context:Context)
     }
 
     var screenOnMode = false
-        get() = field
         set(value){
             if (value == field) return
             onStop()

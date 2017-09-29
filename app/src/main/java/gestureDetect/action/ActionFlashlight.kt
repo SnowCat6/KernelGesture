@@ -68,7 +68,6 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     private var camera:Camera? = null
 
     var enable:Boolean = false
-        get() = field
         set(value) {
             if (field == value) return
             field = value

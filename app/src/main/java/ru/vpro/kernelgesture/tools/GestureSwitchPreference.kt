@@ -10,14 +10,17 @@ import android.widget.CompoundButton
 import kotlinx.android.synthetic.main.adapter_switch_item.view.*
 import ru.vpro.kernelgesture.R
 
-class GestureSwitchPreference : SwitchPreference
+class GestureSwitchPreference
+    : SwitchPreference
 {
-    @JvmOverloads
-    constructor(context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0)
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int)
             : super(context, attrs, defStyleAttr)
 
+    constructor(context: Context, attrs: AttributeSet)
+            : super(context, attrs)
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int)
+    constructor(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int)
             : super(context, attrs, defStyleAttr, defStyleRes)
 
     init{
@@ -33,6 +36,7 @@ class GestureSwitchPreference : SwitchPreference
         }
 
         view.switch_widget?.setOnCheckedChangeListener{ compoundButton: CompoundButton, b: Boolean ->
+
             isChecked = if (!callChangeListener(b)) !b else b
         }
         view.switch_widget?.isChecked = isChecked

@@ -38,14 +38,12 @@ class GestureDetect (val context:Context)
      * Disable event detection
      */
     var bClosed: Boolean = false
-        get() = field
         set(value) {
             field = value
             if (value) eventMutex.unlock()
         }
 
     var screenOnMode:Boolean = false
-        get () = field
         set(value){
             if (value == field) return
             field = value
