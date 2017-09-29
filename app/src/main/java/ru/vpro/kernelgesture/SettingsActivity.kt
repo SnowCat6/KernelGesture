@@ -2,21 +2,20 @@ package ru.vpro.kernelgesture
 
 
 import SuperSU.ShellSU
-import android.annotation.TargetApi
 import android.app.AlertDialog
 import android.app.FragmentManager
-import android.content.*
+import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.preference.*
-import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import android.view.*
 import android.widget.BaseAdapter
@@ -170,8 +169,8 @@ class SettingsActivity :
     /**
      * {@inheritDoc}
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     override fun onBuildHeaders(target: List<Header>) {
+
         fragmentManager.beginTransaction()
                 .replace(android.R.id.content, GesturePreferenceFragment())
                 .commit()
@@ -191,7 +190,6 @@ class SettingsActivity :
      * This fragment shows data and sync preferences only. It is used when the
      * activity is showing a two-pane settings UI.
      */
-    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     open class GesturePreferenceFragment : PreferenceFragment()
     {
         private val preferenceItems = arrayOf(
@@ -246,7 +244,7 @@ class SettingsActivity :
             }
 
             findPreference("GESTURE_NOTIFY")?.apply{
-                onPreferenceChangeListener = notifyListener()
+                onPreferenceChangeListener = notifyListener
                 onPreferenceChangeListener.onPreferenceChange(this, null)
             }
 
@@ -275,7 +273,7 @@ class SettingsActivity :
 
                     icon = it.icon
                     onPreferenceChangeListener = changeListener()
-                    onPreferenceClickListener = actionListener()
+                    onPreferenceClickListener = actionListener
                     onPreferenceChangeListener.onPreferenceChange(this, it.enable)
                 }
             }
@@ -335,8 +333,7 @@ class SettingsActivity :
                 true
             }
         }
-        private fun actionListener(): Preference.OnPreferenceClickListener {
-            return Preference.OnPreferenceClickListener { preference ->
+        private val actionListener= Preference.OnPreferenceClickListener { preference ->
 
                 val adapter = BoxAdapter(preference)
 
@@ -351,9 +348,8 @@ class SettingsActivity :
 
                 true
             }
-        }
-        private fun notifyListener() : Preference.OnPreferenceChangeListener {
-            return Preference.OnPreferenceChangeListener { preference, value ->
+
+        private val notifyListener = Preference.OnPreferenceChangeListener { preference, value ->
 
                 var notify:String? = value as String?
 
@@ -373,7 +369,7 @@ class SettingsActivity :
 
                 true
             }
-        }
+
         private val onClickListener = DialogInterface.OnClickListener { dialogInterface: DialogInterface, i: Int ->
 
             val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
