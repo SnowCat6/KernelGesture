@@ -20,7 +20,8 @@ class InputDetectActivity : AppCompatActivity() {
     private var log = emptyList<String>()
     private var detectThread:Thread? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    override fun onCreate(savedInstanceState: Bundle?)
+    {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detect_1)
 
@@ -137,8 +138,10 @@ class InputDetectActivity : AppCompatActivity() {
     }
     private fun doStartDetect() {
 
-        log = emptyList()
-        val su = ShellSU()
+        su.close()
+        su.open()
+
+        log     = emptyList()
 
         log += "Android SDK:" + android.os.Build.VERSION.SDK_INT
         log += "Device name:" + android.os.Build.MODEL
@@ -242,7 +245,10 @@ class InputDetectActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    companion object {
+    companion object
+    {
+        val su  = ShellSU(ShellSU.ProcessSU())
+
         fun startActivity(context: Context){
             val intent = Intent(context, InputDetectActivity::class.java)
             context.startActivity(intent)

@@ -21,6 +21,7 @@ import gestureDetect.tools.GestureSettings
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
+import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 
@@ -39,22 +40,27 @@ class GestureService :
     private var bForeground = false
 
     private val composites = CompositeDisposable()
+
+    companion object {
+        val rxServiceStart = BehaviorSubject.createDefault(false)
+    }
     /************************************/
     /*
     GESTURE DETECT
      */
     override fun onHandleIntent(intent: Intent?)
     {
+        rxServiceStart.onNext(true)
         su.checkRootAccess()
         val hw = GestureHW(this)
 
         setServiceForeground(!hw.isScreenOn())
         val settings = GestureSettings(this)
 
-        val actions = gestureActions ?: GestureAction(this)
+        val actions = gestureActions ?: GestureAction(this, su)
         gestureActions = actions
 
-        val gesture = gestureDetector ?: GestureDetect(this)
+        val gesture = gestureDetector ?: GestureDetect(this, su)
         gestureDetector = gesture
 
         actions.onStart()
@@ -88,6 +94,7 @@ class GestureService :
         gesture.close()
 
         setServiceForeground(false)
+        rxServiceStart.onNext(false)
     }
     fun setServiceForeground(bSetForeground:Boolean)
     {
@@ -143,7 +150,7 @@ class GestureService :
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
 
-        val gesture = gestureDetector ?: GestureDetect(this)
+        val gesture = gestureDetector ?: GestureDetect(this, su)
         gestureDetector = gesture
 
         //  Enable/disable gestures on start service
@@ -201,6 +208,7 @@ class GestureService :
         gestureDetector?.hw?.screenLock()
         gestureDetector?.close()
         gestureActions?.close()
+        su.close()
     }
     /************************************/
     /*

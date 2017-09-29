@@ -13,8 +13,13 @@ import java.io.OutputStream
 /**
  * SuperSU wrapper
  */
-class ShellSU
+class ShellSU(val su : ProcessSU = commonSU)
 {
+    companion object Common
+    {
+        val commonSU = ProcessSU()
+    }
+
     class ProcessSU
     {
         var processSU: Process? = null
@@ -25,12 +30,6 @@ class ShellSU
         var bEnableCheck = true
         val rxRootEnable = BehaviorSubject.createDefault(false)
     }
-    companion object Common
-    {
-       val commonSU = ProcessSU()
-    }
-
-    val su = commonSU
 
     fun checkRootAccess() = open() != null
     fun hasRootProcess() = su.bEnableSU

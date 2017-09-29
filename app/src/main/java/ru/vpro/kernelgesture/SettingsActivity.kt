@@ -29,9 +29,11 @@ import gestureDetect.GestureService
 import gestureDetect.action.ActionItem
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import kotlinx.android.synthetic.main.adapter_choose_item.view.*
 import ru.vpro.kernelgesture.detect.InputDetectActivity
@@ -86,6 +88,7 @@ class SettingsActivity :
         }
         composites += GestureSettings.rxUpdateValue
                 .filter { it.key == GestureSettings.GESTURE_ENABLE && it.value == true }
+                .observeOn(Schedulers.computation())
                 .subscribe {
                     val su = ShellSU()
                     su.enable(true)
@@ -104,7 +107,7 @@ class SettingsActivity :
 
         updateGestureConfig()
     }
-    fun updateGestureConfig(bShowDialog : Boolean = false)
+    private fun updateGestureConfig(bShowDialog : Boolean = false)
     {
         synchronized(bIsDetectProgess) {
             if (bIsDetectProgess) return

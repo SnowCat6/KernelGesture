@@ -24,7 +24,7 @@ import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
 
 
-class GestureAction(val context:Context)
+class GestureAction(val context:Context, val su : ShellSU = ShellSU())
 {
     private val allActions = arrayOf(
             ActionScreenOn(this),
@@ -44,7 +44,6 @@ class GestureAction(val context:Context)
             ActionCamera(this)
     )
     val hw = GestureHW(context)
-    val su = ShellSU()
     private val settings = GestureSettings(context)
 
     init {

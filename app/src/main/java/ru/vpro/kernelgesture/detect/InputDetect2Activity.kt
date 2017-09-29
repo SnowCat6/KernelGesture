@@ -1,6 +1,5 @@
 package ru.vpro.kernelgesture.detect
 
-import SuperSU.ShellSU
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.BroadcastReceiver
@@ -15,13 +14,16 @@ import android.view.MenuItem
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
+import kotlinx.android.synthetic.main.activity_detect_2.*
 import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
-
 
 class InputDetect2Activity : AppCompatActivity()
 {
     private var detectThread:Thread? = null
+    private val composites = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +40,15 @@ class InputDetect2Activity : AppCompatActivity()
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
         intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
         registerReceiver(onEventIntent, intentFilter)
+
+        btnStart.setOnClickListener {
+            su.exec("input keyevent 26")
+        }
     }
 
     override fun onDestroy() {
         unregisterReceiver(onEventIntent)
+        composites.clear()
         detectThread?.interrupt()
         detectThread = null
         super.onDestroy()
@@ -88,20 +95,19 @@ class InputDetect2Activity : AppCompatActivity()
 
                         val settings = GestureSettings(context)
                         val bEnable = settings.getAllEnable()
-                        val serviceIntent = Intent(context, GestureService::class.java)
-                        if (bEnable) {
-                            stopService(serviceIntent)
-                            Thread.sleep(1000)
-                        }
+                        settings.setAllEnable(false)
 
-                        startThread()
-
-                       GestureHW(context).screenON()
-
-                        if (bEnable) {
-                            startService(serviceIntent)
-                        }
-                        detectThread = null
+                        composites += GestureService.rxServiceStart
+                                .filter { !it && detectThread != null }
+                                .subscribe {
+                                    startThread()
+                                    GestureHW(context).screenON()
+                                    if (bEnable) {
+                                        settings.setAllEnable(true)
+                                        startService(Intent(context, GestureService::class.java))
+                                    }
+                                    detectThread = null
+                                }
                     }
                 }
             //  Screen ON
@@ -115,7 +121,7 @@ class InputDetect2Activity : AppCompatActivity()
         }
     }
 
-    val su = ShellSU()
+    val su = InputDetectActivity.su
     var bRunThread = false
 
     private var dlg: AlertDialog? = null

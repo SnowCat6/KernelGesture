@@ -13,7 +13,8 @@ import java.util.*
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
-class GestureDetect (val context:Context)
+class GestureDetect (val context : Context,
+                     val su : ShellSU = ShellSU())
 {
     /**
      * Sensor devices
@@ -23,9 +24,8 @@ class GestureDetect (val context:Context)
             SensorInput(this)
     )
 
-    val hw = GestureHW(context)
-    val su = ShellSU()
-    val settings = GestureSettings(context)
+    val hw      = GestureHW(context)
+    val settings= GestureSettings(context)
     /**
      * Devices control
      */
