@@ -50,18 +50,24 @@ class GestureService :
      */
     override fun onHandleIntent(intent: Intent?)
     {
-        rxServiceStart.onNext(true)
-        su.checkRootAccess()
         val hw = GestureHW(this)
+        su.checkRootAccess()
 
-        setServiceForeground(!hw.isScreenOn())
         val settings = GestureSettings(this)
+
+        val gesture = gestureDetector ?: GestureDetect(this, su)
+        gestureDetector = gesture
+
+        //  Enable/disable gestures on start service
+        gesture.enable(true)
+        gesture.screenOnMode = hw.isScreenOn()
 
         val actions = gestureActions ?: GestureAction(this, su)
         gestureActions = actions
 
-        val gesture = gestureDetector ?: GestureDetect(this, su)
-        gestureDetector = gesture
+        rxServiceStart.onNext(true)
+
+        setServiceForeground(!hw.isScreenOn())
 
         actions.onStart()
         gesture.bClosed = false
@@ -149,13 +155,6 @@ class GestureService :
         //  Get sensor devices
         mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-
-        val gesture = gestureDetector ?: GestureDetect(this, su)
-        gestureDetector = gesture
-
-        //  Enable/disable gestures on start service
-        gesture.enable(true)
-        gesture.screenOnMode = hw.isScreenOn()
 
         //  Register screen activity event
         val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)

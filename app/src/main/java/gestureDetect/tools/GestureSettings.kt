@@ -7,7 +7,7 @@ import io.reactivex.subjects.PublishSubject
 
 class GestureSettings(val context: Context)
 {
-    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context) as SharedPreferences
+    private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
     fun getAllEnable(): Boolean
             = getEnable(GESTURE_ENABLE)
