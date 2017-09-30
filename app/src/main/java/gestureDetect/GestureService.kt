@@ -4,16 +4,13 @@ import SuperSU.ShellSU
 import android.app.IntentService
 import android.app.Notification
 import android.app.Service
-import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.IBinder
-import android.support.v4.content.LocalBroadcastManager
 import android.util.Log
 import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.tools.GestureHW

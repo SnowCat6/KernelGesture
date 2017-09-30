@@ -27,7 +27,7 @@ class GestureHW(val context:Context)
 
         var rxScreenOn  = BehaviorSubject.create<Boolean>()
         var screenON : Boolean
-            get() = rxScreenOn.value ?: false
+            get() = rxScreenOn.value == true
             set(value){
                 if (value != rxScreenOn.value){
                     rxScreenOn.onNext(value)

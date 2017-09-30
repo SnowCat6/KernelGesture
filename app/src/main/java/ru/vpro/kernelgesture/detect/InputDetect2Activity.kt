@@ -137,8 +137,8 @@ class InputDetect2Activity : AppCompatActivity()
     private fun runThread()
     {
         if (detectThread != null) return
-        btnClose.isEnabled = true
         bNeedStartDetect = false
+        btnClose.isEnabled = true
 
         detectThread = thread {
 

@@ -1,7 +1,6 @@
 package gestureDetect.tools
 
 import android.content.Context
-import android.content.SharedPreferences
 import android.preference.PreferenceManager
 import io.reactivex.subjects.PublishSubject
 

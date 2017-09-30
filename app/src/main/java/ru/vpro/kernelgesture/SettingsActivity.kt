@@ -29,7 +29,6 @@ import gestureDetect.GestureService
 import gestureDetect.action.ActionItem
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
-import io.reactivex.Scheduler
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
