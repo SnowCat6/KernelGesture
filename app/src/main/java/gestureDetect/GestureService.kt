@@ -60,8 +60,6 @@ class GestureService :
 
         //  Enable/disable gestures on start service
         gesture.enable(true)
-        gesture.screenOnMode = hw.isScreenOn()
-
         actions.onCreate()
 
         rxServiceStart.onNext(true)
@@ -159,16 +157,10 @@ class GestureService :
                 .subscribe {
                     stopSelf()
                 }
-        composites += ShellSU.commonSU.rxRootEnable
-                .filter { it == true }
-                .observeOn(Schedulers.computation())
-                .subscribe {
-                    gestureDetector?.enable(true)
-                }
+
         composites += GestureHW.rxScreenOn.subscribe {
 
             setServiceForeground(!it)
-            gestureDetector?.screenOnMode = it
             if (!it)gestureDetector?.hw?.screenLock()
         }
 

@@ -8,6 +8,7 @@ import gestureDetect.drivers.SensorInput
 import gestureDetect.drivers.SensorProximity
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.BuildConfig
 import java.util.*
 import java.util.concurrent.Semaphore
@@ -31,9 +32,6 @@ class GestureDetect (val context : Context,
      */
     //  Supported devices and keys
     private var supported = emptyList<String>()
-    //  Detected sensor devices
-    private var sensorDevices = emptyList<SensorHandler>()
-    //  SuperSU
     /**
      * Disable event detection
      */
@@ -41,13 +39,6 @@ class GestureDetect (val context : Context,
         set(value) {
             field = value
             if (value) eventMutex.unlock()
-        }
-
-    var screenOnMode:Boolean = false
-        set(value){
-            if (value == field) return
-            field = value
-            sensorDevices.forEach { it.onScreenState(value) }
         }
 
     private var screenEvents = emptyList<Pair<String, String>>()
@@ -96,37 +87,22 @@ class GestureDetect (val context : Context,
         bClosed = true
 
         onPause()
-        sensorDevices.forEach{ it.close() }
+        sensorHandlers.forEach{ it.close() }
 
         eventMutex.unlock()
     }
 
     fun enable(bEnable: Boolean)
     {
-        if (bEnable) onDetect()
-        sensorDevices.forEach { it.enable(bEnable) }
+        sensorHandlers.forEach { it.enable(bEnable) }
     }
 
-    fun onDetect()
+    fun onCreate()
     {
-        val prevSensor = sensorDevices
-
-        delayEvents = emptyList()
-        screenEvents = emptyList()
-        supported = emptyList()
-
-        sensorDevices = sensorHandlers.filter { it.onDetect() }
-
-        if (bStart){
-            sensorDevices.subtract(prevSensor).forEach {
-                it.onResume()
-            }
-        }
-
-        prevSensor.subtract(sensorDevices).forEach {
-            if (bStart) it.onPause()
-            it.close()
-        }
+        bLockSupportUpdate = true
+        sensorHandlers.forEach { it.onCreate() }
+        bLockSupportUpdate = false
+        rxSupportUpdate.onNext(supported)
     }
 
     private var bStart = false
@@ -137,7 +113,7 @@ class GestureDetect (val context : Context,
         if (BuildConfig.DEBUG){
             Log.d("GestureDetect", "start")
         }
-        sensorDevices.forEach { it.onResume() }
+        sensorHandlers.forEach { it.onResume() }
     }
     private fun onPause(){
         if (!bStart) return
@@ -146,7 +122,7 @@ class GestureDetect (val context : Context,
         if (BuildConfig.DEBUG){
             Log.d("GestureDetect", "stop")
         }
-        sensorDevices.forEach { it.onPause() }
+        sensorHandlers.forEach { it.onPause() }
     }
 
     private  var sensorEventGesture = LinkedList<String>()
@@ -169,7 +145,7 @@ class GestureDetect (val context : Context,
                     Log.d("Lock gesture", thisEvent)
                 }
 
-                if (screenOnMode)
+                if (GestureHW.screenON)
                 {
                     delayEvents.find { it.first == thisEvent  }?.apply {
                         screenEvents.find { it.first == second && settings.getEnable(second) }?.apply {
@@ -184,7 +160,7 @@ class GestureDetect (val context : Context,
                     }
                 }
 
-                if (screenOnMode){
+                if (GestureHW.screenON){
                     thisEvent = screenEvents.find {
                         it.first == thisEvent && settings.getEnable(it.second)
                     }?.second
@@ -246,7 +222,7 @@ class GestureDetect (val context : Context,
      */
     private fun isEventEnable(event:String):Boolean
     {
-        if (screenOnMode){
+        if (GestureHW.screenON){
             var ev = event
             delayEvents.find { it.first == ev}?.second?.apply { ev = this }
             return screenEvents.find { it.first == ev && settings.getEnable(it.second) } != null
@@ -256,10 +232,13 @@ class GestureDetect (val context : Context,
         return delayEvents.find { it.first == event && settings.getEnable(it.second) } != null
     }
 
+    private var bLockSupportUpdate = false
+    val rxSupportUpdate = BehaviorSubject.createDefault(supported)
     fun addSupport(value:String)
     {
         if (supported.contains(value)) return
         supported += value
+        if (!bLockSupportUpdate) rxSupportUpdate.onNext(supported)
     }
     fun addSupport(value:List<String>)
             = value.forEach { addSupport(it) }

@@ -4,6 +4,11 @@ import android.graphics.Point
 import android.util.Log
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
+import gestureDetect.tools.GestureHW
+import io.reactivex.Scheduler
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.schedulers.Schedulers
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.FileReader
@@ -36,12 +41,14 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     )
 
     private var inputDevices = emptyList<Pair<String, InputHandler>>()
+    private val composites = CompositeDisposable()
 
     override fun enable(bEnable: Boolean)
             = inputDevices.forEach { it.second.setEnable(bEnable) }
 
     override fun close()
     {
+        composites.clear()
         bRunning = false
 
         if (runThread?.isAlive == true) {
@@ -50,29 +57,36 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         }
     }
 
-    override fun onDetect(): Boolean
+    override fun onCreate()
     {
-        inputDevices = emptyList()
+        if (composites.size() != 0) return
 
-        if (!gesture.su.hasRootProcess()){
-            close()
-            return false
-        }
+        composites += gesture.su.su.rxRootEnable
+                .filter { it }
+                .subscribe {
 
-        getInputEvents().forEach { (input, name) ->
-            inputHandlers.forEach {
-                if (it.onDetect(name)){
-                    if (BuildConfig.DEBUG){
-                        Log.d("SensorInput", "device $name => $input")
+                    inputDevices = emptyList()
+                    getInputEvents().forEach { (input, name) ->
+                        inputHandlers.forEach {
+                            if (it.onDetect(name)) {
+                                if (BuildConfig.DEBUG) {
+                                    Log.d("SensorInput", "device $name => $input")
+                                }
+                                inputDevices += Pair(input, it)
+                            }
+                        }
                     }
-                    inputDevices += Pair(input, it)
+
+                    startThread()
+                    inputDevices.isNotEmpty()
                 }
-            }
-        }
 
-        startThread()
-
-        return inputDevices.isNotEmpty()
+        GestureHW.rxScreenOn
+                .filter { it }
+                .observeOn(Schedulers.io())
+                .subscribe {
+                    enable(true)
+                }
     }
 
     /**
@@ -198,11 +212,6 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                     ?.apply { sensorEvent(this) }
         }
         gesture.su.killJobs()
-    }
-
-    override fun onScreenState(bScreenON: Boolean) {
-        super.onScreenState(bScreenON)
-        enable(true)
     }
 
     companion object

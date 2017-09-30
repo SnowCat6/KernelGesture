@@ -58,26 +58,22 @@ class SettingsActivity :
 {
     private var mInterstitialAd: InterstitialAd? = null
     private val composites = CompositeDisposable()
-    private var bIsDetectProgess = false
 
     data class GestureConfig(
-        var gestureAction:GestureAction?=null,
-        var gestureDetect:GestureDetect?=null
-    )
-    {
-        init{
+        val gestureDetect : GestureDetect? = null,
+        val gestureAction : GestureAction? = null
+    ) {
+        fun onCreate(){
             gestureAction?.onCreate()
+            gestureDetect?.onCreate()
         }
-
-        fun isEmpty(): Boolean = gestureAction == null || gestureDetect == null
-        fun onStop() {
-            gestureAction?.onStop()
+        fun close() {
             gestureDetect?.close()
-        }
-        fun onDetect(){
-            gestureDetect?.onDetect()
+            gestureAction?.close()
         }
     }
+
+    var gestureConfig = GestureConfig()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -110,41 +106,21 @@ class SettingsActivity :
                 .subscribe {
                     supportActionBar.subtitle = it
                 }
-        composites += ShellSU.commonSU.rxRootEnable
-                .filter { it }
-                .subscribe {
-                    updateGestureConfig(true)
-                }
 
-        updateGestureConfig()
-    }
-    private fun updateGestureConfig(bShowDialog : Boolean = false)
-    {
-        synchronized(bIsDetectProgess) {
-            if (bIsDetectProgess) return
-            bIsDetectProgess = true
-        }
+        gestureConfig = GestureConfig(
+                GestureDetect(this),
+                GestureAction(this)
+        )
+        rxConfigUpdate.onNext(gestureConfig)
 
         thread{
-            if (gestureConfig.isEmpty()){
-                gestureConfig = GestureConfig(
-                        GestureAction(this),
-                        GestureDetect(this))
-            }
-            gestureConfig.onDetect()
-
-            bShowAlertDlg = bShowDialog && ShellSU.commonSU.bEnableSU
-            rxGestureConfig.onNext(gestureConfig)
-
-            synchronized(bIsDetectProgess) {
-                bIsDetectProgess = false
-            }
+            gestureConfig.onCreate()
         }
     }
 
     override fun onDestroy() {
-        gestureConfig.onStop()
         composites.clear()
+        gestureConfig.close()
         super.onDestroy()
     }
 
@@ -371,11 +347,13 @@ class SettingsActivity :
                         updateControls()
                     }
 
-            composites += rxGestureConfig
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe {
-                        updateControls()
-                    }
+            rxConfigUpdate.value.gestureDetect?.apply {
+                composites += rxSupportUpdate
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe {
+                            updateControls()
+                        }
+            }
 
             updateControls()
         }
@@ -538,7 +516,7 @@ class SettingsActivity :
                     .findFragmentById(android.R.id.content) as? PreferenceFragment? ?: return
 
             val context = fragment.activity
-            val support = gestureConfig.gestureDetect?.getSupport() ?: emptyList()
+            val support = rxConfigUpdate.value?.gestureDetect?.getSupport() ?: emptyList()
             val settings = GestureSettings(context)
 
             var titles = emptyList<String>()
@@ -606,7 +584,7 @@ class SettingsActivity :
             init{
                 objects += ActionListItem("none")
 
-                gestureConfig.gestureAction?.getActions()
+                rxConfigUpdate.value?.gestureAction?.getActions()
                         ?.forEach { objects += ActionListItem(it) }
 
                 thread{
@@ -672,7 +650,7 @@ class SettingsActivity :
                 is ApplicationInfo -> item.packageName
                 is ActionItem -> item.action()
                 is String -> {
-                    gestureConfig.gestureAction?.getAction(item)?.apply { return item  }
+                    rxConfigUpdate.value?.gestureAction?.getAction(item)?.apply { return item  }
                     uiAppInfo(context, item)?.apply { return item }
                     ""
                 }
@@ -689,7 +667,7 @@ class SettingsActivity :
                 "" ->  context.getString(R.string.ui_default_action)
                 "none"  -> context.getString(R.string.ui_no_action)
                 is ActionItem -> item.name()
-                is String -> gestureConfig.gestureAction?.getAction(item)?.name() ?: ""
+                is String -> rxConfigUpdate.value?.gestureAction?.getAction(item)?.name() ?: ""
                 else -> ""
             }
         }
@@ -699,7 +677,7 @@ class SettingsActivity :
                 is BoxAdapter.ActionListItem -> item.icon
                 is ApplicationInfo -> context.packageManager.getApplicationIcon(item)?: context.getDrawableEx(android.R.color.transparent)
                 is ActionItem -> item.icon()
-                is String -> gestureConfig.gestureAction?.getAction(item)?.icon() ?: context.getDrawableEx(android.R.color.transparent)
+                is String -> rxConfigUpdate.value?.gestureAction?.getAction(item)?.icon() ?: context.getDrawableEx(android.R.color.transparent)
                 else -> context.getDrawableEx(android.R.color.transparent)
             }
         }
@@ -721,9 +699,7 @@ class SettingsActivity :
     companion object
     {
         var bShowAlertDlg = false
-        var gestureConfig = GestureConfig()
-
         val rxSubTitle      = BehaviorSubject.createDefault(String())
-        var rxGestureConfig = BehaviorSubject.createDefault(gestureConfig)
+        val rxConfigUpdate  = BehaviorSubject.createDefault(GestureConfig())
     }
 }
