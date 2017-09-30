@@ -19,11 +19,7 @@ class GestureSettings(val context: Context)
     fun getEnable(key: String?): Boolean
     {
         if (key == null) return false
-        val ret = sharedPreferences.getBoolean(key, false)
-        if (BuildConfig.DEBUG) {
-            Log.d("getEnable", "$key=$ret")
-        }
-        return ret
+        return sharedPreferences.getBoolean(key, false)
     }
     fun setEnable(key: String, value: Boolean)
     {
