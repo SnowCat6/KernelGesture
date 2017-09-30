@@ -169,6 +169,10 @@ class GestureDetect (val context : Context,
             }
         }while (!bClosed && !settings.getEnable(thisEvent))
 
+        synchronized(sensorEventGesture) {
+            sensorEventGesture.clear()
+        }
+
         onPause()
 
         return thisEvent
