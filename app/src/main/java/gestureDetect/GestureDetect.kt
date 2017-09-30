@@ -147,7 +147,10 @@ class GestureDetect (val context : Context,
                 if (GestureHW.screenON)
                 {
                     delayEvents.find { it.first == thisEvent  }?.apply {
-                        screenEvents.find { it.first == second && settings.getEnable(second) }?.apply {
+                        screenEvents.firstOrNull {
+                            val bOK = it.first == second && settings.getEnable(it.second)
+                            bOK
+                        }?.apply {
                             val evDelay = getCurrentEvent(350)
                             if (evDelay == thisEvent) thisEvent = first
                         }

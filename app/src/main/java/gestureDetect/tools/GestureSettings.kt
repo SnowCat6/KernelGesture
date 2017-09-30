@@ -2,7 +2,9 @@ package gestureDetect.tools
 
 import android.content.Context
 import android.preference.PreferenceManager
+import android.util.Log
 import io.reactivex.subjects.PublishSubject
+import ru.vpro.kernelgesture.BuildConfig
 
 class GestureSettings(val context: Context)
 {
@@ -17,7 +19,11 @@ class GestureSettings(val context: Context)
     fun getEnable(key: String?): Boolean
     {
         if (key == null) return false
-        return sharedPreferences.getBoolean(key, false)
+        val ret = sharedPreferences.getBoolean(key, false)
+        if (BuildConfig.DEBUG) {
+            Log.d("getEnable", "$key=$ret")
+        }
+        return ret
     }
     fun setEnable(key: String, value: Boolean)
     {
