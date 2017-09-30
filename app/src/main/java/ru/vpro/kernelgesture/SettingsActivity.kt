@@ -40,17 +40,6 @@ import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
 import ru.vpro.kernelgesture.tools.getDrawableEx
 import kotlin.concurrent.thread
 
-/**
- * A [PreferenceActivity] that presents a set of application settings. On
- * handset devices, settings are presented as a single list. On tablets,
- * settings are split by category, with category headers shown to the left of
- * the list of settings.
- *
- *
- * See [
-   * Android Design: Settings](http://developer.android.com/design/patterns/settings.html) for design guidelines and the [Settings
-   * API Guide](http://developer.android.com/guide/topics/ui/settings.html) for more information on developing a Settings UI.
- */
 class SettingsActivity :
         AppCompatPreferenceActivity(),
         FragmentManager.OnBackStackChangedListener
@@ -60,7 +49,7 @@ class SettingsActivity :
     private val composites = CompositeDisposable()
 
     data class GestureConfig(
-        val gestureDetect : GestureDetect? = null,
+        val gestureDetect : GestureDetect?= null,
         val gestureAction : GestureAction? = null
     ) {
         fun onCreate(){
@@ -71,10 +60,11 @@ class SettingsActivity :
             gestureDetect?.close()
             gestureAction?.close()
         }
-        fun isEmpty() = gestureAction == null || gestureDetect == null
+
+        fun isEmpty()= gestureAction == null || gestureDetect == null
     }
 
-    private var gestureConfig = GestureConfig()
+    private var gestureConfig : GestureConfig ? = null
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -108,23 +98,25 @@ class SettingsActivity :
                     supportActionBar.subtitle = it
                 }
 
-        gestureConfig = GestureConfig(
-                GestureDetect(this),
-                GestureAction(this)
-        )
-
         thread{
-            gestureConfig.onCreate()
-            composites += gestureConfig.gestureDetect?.rxSupportUpdate!!
-                    .subscribe {
-                        rxConfigUpdate.onNext(gestureConfig)
-                    }
+            gestureConfig = GestureConfig(
+                    GestureDetect(this),
+                    GestureAction(this)
+            ).apply {
+                onCreate()
+                composites += gestureDetect!!.rxSupportUpdate
+                        .subscribe { rxConfigUpdate.onNext(this) }
+            }
         }
     }
 
-    override fun onDestroy() {
+    override fun onDestroy()
+    {
         composites.clear()
-        gestureConfig.close()
+        gestureConfig?.close()
+        gestureConfig = null
+        rxConfigUpdate.onNext(GestureConfig())
+
         super.onDestroy()
     }
 
@@ -694,7 +686,7 @@ class SettingsActivity :
 
     companion object
     {
-        var bShowAlertDlg = false
+        var bShowAlertDlg   = true
         val rxSubTitle      = BehaviorSubject.createDefault(String())
         val rxConfigUpdate  = BehaviorSubject.createDefault(GestureConfig())
     }
