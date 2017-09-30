@@ -30,4 +30,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/ui_detect_start" />
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/item_margin" />
+
+    <Button
+        android:id="@+id/btnClose"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/ui_btn_close" />
 </LinearLayout>

@@ -2,10 +2,7 @@ package ru.vpro.kernelgesture.detect
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.content.BroadcastReceiver
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.media.RingtoneManager
 import android.os.Build
 import android.os.Bundle
@@ -14,18 +11,27 @@ import android.view.MenuItem
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_detect_2.*
 import ru.vpro.kernelgesture.R
 import kotlin.concurrent.thread
 
 class InputDetect2Activity : AppCompatActivity()
 {
-    private var detectThread:Thread? = null
     private val composites = CompositeDisposable()
+    private var detectThread:Thread? = null
+    private val rxThreadRun = PublishSubject.create<Boolean>()
+    private var events = arrayOf<String>()
+    private var bNeedStartDetect = false
 
-    override fun onCreate(savedInstanceState: Bundle?) {
+    private val su = InputDetectActivity.su
+    private var hw : GestureHW? = null
+
+    override fun onCreate(savedInstanceState: Bundle?)
+    {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_detect_2)
 
@@ -34,27 +40,67 @@ class InputDetect2Activity : AppCompatActivity()
             setDisplayHomeAsUpEnabled(true)
         }
 
-        GestureHW(this).screenON()
+        val settings = GestureSettings(this)
+        val bEnable = settings.getAllEnable()
 
-        //  Register screen activity event
-        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-        registerReceiver(onEventIntent, intentFilter)
+        hw = GestureHW(this)
+        hw?.registerEvents()
+        hw?.screenON()
 
         btnStart.setOnClickListener {
+            bNeedStartDetect = true
             su.exec("input keyevent 26")
         }
+        btnClose.isEnabled = false
+        btnClose.setOnClickListener {
+            finish()
+        }
+
+        composites += GestureService.rxServiceStart
+                .filter { !it && bNeedStartDetect }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { runThread() }
+
+        composites += GestureHW.rxScreenOn
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+
+            if (it){
+                bNeedStartDetect = true
+                if (detectThread != null) {
+                    stopThread()
+                    if (bEnable) {
+                        settings.setAllEnable(true)
+                        startService(Intent(this, GestureService::class.java))
+                    }
+                }
+            }else{
+                if (detectThread == null) {
+                    settings.setAllEnable(false)
+                    if (!bEnable) runThread()
+                }
+            }
+        }
+
+        composites += rxThreadRun
+                .filter { !it }
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe { reportLog(events) }
     }
 
-    override fun onDestroy() {
-        unregisterReceiver(onEventIntent)
+    override fun onDestroy()
+    {
+        hw?.unregisterEvents()
         composites.clear()
+
         detectThread?.interrupt()
         detectThread = null
+
         super.onDestroy()
     }
 
-    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean
+    {
         when (item?.itemId) {
             android.R.id.home -> {
                 super.onBackPressed()
@@ -75,54 +121,9 @@ class InputDetect2Activity : AppCompatActivity()
         {
             if (requestCode != RESULT_ID || resultCode != Activity.RESULT_OK || data == null)
                 return null
-
             return data.getStringArrayExtra("geteventResult")
         }
     }
-
-    /**
-     * SCREEN Events
-     */
-    private val onEventIntent = object : BroadcastReceiver() {
-        //  Events for screen on and screen off
-        override fun onReceive(context: Context, intent: Intent)
-        {
-            when (intent.action) {
-            //  Screen OFF
-                Intent.ACTION_SCREEN_OFF -> {
-                    bRunThread = true
-                    detectThread = thread {
-
-                        val settings = GestureSettings(context)
-                        val bEnable = settings.getAllEnable()
-                        settings.setAllEnable(false)
-
-                        composites += GestureService.rxServiceStart
-                                .filter { !it && detectThread != null }
-                                .subscribe {
-                                    startThread()
-                                    GestureHW(context).screenON()
-                                    if (bEnable) {
-                                        settings.setAllEnable(true)
-                                        startService(Intent(context, GestureService::class.java))
-                                    }
-                                    detectThread = null
-                                }
-                    }
-                }
-            //  Screen ON
-                Intent.ACTION_SCREEN_ON -> {
-                    if (bRunThread) {
-                        bRunThread = false
-                        stopThread()
-                    }
-                }
-            }
-        }
-    }
-
-    val su = InputDetectActivity.su
-    var bRunThread = false
 
     private var dlg: AlertDialog? = null
     private fun closeDialog(){
@@ -132,10 +133,32 @@ class InputDetect2Activity : AppCompatActivity()
         catch (e:Exception){ }
         dlg = null
     }
-    fun startThread(){
 
-        val hw = GestureHW(this)
-        hw.vibrate()
+    private fun runThread()
+    {
+        if (detectThread != null) return
+        btnClose.isEnabled = true
+        bNeedStartDetect = false
+
+        detectThread = thread {
+
+            rxThreadRun.onNext(true)
+            startThread()
+            rxThreadRun.onNext(false)
+
+            detectThread = null
+        }
+    }
+    private fun evCmd(ix : Int, nLimit:Int, nRepeat:Int)
+    {
+        val CR = "\\\\n"
+        val seq = (1..nRepeat).joinToString(" ")
+        su.exec("while true ; do v$ix=\$(getevent -c $nLimit -l) ; [ \"\$v$ix\" ] && for i in $seq ; do echo \"\$v$ix\">&2 ; done ; done &")
+    }
+
+    private fun startThread(){
+
+        hw?.vibrate()
 
         try {
             val notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -145,11 +168,10 @@ class InputDetect2Activity : AppCompatActivity()
             e.printStackTrace()
         }
 
-        if (!su.exec("while(true) do getevent -c 2 -l ; done>&2 &")) return
-        if (!su.exec("while(true) do getevent -c 4 -l ; done>&2 &")) return
-
-        var events = arrayOf<String>()
-        var passEvents = listOf<String>()
+        evCmd(0, 1, 10)
+        evCmd(1, 2, 8)
+        evCmd(2, 4, 4)
+        evCmd(3, 8, 2)
 
         while(true){
             val line = su.readErrorLine() ?: break
@@ -157,27 +179,17 @@ class InputDetect2Activity : AppCompatActivity()
 
             if (!line.contains("EV_KEY")) continue
 
-            if (passEvents.contains(line)) continue
-            passEvents += line
-
+            if (events.contains(line)) continue
             events += line
-            hw.vibrate()
-        }
 
-        if (detectThread != null) {
-            runOnUiThread {
-                reportLog(events)
-            }
+            hw?.vibrate()
         }
     }
 
-    fun stopThread()
+    private fun stopThread()
     {
-        thread{
-            su.killJobs()
-            Thread.sleep(2000)
-            su.exec("echo --END_DETECT-->&2")
-        }
+        su.killJobs()
+        su.exec("echo --END_DETECT-->&2")
     }
 
     private fun reportLog(events:Array<String>)

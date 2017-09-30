@@ -8,10 +8,13 @@ import android.os.PowerManager
 import android.os.Vibrator
 import android.view.Display
 import android.app.KeyguardManager
+import android.content.BroadcastReceiver
 import android.os.Build
 import android.content.Context.POWER_SERVICE
+import android.content.IntentFilter
 import android.hardware.Sensor
 import android.hardware.SensorManager
+import io.reactivex.subjects.BehaviorSubject
 
 
 class GestureHW(val context:Context)
@@ -21,6 +24,51 @@ class GestureHW(val context:Context)
 
     companion object {
         private var keyguardLock: KeyguardManager.KeyguardLock? = null
+
+        var rxScreenOn  = BehaviorSubject.create<Boolean>()
+        var screenON : Boolean
+            get() = rxScreenOn.value ?: false
+            set(value){
+                if (value != rxScreenOn.value){
+                    rxScreenOn.onNext(value)
+                }
+            }
+
+        private val onEventIntent = object : BroadcastReceiver()
+        {
+            //  Events for screen on and screen off
+            override fun onReceive(context: Context, intent: Intent)
+            {
+                when (intent.action) {
+                    Intent.ACTION_SCREEN_OFF -> screenON = false
+                    Intent.ACTION_SCREEN_ON ->  screenON = true
+                }
+            }
+        }
+    }
+
+    private var bRegistred = false
+
+    fun registerEvents()
+    {
+        if (bRegistred) return
+        bRegistred = true
+
+        //  Register screen activity event
+        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
+        context.registerReceiver(onEventIntent, intentFilter)
+
+        screenON = isScreenOn()
+    }
+    fun unregisterEvents()
+    {
+        if (!bRegistred) return
+        bRegistred = false
+
+        try {
+            context.unregisterReceiver(onEventIntent)
+        }catch (e:Exception){}
     }
     /*
         <uses-permission android:name="android.permission.WAKE_LOCK" />

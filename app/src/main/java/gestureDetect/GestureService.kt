@@ -51,6 +51,7 @@ class GestureService :
     override fun onHandleIntent(intent: Intent?)
     {
         val hw = GestureHW(this)
+        hw.registerEvents()
         su.checkRootAccess()
 
         val settings = GestureSettings(this)
@@ -96,17 +97,16 @@ class GestureService :
         if (bProximityEnable) {
             mSensorManager?.unregisterListener(this)
         }
+        hw.unregisterEvents()
         actions.onStop()
         gesture.close()
 
         setServiceForeground(false)
         rxServiceStart.onNext(false)
     }
-    fun setServiceForeground(bSetForeground:Boolean)
+    private fun setServiceForeground(bSetForeground:Boolean)
     {
-        if (bForeground == bSetForeground)
-            return
-
+        if (bForeground == bSetForeground) return
         bForeground = bSetForeground
 
         if (BuildConfig.DEBUG){
@@ -151,15 +151,9 @@ class GestureService :
             Log.d("Start service", "**************************")
         }
 
-        val hw = GestureHW(this)
         //  Get sensor devices
-        mSensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
-        mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
-
-        //  Register screen activity event
-        val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-        registerReceiver(onEventIntent, intentFilter)
+        mSensorManager  = getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mProximity      = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
 
         composites += GestureSettings.rxUpdateValue
                 .filter { it.key ==  GestureSettings.GESTURE_ENABLE && it.value == false }
@@ -174,6 +168,13 @@ class GestureService :
                     gestureActions?.onDetect()
                     gestureDetector?.enable(true)
                 }
+        composites += GestureHW.rxScreenOn.subscribe {
+
+            setServiceForeground(!it)
+            gestureDetector?.screenOnMode = it
+            gestureActions?.screenOnMode = it
+            if (!it)gestureDetector?.hw?.screenLock()
+        }
 
         super.onCreate()
     }
@@ -194,15 +195,7 @@ class GestureService :
         if (BuildConfig.DEBUG){
             Log.d("Stop service", "**************************")
         }
-
         composites.clear()
-
-        try {
-            LocalBroadcastManager.getInstance(this).unregisterReceiver(onEventIntent)
-        }catch (e:Exception){}
-        try {
-            unregisterReceiver(onEventIntent)
-        }catch (e:Exception){}
 
         gestureDetector?.hw?.screenLock()
         gestureDetector?.close()
@@ -219,31 +212,5 @@ class GestureService :
         // If registered use proximity - change value detector
         if (event.sensor.type != Sensor.TYPE_PROXIMITY) return
         gestureDetector?.isNearProximity = event.values[0].toInt() == 0
-    }
-    /**
-     * SCREEN Events
-     */
-    private val onEventIntent = object : BroadcastReceiver()
-    {
-        //  Events for screen on and screen off
-        override fun onReceive(context: Context, intent: Intent)
-        {
-            when (intent.action) {
-                //  Screen OFF
-                Intent.ACTION_SCREEN_OFF -> {
-                    setServiceForeground(true)
-
-                    gestureDetector?.screenOnMode = false
-                    gestureActions?.screenOnMode = false
-                    gestureDetector?.hw?.screenLock()
-                }
-                //  Screen ON
-                Intent.ACTION_SCREEN_ON -> {
-                    setServiceForeground(false)
-                    gestureDetector?.screenOnMode = true
-                    gestureActions?.screenOnMode = true
-                }
-            }
-        }
     }
 }
