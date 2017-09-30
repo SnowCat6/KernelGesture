@@ -47,21 +47,22 @@ class GestureService :
      */
     override fun onHandleIntent(intent: Intent?)
     {
+        val settings = GestureSettings(this)
         val hw = GestureHW(this)
         hw.registerEvents()
         su.checkRootAccess()
 
-        val settings = GestureSettings(this)
-
         val gesture = gestureDetector ?: GestureDetect(this, su)
         gestureDetector = gesture
+
+        val actions = gestureActions ?: GestureAction(this, su)
+        gestureActions = actions
 
         //  Enable/disable gestures on start service
         gesture.enable(true)
         gesture.screenOnMode = hw.isScreenOn()
 
-        val actions = gestureActions ?: GestureAction(this, su)
-        gestureActions = actions
+        actions.onCreate()
 
         rxServiceStart.onNext(true)
 
@@ -162,14 +163,12 @@ class GestureService :
                 .filter { it == true }
                 .observeOn(Schedulers.computation())
                 .subscribe {
-                    gestureActions?.onDetect()
                     gestureDetector?.enable(true)
                 }
         composites += GestureHW.rxScreenOn.subscribe {
 
             setServiceForeground(!it)
             gestureDetector?.screenOnMode = it
-            gestureActions?.screenOnMode = it
             if (!it)gestureDetector?.hw?.screenLock()
         }
 

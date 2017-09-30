@@ -15,7 +15,7 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     private var applicationInfo: ApplicationInfo? = null
     var intent:Intent? = null
 
-    override fun onDetect(): Boolean = false
+    override fun onCreate(): Boolean = false
 
     fun onDetect(intent:Intent?): Boolean {
         this.intent = intent

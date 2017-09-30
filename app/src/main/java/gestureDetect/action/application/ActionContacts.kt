@@ -10,7 +10,7 @@ import ru.vpro.kernelgesture.R
  */
 class ActionContacts(action: GestureAction) : ActionApp(action)
 {
-    override fun onDetect(): Boolean
+    override fun onCreate(): Boolean
             = super.onDetect(Intent(Intent.ACTION_INSERT, ContactsContract.Contacts.CONTENT_URI))
 
     override fun action(): String

@@ -9,7 +9,7 @@ import ru.vpro.kernelgesture.R
  */
 class ActionCamera(action: GestureAction) : ActionApp(action)
 {
-    override fun onDetect(): Boolean
+    override fun onCreate(): Boolean
             = super.onDetect(Intent("android.media.action.IMAGE_CAPTURE"))
 
     override fun action(): String

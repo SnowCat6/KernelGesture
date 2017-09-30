@@ -90,12 +90,6 @@ class GestureDetect (val context : Context,
         }
 
     private val eventMutex = Mutex()
-    /**
-     * CODE
-     */
-    init{
-        onDetect()
-    }
 
     fun close()
     {

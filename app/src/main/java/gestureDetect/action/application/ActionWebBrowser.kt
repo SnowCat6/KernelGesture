@@ -10,7 +10,7 @@ import ru.vpro.kernelgesture.R
  */
 class ActionWebBrowser(action: GestureAction) : ActionApp(action)
 {
-    override fun onDetect(): Boolean
+    override fun onCreate(): Boolean
             = super.onDetect(Intent(Intent.ACTION_VIEW, Uri.parse("http://")))
 
     override fun action(): String

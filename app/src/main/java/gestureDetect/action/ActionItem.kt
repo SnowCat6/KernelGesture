@@ -15,7 +15,7 @@ abstract class ActionItem(val action: GestureAction)
     /**
      * Определить доступность действий
      */
-    open fun onDetect():Boolean = true
+    open fun onCreate():Boolean = true
     /**
      * Начало процесса ожидание жеста
      */

@@ -63,8 +63,20 @@ class SettingsActivity :
     data class GestureConfig(
         var gestureAction:GestureAction?=null,
         var gestureDetect:GestureDetect?=null
-    ) {
+    )
+    {
+        init{
+            gestureAction?.onCreate()
+        }
+
         fun isEmpty(): Boolean = gestureAction == null || gestureDetect == null
+        fun onStop() {
+            gestureAction?.onStop()
+            gestureDetect?.close()
+        }
+        fun onDetect(){
+            gestureDetect?.onDetect()
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?)
@@ -118,12 +130,9 @@ class SettingsActivity :
                 gestureConfig = GestureConfig(
                         GestureAction(this),
                         GestureDetect(this))
-            }else {
-                gestureConfig.apply {
-                    gestureAction?.onDetect()
-                    gestureDetect?.enable(true)
-                }
             }
+            gestureConfig.onDetect()
+
             bShowAlertDlg = bShowDialog && ShellSU.commonSU.bEnableSU
             rxGestureConfig.onNext(gestureConfig)
 
@@ -134,6 +143,7 @@ class SettingsActivity :
     }
 
     override fun onDestroy() {
+        gestureConfig.onStop()
         composites.clear()
         super.onDestroy()
     }

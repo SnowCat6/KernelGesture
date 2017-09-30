@@ -4,15 +4,18 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
 import gestureDetect.GestureAction
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.tools.getDrawableEx
 
 class ActionFlashlight(action: GestureAction) : ActionItem(action)
 {
+    private val composites = CompositeDisposable()
     private val devices = arrayOf(
             "/sys/class/leds/flashlight/brightness"
     )
-    override fun onDetect():Boolean
+    override fun onCreate():Boolean
     {
         bHasFlash = false
 
@@ -34,9 +37,17 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
                 val params = camera?.parameters
                 bHasFlash = true
                 camera?.release()
-            }catch (e:Exception){
-            }
+                return bHasFlash
+            }catch (e:Exception){ }
         }
+
+        if (composites.size() == 0)
+            composites += action.su.su.rxRootEnable
+                    .filter { it }
+                    .subscribe {
+                        onCreate()
+                    }
+
         return bHasFlash
     }
 
@@ -59,6 +70,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
 
     override fun onStop() {
+        composites.clear()
         enable = false
         closeCamera()
     }

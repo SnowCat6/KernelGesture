@@ -9,7 +9,7 @@ import ru.vpro.kernelgesture.R
  */
 class ActionDialer(action: GestureAction) : ActionApp(action)
 {
-    override fun onDetect(): Boolean
+    override fun onCreate(): Boolean
             = super.onDetect(Intent(Intent.ACTION_DIAL))
 
     override fun action(): String

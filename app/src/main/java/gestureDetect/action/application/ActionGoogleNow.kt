@@ -11,7 +11,7 @@ import ru.vpro.kernelgesture.tools.getDrawableEx
  */
 class ActionGoogleNow(action: GestureAction) : ActionApp(action)
 {
-    override fun onDetect(): Boolean
+    override fun onCreate(): Boolean
             = super.onDetect(Intent("android.intent.action.VOICE_ASSIST"))
 
     override fun action(): String

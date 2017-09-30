@@ -43,23 +43,11 @@ class GestureAction(val context:Context, val su : ShellSU = ShellSU())
             ActionMail(this),
             ActionCamera(this)
     )
-    val hw = GestureHW(context)
-    private val settings = GestureSettings(context)
+    val hw      = GestureHW(context)
+    val settings= GestureSettings(context)
 
-    init {
-        onDetect()
-    }
-
-    var screenOnMode = false
-        set(value){
-            if (value == field) return
-            onStop()
-            field = value
-            onStart()
-        }
-
-    fun onDetect(){
-        allActions.forEach { it.onDetect() }
+    fun onCreate(){
+        allActions.forEach { it.onCreate() }
     }
 
     fun onStart() {
@@ -186,5 +174,4 @@ class GestureAction(val context:Context, val su : ShellSU = ShellSU())
             hw.vibrate()
         }
     }
-
 }
