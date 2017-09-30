@@ -71,9 +71,10 @@ class SettingsActivity :
             gestureDetect?.close()
             gestureAction?.close()
         }
+        fun isEmpty() = gestureAction == null || gestureDetect == null
     }
 
-    var gestureConfig = GestureConfig()
+    private var gestureConfig = GestureConfig()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -111,10 +112,13 @@ class SettingsActivity :
                 GestureDetect(this),
                 GestureAction(this)
         )
-        rxConfigUpdate.onNext(gestureConfig)
 
         thread{
             gestureConfig.onCreate()
+            composites += gestureConfig.gestureDetect?.rxSupportUpdate!!
+                    .subscribe {
+                        rxConfigUpdate.onNext(gestureConfig)
+                    }
         }
     }
 
@@ -262,6 +266,7 @@ class SettingsActivity :
 
             settings = GestureSettings(activity)
             val hw = GestureHW(activity)
+            updateControls()
 
             findPreference(GestureSettings.GESTURE_ENABLE)?.apply{
                 this as SwitchPreference
@@ -333,13 +338,6 @@ class SettingsActivity :
                 }
             }
 
-            composites += ShellSU.commonSU.rxRootEnable
-                    .filter { it }
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe {
-                        updateControls()
-                    }
-
             composites += GestureSettings.rxUpdateValue
                     .filter { it.key ==  GestureSettings.GESTURE_ENABLE }
                     .observeOn(AndroidSchedulers.mainThread())
@@ -347,15 +345,11 @@ class SettingsActivity :
                         updateControls()
                     }
 
-            rxConfigUpdate.value.gestureDetect?.apply {
-                composites += rxSupportUpdate
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe {
-                            updateControls()
-                        }
-            }
-
-            updateControls()
+            composites += rxConfigUpdate
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe {
+                        updateControls()
+                    }
         }
 
         override fun onDestroy(){
@@ -533,6 +527,8 @@ class SettingsActivity :
 
             val bProximity = support.contains("PROXIMITY")
             if (bProximity) titles += context.getString(R.string.ui_title_gesture)
+
+            if (rxConfigUpdate.value.isEmpty()) return
 
             val subtitle = if (!titles.isEmpty()) titles.joinToString(", ")
             else context.getString(R.string.ui_title_no_any_support)

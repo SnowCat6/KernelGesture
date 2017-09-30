@@ -3,7 +3,6 @@ package gestureDetect
 import SuperSU.ShellSU
 import android.content.Context
 import android.util.Log
-import gestureDetect.drivers.SensorHandler
 import gestureDetect.drivers.SensorInput
 import gestureDetect.drivers.SensorProximity
 import gestureDetect.tools.GestureHW

@@ -58,6 +58,7 @@ class GestureService :
         val actions = gestureActions ?: GestureAction(this, su)
         gestureActions = actions
 
+        gesture.onCreate()
         //  Enable/disable gestures on start service
         gesture.enable(true)
         actions.onCreate()

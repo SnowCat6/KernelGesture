@@ -5,7 +5,6 @@ import android.util.Log
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import gestureDetect.tools.GestureHW
-import io.reactivex.Scheduler
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
