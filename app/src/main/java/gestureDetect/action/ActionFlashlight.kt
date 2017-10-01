@@ -70,9 +70,13 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
 
     override fun onStop() {
-        composites.clear()
         enable = false
         closeCamera()
+    }
+
+    override fun close() {
+        composites.clear()
+        super.close()
     }
 
     private var bHasFlash = false
@@ -83,6 +87,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         set(value) {
             if (field == value) return
             field = value
+
             if (flashlightDirect != null) flashlightDirect()
             else flashlightCamera()
         }
