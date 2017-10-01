@@ -1,43 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="@dimen/item_margin"
+
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/ui_detect2_title"
-        android:textAppearance="@android:style/TextAppearance.Holo.Large" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/item_margin" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:lineSpacingExtra="8sp"
-        android:singleLine="false"
-        android:text="@string/ui_detect2_help" />
-
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/item_margin" />
-
-    <Button
-        android:id="@+id/btnStart"
+    <LinearLayout
+        android:padding="@dimen/item_margin"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/ui_detect_start" />
+        android:orientation="vertical">
 
-    <Space
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/item_margin" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ui_detect2_title"
+            android:textAppearance="@android:style/TextAppearance.Holo.Large" />
 
-    <Button
-        android:id="@+id/btnClose"
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_margin" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:lineSpacingExtra="8sp"
+            android:singleLine="false"
+            android:text="@string/ui_detect2_help" />
+
+        <Button
+            android:id="@+id/btnStart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ui_detect_start" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_margin" />
+
+        <Button
+            android:id="@+id/btnClose"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/ui_btn_close" />
+
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/keyEventList"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/ui_btn_close" />
+        android:layout_height="match_parent" />
 </LinearLayout>

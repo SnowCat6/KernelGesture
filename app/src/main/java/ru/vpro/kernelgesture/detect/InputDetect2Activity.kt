@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
+import android.widget.ArrayAdapter
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
@@ -24,8 +25,9 @@ class InputDetect2Activity : AppCompatActivity()
     private val composites = CompositeDisposable()
     private var detectThread:Thread? = null
     private val rxThreadRun = PublishSubject.create<Boolean>()
-    private var events = arrayOf<String>()
+    private var events = ArrayList<String>()
     private var bNeedStartDetect = false
+    private var logListAdapter: ArrayAdapter<String>? = null
 
     private val su = InputDetectActivity.su
     private var hw : GestureHW? = null
@@ -39,6 +41,9 @@ class InputDetect2Activity : AppCompatActivity()
             subtitle = getString(R.string.ui_detect2_subtitle)
             setDisplayHomeAsUpEnabled(true)
         }
+
+        logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, events)
+        keyEventList?.adapter = logListAdapter
 
         val settings = GestureSettings(this)
         val bEnable = settings.getAllEnable()
@@ -180,7 +185,7 @@ class InputDetect2Activity : AppCompatActivity()
             if (!line.contains("EV_KEY")) continue
 
             if (events.contains(line)) continue
-            events += line
+            events.add(line)
 
             hw?.vibrate()
         }
@@ -192,13 +197,13 @@ class InputDetect2Activity : AppCompatActivity()
         su.exec("echo --END_DETECT-->&2")
     }
 
-    private fun reportLog(events:Array<String>)
+    private fun reportLog(events:List<String>)
     {
-        val intent = Intent()
-        intent.putExtra("geteventResult", events)
-        setResult(Activity.RESULT_OK, intent)
+        logListAdapter?.notifyDataSetChanged()
 
-        val thisActivity = this
+        val intent = Intent()
+        intent.putExtra("geteventResult", events.toTypedArray())
+        setResult(Activity.RESULT_OK, intent)
 
         closeDialog()
         with(AlertDialog.Builder(this))
@@ -206,12 +211,6 @@ class InputDetect2Activity : AppCompatActivity()
             val title = getString(R.string.ui_detect2_dlg_title)
             setTitle("$title ${events.size}")
             setMessage(getString(R.string.ui_detect2_dlg_content))
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                setOnDismissListener {
-                    thisActivity.finish()
-                }
-            }
 
             dlg = create()
             dlg?.setOnDismissListener {  dlg = null }

@@ -17,6 +17,18 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     )
     override fun onCreate():Boolean
     {
+        if (onDetectGlashlight()) return true
+
+        composites += action.su.su.rxRootEnable
+                .filter { it }
+                .subscribe {
+                    onDetectGlashlight()
+                }
+
+        return bHasFlash
+    }
+    private fun onDetectGlashlight():Boolean
+    {
         bHasFlash = false
 
         if (action.su.hasRootProcess())
@@ -34,21 +46,12 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         {
             try{
                 val camera = Camera.open()
-                val params = camera?.parameters
                 bHasFlash = true
                 camera?.release()
                 return bHasFlash
             }catch (e:Exception){ }
         }
-
-        if (composites.size() == 0)
-            composites += action.su.su.rxRootEnable
-                    .filter { it }
-                    .subscribe {
-                        onCreate()
-                    }
-
-        return bHasFlash
+        return false
     }
 
     override fun action(): String {

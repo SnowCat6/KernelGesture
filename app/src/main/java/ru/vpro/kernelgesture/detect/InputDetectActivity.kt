@@ -17,8 +17,8 @@ import kotlin.concurrent.thread
 class InputDetectActivity : AppCompatActivity() {
 
     private var logListAdapter:ArrayAdapter<String>? = null
-    private var log = emptyList<String>()
     private var detectThread:Thread? = null
+    private var log = ArrayList<String>()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -29,6 +29,9 @@ class InputDetectActivity : AppCompatActivity() {
             subtitle = getString(R.string.ui_detect_subtitle)
             setDisplayHomeAsUpEnabled(true)
         }
+
+        logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, log)
+        logList.adapter = logListAdapter
 
         startLog?.apply {
             setOnClickListener {
@@ -47,7 +50,7 @@ class InputDetectActivity : AppCompatActivity() {
                     dlg?.show()
                 }
 
-                log = emptyList()
+                log.clear()
                 updateProgress()
 
                 detectThread = thread{
@@ -102,9 +105,9 @@ class InputDetectActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
     {
         InputDetect2Activity.getActivityResult(requestCode, resultCode, data)?.apply {
-            log += String()
-            log += "Gesture events"
-            log += this
+            log.add(String())
+            log.add("Gesture events")
+            log.addAll(this)
             updateProgress()
             return
         }
@@ -141,34 +144,34 @@ class InputDetectActivity : AppCompatActivity() {
         su.close()
         su.open()
 
-        log     = emptyList()
+        log.clear()
 
-        log += "Android SDK:" + android.os.Build.VERSION.SDK_INT
-        log += "Device name:" + android.os.Build.MODEL
+        log.add("Android SDK:" + android.os.Build.VERSION.SDK_INT)
+        log.add("Device name:" + android.os.Build.MODEL)
         val pInfo = packageManager.getPackageInfo(packageName, 0)
-        log += "App version:${pInfo.versionName}"
+        log.add("App version:${pInfo.versionName}")
 
-        log += String()
+        log.add(String())
 
-        log += "Add input devices list"
+        log.add("Add input devices list")
         SensorInput.getInputEvents().forEach {
-            log += "device:${it.second}=>${it.first}"
+            log.add("device:${it.second}=>${it.first}")
         }
-        log += String()
+        log.add(String())
         updateProgress()
 
         if (!su.checkRootAccess())
         {
-            log += "No ROOT access to more search, please install SuperSU"
+            log.add("No ROOT access to more search, please install SuperSU")
             return
         }
 
         updateProgress()
 
-        log += "Run find cmd to search /sys/ devices"
+        log.add("Run find cmd to search /sys/ devices")
         doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup_mode*"))
 
-        log += "Run find cmd to search /proc/ functions"
+        log.add("Run find cmd to search /proc/ functions")
         doSearch(su, "/proc", listOf("*goodix*"))
 
         /**
@@ -176,7 +179,7 @@ class InputDetectActivity : AppCompatActivity() {
         // ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0038/wakeup_mode /data/tp/wakeup_mode
         //  ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-004a/wakeup_mode /data/tp/wakeup_mode
          */
-        log += "Run find cmd to search /data/tp/ devices"
+        log.add("Run find cmd to search /data/tp/ devices")
         doSearch(su, "/data/tp", listOf("*wakeup*"))
     }
 
@@ -185,7 +188,7 @@ class InputDetectActivity : AppCompatActivity() {
         var files = emptyList<String>()
 
         if (!su.execExists("find")){
-            log += "No \"find\" command found, try setup \"BusyBox\" and repeat!"
+            log.add("No \"find\" command found, try setup \"BusyBox\" and repeat!")
 /*
             var rawCmd = emptyList<String>()
             search.forEach { rawCmd += "-e $it" }
@@ -221,7 +224,7 @@ class InputDetectActivity : AppCompatActivity() {
             }
             files.forEach {
                 val value = su.getFileLine(it)
-                log += "path:$it=>$value"
+                log.add("path:$it=>$value")
             }
         }
 
@@ -231,8 +234,7 @@ class InputDetectActivity : AppCompatActivity() {
     private fun updateProgress()
     {
         runOnUiThread {
-            logListAdapter = ArrayAdapter(logList.context, android.R.layout.simple_list_item_1, log)
-            logList?.adapter = logListAdapter
+            logListAdapter?.notifyDataSetChanged()
         }
     }
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {

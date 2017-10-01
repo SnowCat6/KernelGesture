@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceActivity
 import android.support.annotation.LayoutRes
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.ActionBar
 import android.support.v7.app.AppCompatDelegate
 import android.support.v7.widget.Toolbar
@@ -98,6 +99,5 @@ abstract class AppCompatPreferenceActivity : PreferenceActivity() {
 
 fun Context.getDrawableEx(nResID:Int): Drawable
 {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) return getDrawable(nResID)
-    return resources.getDrawable(nResID)
+    return  ContextCompat.getDrawable(this, nResID)
 }
