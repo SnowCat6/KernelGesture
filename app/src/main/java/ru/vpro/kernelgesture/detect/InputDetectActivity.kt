@@ -31,7 +31,8 @@ class InputDetectActivity : AppCompatActivity() {
         }
 
         logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, log)
-        logList.adapter = logListAdapter
+//        logList?.addHeaderView(listHeader)
+        logList?.adapter = logListAdapter
 
         startLog?.apply {
             setOnClickListener {

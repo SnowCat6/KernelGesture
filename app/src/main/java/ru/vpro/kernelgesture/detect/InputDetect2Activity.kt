@@ -4,7 +4,6 @@ import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
 import android.media.RingtoneManager
-import android.os.Build
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
@@ -43,6 +42,7 @@ class InputDetect2Activity : AppCompatActivity()
         }
 
         logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, events)
+//        keyEventList?.addHeaderView(listHeader)
         keyEventList?.adapter = logListAdapter
 
         val settings = GestureSettings(this)
