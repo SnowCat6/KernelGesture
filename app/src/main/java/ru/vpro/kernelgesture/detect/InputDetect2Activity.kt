@@ -45,9 +45,6 @@ class InputDetect2Activity : AppCompatActivity()
 //        keyEventList?.addHeaderView(listHeader)
         keyEventList?.adapter = logListAdapter
 
-        val settings = GestureSettings(this)
-        val bEnable = settings.getAllEnable()
-
         hw = GestureHW(this)
         hw?.registerEvents()
         hw?.screenON()
@@ -61,28 +58,20 @@ class InputDetect2Activity : AppCompatActivity()
             finish()
         }
 
-        composites += GestureService.rxServiceStart
-                .filter { !it && bNeedStartDetect }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { runThread() }
-
         composites += GestureHW.rxScreenOn
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
 
             if (it){
+                GestureService.bDisableService = false
                 bNeedStartDetect = true
                 if (detectThread != null) {
                     stopThread()
-                    if (bEnable) {
-                        settings.setAllEnable(true)
-                        startService(Intent(this, GestureService::class.java))
-                    }
                 }
             }else{
                 if (detectThread == null) {
-                    settings.setAllEnable(false)
-                    if (!bEnable) runThread()
+                    GestureService.bDisableService = true
+                    runThread()
                 }
             }
         }
@@ -95,6 +84,7 @@ class InputDetect2Activity : AppCompatActivity()
 
     override fun onDestroy()
     {
+        GestureService.bDisableService = false
         hw?.unregisterEvents()
         composites.clear()
 

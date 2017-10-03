@@ -39,7 +39,7 @@ class GestureService :
     private val composites = CompositeDisposable()
 
     companion object {
-        val rxServiceStart = BehaviorSubject.createDefault(false)
+        var bDisableService = false
     }
     /************************************/
     /*
@@ -63,8 +63,6 @@ class GestureService :
         gesture.enable(true)
         actions.onCreate()
 
-        rxServiceStart.onNext(true)
-
         setServiceForeground(!hw.isScreenOn())
 
         actions.onStart()
@@ -82,6 +80,7 @@ class GestureService :
         while (!gesture.bClosed)
         {
             val ev = gesture.waitGesture() ?: break
+            if (bDisableService) continue
             try {
                 actions.onGestureEvent(ev)
             }catch (e:Exception){
@@ -99,7 +98,6 @@ class GestureService :
         gesture.close()
 
         setServiceForeground(false)
-        rxServiceStart.onNext(false)
     }
     private fun setServiceForeground(bSetForeground:Boolean)
     {
