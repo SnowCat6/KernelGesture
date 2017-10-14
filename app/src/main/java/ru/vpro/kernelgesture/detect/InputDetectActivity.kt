@@ -174,7 +174,6 @@ class InputDetectActivity : AppCompatActivity() {
             }
 
             if (BuildConfig.DEBUG) {
-                onComplete()
                 return@apply
             }
 
