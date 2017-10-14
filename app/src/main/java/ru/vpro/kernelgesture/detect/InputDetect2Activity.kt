@@ -1,6 +1,5 @@
 package ru.vpro.kernelgesture.detect
 
-import SuperSU.ShellSU
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
@@ -11,24 +10,22 @@ import android.view.MenuItem
 import android.widget.ArrayAdapter
 import gestureDetect.GestureService
 import gestureDetect.tools.GestureHW
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
-import io.reactivex.subjects.PublishSubject
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_detect_2.*
 import ru.vpro.kernelgesture.R
-import kotlin.concurrent.thread
 
 class InputDetect2Activity : AppCompatActivity()
 {
     private val composites = CompositeDisposable()
-    private var detectThread:Thread? = null
-    private val rxThreadRun = PublishSubject.create<Boolean>()
     private var events = ArrayList<String>()
-    private var bNeedStartDetect = false
     private var logListAdapter: ArrayAdapter<String>? = null
+    private var bNeedRun = false
 
-    private var su = InputDetectActivity.su
+    private val su = InputDetectActivity.su
     private var hw : GestureHW? = null
 
     override fun onCreate(savedInstanceState: Bundle?)
@@ -50,9 +47,7 @@ class InputDetect2Activity : AppCompatActivity()
         hw?.screenON()
 
         btnStart.setOnClickListener {
-            bNeedStartDetect = true
-            su.close()
-            su.open()
+            bNeedRun = true
             su.exec("input keyevent 26")
         }
         btnClose.isEnabled = false
@@ -61,36 +56,20 @@ class InputDetect2Activity : AppCompatActivity()
         }
 
         composites += GestureHW.rxScreenOn
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
-
                     if (it){
-                        GestureService.bDisableService = false
-                        if (detectThread != null) {
-                            stopThread()
-                        }
+                        stopThread()
                     }else{
-                        if (detectThread == null && bNeedStartDetect) {
-                            GestureService.bDisableService = true
-                            runThread()
-                        }
+                        runThread()
                     }
                 }
-
-        composites += rxThreadRun
-                .filter { !it }
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe { reportLog(events) }
     }
 
     override fun onDestroy()
     {
-        GestureService.bDisableService = false
-        hw?.unregisterEvents()
         composites.clear()
-
-        detectThread?.interrupt()
-        detectThread = null
+        stopThread()
+        hw?.unregisterEvents()
 
         super.onDestroy()
     }
@@ -130,20 +109,20 @@ class InputDetect2Activity : AppCompatActivity()
         dlg = null
     }
 
-    private fun runThread()
-    {
-        if (detectThread != null) return
-        bNeedStartDetect = false
+    private fun runThread(){
+
+        if (!bNeedRun) return
+
         btnClose.isEnabled = true
 
-        detectThread = thread {
-
-            rxThreadRun.onNext(true)
-            startThread()
-            rxThreadRun.onNext(false)
-
-            detectThread = null
-        }
+        composites += startDetect()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe({
+                    hw?.vibrate()
+                },{},{
+                    reportLog(events)
+                })
     }
     private fun evCmd(ix : Int, nLimit:Int, nRepeat:Int)
     {
@@ -152,8 +131,10 @@ class InputDetect2Activity : AppCompatActivity()
         su.exec("while true ; do v$ix=\$(getevent -c $nLimit -l) ; [ \"\$v$ix\" ] && for i in $seq ; do echo \"\$v$ix\">&2 ; done ; done &")
     }
 
-    private fun startThread(){
+    private fun startDetect()
+            = Observable.create<String>{ emitter ->
 
+        GestureService.bDisableService = true
         hw?.vibrate()
 
         try {
@@ -169,7 +150,8 @@ class InputDetect2Activity : AppCompatActivity()
         evCmd(2, 4, 4)
         evCmd(3, 8, 2)
 
-        while(true){
+        while(!emitter.isDisposed){
+
             val line = su.readErrorLine() ?: break
             if (line == "--END_DETECT--") break
 
@@ -177,16 +159,19 @@ class InputDetect2Activity : AppCompatActivity()
 
             if (events.contains(line)) continue
             events.add(line)
-
-            hw?.vibrate()
+            emitter.onNext(line)
         }
+        GestureService.bDisableService = false
+        emitter.onComplete()
     }
 
     private fun stopThread()
     {
-        thread{
-            su.killJobs()
-            su.exec("echo --END_DETECT-->&2")
+        if (GestureService.bDisableService) {
+            GestureService.bDisableService = false
+            su.close()
+            su.open()
+            bNeedRun = false
         }
     }
 
