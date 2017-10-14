@@ -58,8 +58,10 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".detect.InputDetectActivity"/>
-        <activity android:name=".detect.InputDetect2Activity" />
+        <activity android:name=".detect.InputDetectActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".detect.InputDetect2Activity"
+            android:screenOrientation="portrait"/>
     </application>
 
 </manifest>

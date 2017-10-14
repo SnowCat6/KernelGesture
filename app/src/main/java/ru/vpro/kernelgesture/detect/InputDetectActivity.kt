@@ -10,15 +10,21 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.widget.ArrayAdapter
 import gestureDetect.drivers.SensorInput
+import io.reactivex.Observable
+import io.reactivex.ObservableEmitter
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_detect_1.*
+import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
-import kotlin.concurrent.thread
 
 class InputDetectActivity : AppCompatActivity() {
 
-    private var logListAdapter:ArrayAdapter<String>? = null
-    private var detectThread:Thread? = null
-    private var log = ArrayList<String>()
+    private var logListAdapter : ArrayAdapter<String>? = null
+    private var logx        = ArrayList<String>()
+    private val composites  = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -30,7 +36,7 @@ class InputDetectActivity : AppCompatActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, log)
+        logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, logx)
 //        logList?.addHeaderView(listHeader)
         logList?.adapter = logListAdapter
 
@@ -41,31 +47,31 @@ class InputDetectActivity : AppCompatActivity() {
                 seendLog?.isEnabled = false
 
                 closeDialog()
-                with(AlertDialog.Builder(context)){
+                with(AlertDialog.Builder(context)) {
                     setTitle(getString(R.string.ui_detect_dlg_title))
                     setMessage(getString(R.string.ui_detect_dlg_content))
                     setCancelable(false)
 
                     dlg = create()
-                    dlg?.setOnDismissListener {  dlg = null }
+                    dlg?.setOnDismissListener { dlg = null }
                     dlg?.show()
                 }
 
-                log.clear()
+                logx.clear()
                 updateProgress()
 
-                detectThread = thread{
-                    doStartDetect()
-                    updateProgress()
-
-                    runOnUiThread {
-                        closeDialog()
-                        isEnabled = true
-                        seendLog?.isEnabled = true
-                        doStartDetect2()
-                    }
-                    detectThread = null
-                }
+                composites += doStartDetect()
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe ({
+                            logx.add(it)
+                            updateProgress()
+                        },{},{
+                            closeDialog()
+                            isEnabled = true
+                            seendLog?.isEnabled = true
+                            doStartDetect2()
+                        })
             }
         }
 
@@ -94,8 +100,7 @@ class InputDetectActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        detectThread?.interrupt()
-        detectThread = null
+        composites.clear()
         super.onDestroy()
     }
 
@@ -106,9 +111,9 @@ class InputDetectActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
     {
         InputDetect2Activity.getActivityResult(requestCode, resultCode, data)?.apply {
-            log.add(String())
-            log.add("Gesture events")
-            log.addAll(this)
+            logx.add(String())
+            logx.add("Gesture events")
+            logx.addAll(this)
             updateProgress()
             return
         }
@@ -124,7 +129,7 @@ class InputDetectActivity : AppCompatActivity() {
         intent.data = Uri.parse("mailto:")
         intent.putExtra(Intent.EXTRA_EMAIL, arrayOf(mailAddress))
         intent.putExtra(Intent.EXTRA_SUBJECT, "AnyKernelGesture log")
-        intent.putExtra(Intent.EXTRA_TEXT, log.joinToString("\n"))
+        intent.putExtra(Intent.EXTRA_TEXT, logx.joinToString("\n"))
 
         if (intent.resolveActivity(packageManager) == null) return false
 
@@ -140,56 +145,62 @@ class InputDetectActivity : AppCompatActivity() {
         catch (e:Exception){ }
         dlg = null
     }
-    private fun doStartDetect() {
+    private fun doStartDetect()
+            = Observable.create<String> { emitter ->
 
-        su.close()
-        su.open()
+        emitter.apply {
 
-        log.clear()
+            su.close()
+            su.open()
 
-        log.add("Android SDK:" + android.os.Build.VERSION.SDK_INT)
-        log.add("Device name:" + android.os.Build.MODEL)
-        val pInfo = packageManager.getPackageInfo(packageName, 0)
-        log.add("App version:${pInfo.versionName}")
+            onNext("Android SDK:" + android.os.Build.VERSION.SDK_INT)
+            onNext("Device name:" + android.os.Build.MODEL)
 
-        log.add(String())
+            val pInfo = packageManager.getPackageInfo(packageName, 0)
+            onNext("App version:${pInfo.versionName}")
 
-        log.add("Add input devices list")
-        SensorInput.getInputEvents().forEach {
-            log.add("device:${it.second}=>${it.first}")
+            onNext(String())
+
+            onNext("Add input devices list")
+            SensorInput.getInputEvents().forEach {
+                onNext("device:${it.second}=>${it.first}")
+            }
+            onNext(String())
+
+            if (!su.checkRootAccess())
+            {
+                onNext("No ROOT access to more search, please install SuperSU")
+                return@apply
+            }
+
+            if (BuildConfig.DEBUG) {
+                onComplete()
+                return@apply
+            }
+
+            onNext("Run find cmd to search /sys/ devices")
+            doSearch(this, su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup_mode*"))
+
+            onNext("Run find cmd to search /proc/ functions")
+            doSearch(this, su, "/proc", listOf("*goodix*"))
+
+            /**
+            //  Xiaomi gesture mode???
+            // ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0038/wakeup_mode /data/tp/wakeup_mode
+            //  ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-004a/wakeup_mode /data/tp/wakeup_mode
+             */
+            onNext("Run find cmd to search /data/tp/ devices")
+            doSearch(this, su, "/data/tp", listOf("*wakeup*"))
         }
-        log.add(String())
-        updateProgress()
-
-        if (!su.checkRootAccess())
-        {
-            log.add("No ROOT access to more search, please install SuperSU")
-            return
-        }
-
-        updateProgress()
-
-        log.add("Run find cmd to search /sys/ devices")
-        doSearch(su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup_mode*"))
-
-        log.add("Run find cmd to search /proc/ functions")
-        doSearch(su, "/proc", listOf("*goodix*"))
-
-        /**
-        //  Xiaomi gesture mode???
-        // ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0038/wakeup_mode /data/tp/wakeup_mode
-        //  ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-004a/wakeup_mode /data/tp/wakeup_mode
-         */
-        log.add("Run find cmd to search /data/tp/ devices")
-        doSearch(su, "/data/tp", listOf("*wakeup*"))
+        emitter.onComplete()
     }
 
-    private fun doSearch(su:ShellSU, path:String,search: List<String>):Boolean
+    private fun doSearch(emitter : ObservableEmitter<String>, su:ShellSU, path:String, search: List<String>):Boolean
     {
         var files = emptyList<String>()
 
         if (!su.execExists("find")){
-            log.add("No \"find\" command found, try setup \"BusyBox\" and repeat!")
+            emitter.onNext("No \"find\" command found, try setup \"BusyBox\" and repeat!")
 /*
             var rawCmd = emptyList<String>()
             search.forEach { rawCmd += "-e $it" }
@@ -225,11 +236,10 @@ class InputDetectActivity : AppCompatActivity() {
             }
             files.forEach {
                 val value = su.getFileLine(it)
-                log.add("path:$it=>$value")
+                emitter.onNext("path:$it=>$value")
             }
         }
 
-        updateProgress()
         return true
     }
     private fun updateProgress()

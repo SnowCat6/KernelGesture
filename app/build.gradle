@@ -24,13 +24,13 @@ android {
     def code = getReleaseVersionCode()
 
     compileSdkVersion 26
-    buildToolsVersion '26.0.1'
+    buildToolsVersion '26.0.2'
     defaultConfig {
         applicationId "ru.vpro.kernelgesture"
         minSdkVersion 16
         targetSdkVersion 26
         versionCode code
-        versionName "1.1.31 (beta)"
+        versionName "1.1.32 (beta)"
         setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
