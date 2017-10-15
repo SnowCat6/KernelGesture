@@ -14,10 +14,10 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
 
-class EventDetector(val context: Context, val su : ShellSU) :
+class EventDetector(private val context: Context, private val su : ShellSU) :
         LiveData<List<String>>()
 {
-    val composites              = CompositeDisposable()
+    private val composites      = CompositeDisposable()
     private fun threadAction()  = Observable.create<List<String>>{
 
         GestureService.bDisableService = true
@@ -65,15 +65,22 @@ class EventDetector(val context: Context, val su : ShellSU) :
         su.exec("while true ; do v$ix=\$(getevent -c $nLimit -l) ; [ \"\$v$ix\" ] && for i in $seq ; do echo \"\$v$ix\">&2 ; done ; done &")
     }
 
-    override fun observe(owner: LifecycleOwner?, observer: Observer<List<String>>?) {
-        super.observe(owner, observer)
+    private var onCompleteAction : (()->Unit)? = null
+    fun isComplete() = composites.size() == 0
+    fun onComplete(action : ()->Unit){
+        onCompleteAction = action
+    }
 
-        if (composites.size() > 0) return
+    fun start() = this.apply{
+        if (composites.size() > 0) return this
 
         composites += threadAction()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnComplete { composites.clear() }
+                .doOnComplete {
+                    composites.clear()
+                    onCompleteAction?.invoke()
+                }
                 .subscribe { value = it.subList(0, it.size) }
     }
 }

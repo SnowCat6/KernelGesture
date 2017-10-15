@@ -2,10 +2,7 @@ package ru.vpro.kernelgesture.detect
 
 import android.app.Activity
 import android.app.AlertDialog
-import android.app.Application
-import android.arch.lifecycle.AndroidViewModel
 import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
@@ -17,8 +14,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_detect_2.*
 import ru.vpro.kernelgesture.R
-import ru.vpro.kernelgesture.detect.detectors.EventDetector
-
+import ru.vpro.kernelgesture.detect.detectors.DetectModelView
 
 class InputDetect2Activity : AppCompatActivity()
 {
@@ -27,21 +23,15 @@ class InputDetect2Activity : AppCompatActivity()
     private var logListAdapter: ArrayAdapter<String>? = null
     private var bNeedRun    = false
 
-    private val su = InputDetectActivity.su
     private var hw : GestureHW? = null
 
     private val detectObserver = Observer<List<String>> {
         Log.d("Event detect", it?.size.toString())
         it?.let {
-            events.addAll(it.filter { !events.contains(it) })
+            events.clear()
+            events.addAll(it)
             logListAdapter?.notifyDataSetChanged()
         }
-    }
-
-    class DetectThreadView(application: Application) :
-            AndroidViewModel(application)
-    {
-        val events = EventDetector(application, InputDetectActivity.su)
     }
 
     override fun onCreate(savedInstanceState: Bundle?)
@@ -64,7 +54,7 @@ class InputDetect2Activity : AppCompatActivity()
 
         btnStart.setOnClickListener {
             bNeedRun = true
-            su.exec("input keyevent 26")
+            DetectModelView(application).su.exec("input keyevent 26")
         }
         btnClose.isEnabled = false
         btnClose.setOnClickListener { finish() }
@@ -72,7 +62,7 @@ class InputDetect2Activity : AppCompatActivity()
         composites += GestureHW.rxScreenOn
             .subscribe {
                 if (it) {
-                    val v = getModel()
+                    val v = DetectModelView.getModel(this)
                     if (v.events.hasObservers()) {
                         v.events.removeObserver(detectObserver)
                         bNeedRun = false
@@ -81,7 +71,9 @@ class InputDetect2Activity : AppCompatActivity()
                 }else{
                     if (bNeedRun) {
                         btnClose.isEnabled = true
-                        getModel().events.observe(this, detectObserver)
+                        DetectModelView.getModel(this)
+                                .events
+                                .start().observe(this, detectObserver)
                     }
                 }
             }
@@ -94,9 +86,6 @@ class InputDetect2Activity : AppCompatActivity()
 
         super.onDestroy()
     }
-
-    private fun getModel()
-            = ViewModelProviders.of(this).get(DetectThreadView::class.java)
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean
     {
