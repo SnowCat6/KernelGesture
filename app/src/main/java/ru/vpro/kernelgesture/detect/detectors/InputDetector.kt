@@ -1,9 +1,7 @@
 package ru.vpro.kernelgesture.detect.detectors
 
 import SuperSU.ShellSU
-import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.LiveData
-import android.arch.lifecycle.Observer
 import android.content.Context
 import gestureDetect.drivers.SensorInput
 import io.reactivex.Observable
