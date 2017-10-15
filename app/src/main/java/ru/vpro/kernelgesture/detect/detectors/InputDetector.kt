@@ -13,8 +13,9 @@ import io.reactivex.schedulers.Schedulers
 import ru.vpro.kernelgesture.BuildConfig
 
 
-class InputDetector (private val context: Context, private val su : ShellSU) :
-        LiveData<List<String>>() {
+class InputDetector (private val context: Context,
+                     private val su : ShellSU)
+    : LiveData<List<String>>() {
 
     private val composites = CompositeDisposable()
     private val thisValue  = mutableListOf<String>()
@@ -120,12 +121,11 @@ class InputDetector (private val context: Context, private val su : ShellSU) :
     }
 
     private var onCompleteAction : (()->Unit)? = null
-    fun isComplete() = composites.size() == 0
     fun onComplete(action : ()->Unit){
         onCompleteAction = action
     }
 
-    fun start()  = this.apply{
+    fun start()  = apply{
         if (composites.size() > 0) return this
 
         thisValue.clear()

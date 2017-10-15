@@ -12,8 +12,9 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
 
-class EventDetector(private val context: Context, private val su : ShellSU) :
-        LiveData<List<String>>()
+class EventDetector(private val context: Context,
+                    private val su : ShellSU)
+    : LiveData<List<String>>()
 {
     private val composites      = CompositeDisposable()
     private fun threadAction()  = Observable.create<List<String>>{
@@ -64,12 +65,11 @@ class EventDetector(private val context: Context, private val su : ShellSU) :
     }
 
     private var onCompleteAction : (()->Unit)? = null
-    fun isComplete() = composites.size() == 0
     fun onComplete(action : ()->Unit){
         onCompleteAction = action
     }
 
-    fun start() = this.apply{
+    fun start() = apply{
         if (composites.size() > 0) return this
 
         composites += threadAction()
