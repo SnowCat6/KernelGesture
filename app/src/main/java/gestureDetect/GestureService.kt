@@ -18,7 +18,6 @@ import gestureDetect.tools.GestureSettings
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
-import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.BuildConfig
 import ru.vpro.kernelgesture.R
 

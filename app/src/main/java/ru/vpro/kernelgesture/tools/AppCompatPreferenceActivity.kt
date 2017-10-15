@@ -3,7 +3,6 @@ package ru.vpro.kernelgesture.tools
 import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.os.Bundle
 import android.preference.PreferenceActivity
 import android.support.annotation.LayoutRes

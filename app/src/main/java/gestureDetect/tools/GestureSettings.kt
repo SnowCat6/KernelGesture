@@ -2,9 +2,7 @@ package gestureDetect.tools
 
 import android.content.Context
 import android.preference.PreferenceManager
-import android.util.Log
 import io.reactivex.subjects.PublishSubject
-import ru.vpro.kernelgesture.BuildConfig
 
 class GestureSettings(val context: Context)
 {
