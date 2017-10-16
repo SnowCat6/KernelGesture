@@ -5,6 +5,7 @@ import android.util.Log
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import gestureDetect.tools.GestureHW
+import gestureDetect.tools.UnpackEventReader
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
@@ -21,7 +22,6 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
     private var bRunning = false
     private var runThread:Thread? = null
-    private val eventCmd = "/data/local/tmp/EventReader"
 
     /**
      * Input devices
@@ -125,9 +125,14 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
             while(bRunning){
                 if (!gesture.su.checkRootAccess()) break
+                val reader = UnpackEventReader(context)
+                val cmdName = reader.copyResourceTo(
+                        "lib/armeabi-v7a/EventReader.so",
+                        "EventReader")
 
-                if (gesture.su.isFileExists(eventCmd)){
-                    threadLoopNew()
+                if (cmdName != null && gesture.su.isFileExists(cmdName)){
+                    gesture.su.exec("chmod 777 $cmdName")
+                    threadLoopNew(cmdName)
                 }else {
                     threadLoop()
                 }
@@ -140,10 +145,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         }
     }
 
-    private fun threadLoopNew()
+    private fun threadLoopNew(cmdName: String)
     {
         val arg = inputDevices.joinToString(" ") { it.first }
-        gesture.su.exec("$eventCmd $arg&")
+        gesture.su.exec("$cmdName $arg&")
 
         val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+):\\s+([^\\s]+)\\s+([^\\s]+)\\s*([^\\s]+)")
         val coordinates = Point(-1, -1)
