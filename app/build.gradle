@@ -30,7 +30,7 @@ android {
         minSdkVersion 16
         targetSdkVersion 26
         versionCode code
-        versionName "1.1.32.$code (beta)"
+        versionName "1.1.32 (beta build $code)"
         setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
@@ -38,7 +38,7 @@ android {
             ndkBuild {
                 targets "EventReader"
                 // use a specific ABI filter if needed
-                abiFilters "armeabi-v7a"
+//                abiFilters "armeabi-v7a"
             }
         }
     }
@@ -58,22 +58,20 @@ android {
             path "src/main/cpp/Android.mk"
         }
     }
-
-    task nativeLibsToJar(type: Jar, description: 'create a jar archive of the native libs') {
-        destinationDir file("$buildDir/native-libs")
-        baseName 'native-libs'
-        from fileTree(dir: 'libs', include: '**/*.so')
-        into 'lib/'
+}
+task copyJniLibs(type: Copy) {
+    from ('build/intermediates/ndkBuild/debug/obj/local/'){
+        include '*/EventReader'
     }
-
-    tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn(nativeLibsToJar)
-    }
+    into 'src/main/jniLibs'
+    rename ('EventReader', 'EventReader.so')
+}
+tasks.withType(JavaCompile) {
+    compileTask -> compileTask.dependsOn(copyJniLibs)
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
 
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
