@@ -33,6 +33,14 @@ android {
         versionName "1.1.32.$code (beta)"
         setProperty("archivesBaseName", "anykernelgesture")
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            ndkBuild {
+                targets "EventReader"
+                // use a specific ABI filter if needed
+                // abiFilters "armeabi-v7a"
+            }
+        }
     }
     buildTypes {
         release {
@@ -45,7 +53,14 @@ android {
     lintOptions {
         checkReleaseBuilds false
     }
+    externalNativeBuild {
+        ndkBuild {
+            path "src/main/cpp/Android.mk"
+        }
+    }
 }
+
+
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
