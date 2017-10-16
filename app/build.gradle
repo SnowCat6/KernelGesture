@@ -38,7 +38,7 @@ android {
             ndkBuild {
                 targets "EventReader"
                 // use a specific ABI filter if needed
-                // abiFilters "armeabi-v7a"
+                abiFilters "armeabi-v7a"
             }
         }
     }
@@ -58,21 +58,23 @@ android {
             path "src/main/cpp/Android.mk"
         }
     }
-}
 
-task nativeLibsToJar(type: Jar, description: 'create a jar archive of the native libs') {
-    destinationDir file("$buildDir/native-libs")
-    baseName 'native-libs'
-    from fileTree(dir: 'libs', include: '**/*.so')
-    into 'lib/'
-}
+    task nativeLibsToJar(type: Jar, description: 'create a jar archive of the native libs') {
+        destinationDir file("$buildDir/native-libs")
+        baseName 'native-libs'
+        from fileTree(dir: 'libs', include: '**/*.so')
+        into 'lib/'
+    }
 
-tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn(nativeLibsToJar)
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn(nativeLibsToJar)
+    }
 }
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
+
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })

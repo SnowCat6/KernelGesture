@@ -53,7 +53,13 @@ int main(int argc, char **argv)
 {
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
+
     signal(SIGINT, sig_handler);
+    signal(SIGKILL, sig_handler);
+    signal(SIGHUP, sig_handler);
+    signal(SIGQUIT, sig_handler);
+    signal(SIGTERM, sig_handler);
+    signal(SIGTSTP, sig_handler);
 
     printf("Event reader started\n");
 
@@ -95,8 +101,6 @@ int main(int argc, char **argv)
             onEvent(i, event);
         }
     }
-
-//    while(getchar() != ' ');
 
     return 0;
 }
