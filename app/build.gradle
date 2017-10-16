@@ -20,6 +20,11 @@ def getReleaseVersionCode() {
     }
     return version
 }
+def compileType(){
+    def runTasks = gradle.startParameter.taskNames
+    if (':app:assembleRelease' in runTasks) return 'release'
+    return 'debug'
+}
 android {
     def code = getReleaseVersionCode()
 
@@ -59,8 +64,10 @@ android {
         }
     }
 }
+
 task copyJniLibs(type: Copy) {
-    from ('build/intermediates/ndkBuild/debug/obj/local/'){
+    def variant = compileType()
+    from ("build/intermediates/ndkBuild/$variant/obj/local/"){
         include '*/EventReader'
     }
     into 'src/main/jniLibs'
