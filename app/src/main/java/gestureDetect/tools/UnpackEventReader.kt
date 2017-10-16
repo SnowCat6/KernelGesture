@@ -16,6 +16,8 @@ class UnpackEventReader(val context: Context)
             context.packageManager.getApplicationInfo(context.packageName, 0)
         } catch (x: Throwable) { return null }
 
+        val destName = applicationInfo.dataDir + "/" + destinationFile
+
         try {
             val zipFile = applicationInfo.publicSourceDir
             val fin = FileInputStream(zipFile)
@@ -25,7 +27,6 @@ class UnpackEventReader(val context: Context)
                 val ze = zin.nextEntry ?: break
                 if (ze.name != localSource) continue
 
-                val destName = applicationInfo.dataDir + "/" + destinationFile
                 val fout = FileOutputStream(destName, false)
                 val buffer = ByteArray(8192)
 
@@ -41,6 +42,9 @@ class UnpackEventReader(val context: Context)
             }
         }catch (e:Exception){
             e.printStackTrace()
+
+            if (File(destName).exists())
+                return destName
         }
         return null
     }

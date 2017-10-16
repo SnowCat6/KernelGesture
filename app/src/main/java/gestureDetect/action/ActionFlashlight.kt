@@ -17,17 +17,17 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     )
     override fun onCreate():Boolean
     {
-        if (onDetectGlashlight()) return true
+        if (onDetectFlashlight()) return true
 
         composites += action.su.su.rxRootEnable
                 .filter { it }
                 .subscribe {
-                    onDetectGlashlight()
+                    onDetectFlashlight()
                 }
 
         return bHasFlash
     }
-    private fun onDetectGlashlight():Boolean
+    private fun onDetectFlashlight():Boolean
     {
         bHasFlash = false
 
@@ -41,7 +41,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             }
         }
 
-        if (action.context.applicationContext.packageManager
+        if (action.context.packageManager
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
         {
             try{
@@ -49,7 +49,9 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
                 bHasFlash = true
                 camera?.release()
                 return bHasFlash
-            }catch (e:Exception){ }
+            }catch (e:Exception){
+                e.printStackTrace()
+            }
         }
         return false
     }

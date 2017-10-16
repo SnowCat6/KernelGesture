@@ -131,7 +131,6 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                         "EventReader")
 
                 if (cmdName != null && gesture.su.isFileExists(cmdName)){
-                    gesture.su.exec("chmod 777 $cmdName")
                     threadLoopNew(cmdName)
                 }else {
                     threadLoop()
@@ -148,7 +147,9 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     private fun threadLoopNew(cmdName: String)
     {
         val arg = inputDevices.joinToString(" ") { it.first }
+        gesture.su.exec("chmod 777 $cmdName")
         gesture.su.exec("$cmdName $arg&")
+//        Runtime.getRuntime().exec("$cmdName $arg&")
 
         val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+):\\s+([^\\s]+)\\s+([^\\s]+)\\s*([^\\s]+)")
         val coordinates = Point(-1, -1)
