@@ -123,8 +123,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                 Log.d("SensorInput", "Start")
             }
 
-            while(bRunning){
+            while(bRunning)
+            {
                 if (!gesture.su.checkRootAccess()) break
+                
                 val reader = UnpackEventReader(context)
                 val cmdName = reader.copyResourceTo(
                         "EventReader.so",
