@@ -21,6 +21,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
     private var bRunning = false
     private var runThread:Thread? = null
+    private val eventCmd = "/data/local/tmp/EventReader"
 
     /**
      * Input devices
@@ -124,13 +125,51 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 
             while(bRunning){
                 if (!gesture.su.checkRootAccess()) break
-                threadLoop()
+
+                if (gesture.su.isFileExists(eventCmd)){
+                    threadLoopNew()
+                }else {
+                    threadLoop()
+                }
             }
             runThread = null
 
             if (BuildConfig.DEBUG){
                 Log.d("SensorInput", "Exit")
             }
+        }
+    }
+
+    private fun threadLoopNew()
+    {
+        val arg = inputDevices.joinToString(" ") { it.first }
+        gesture.su.exec("$eventCmd $arg&")
+
+        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+):\\s+([^\\s]+)\\s+([^\\s]+)\\s*([^\\s]+)")
+        val coordinates = Point(-1, -1)
+
+        while(bRunning) {
+            //  Read line from input
+            val rawLine = gesture.su.readErrorLine() ?: break
+            //  Stop if gesture need stop run
+            if (!bRunning) break
+            //  Check device is near screen
+            if (gesture.isNearProximity) continue
+            val ev = regSplit.find(rawLine) ?: continue
+
+            val timeout = ev.groupValues[1].toDoubleOrNull()?:continue
+
+            if (ev.groupValues[3] != "EV_KEY") continue
+            if (ev.groupValues[5] != "DOWN") continue
+            val evInput = EvData(ev.groupValues[2],
+                    ev.groupValues[4],
+                    ev.groupValues[5],
+                    timeout, coordinates)
+
+            inputDevices
+                    .find { it.first == ev.groupValues[2] }
+                    ?.second?.onEvent(evInput)
+                    ?.apply { sensorEvent(this) }
         }
     }
 
@@ -149,10 +188,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             evCmd(queryIx, ++ix, it, 4, 2)
         }
 
+        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
         val coordinates = Point(-1, -1)
         var lastEventTime = 0.0
         var eqEvents = emptyList<String>()
-        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
 
         while(bRunning)
         {
