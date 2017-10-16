@@ -127,7 +127,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                 if (!gesture.su.checkRootAccess()) break
                 val reader = UnpackEventReader(context)
                 val cmdName = reader.copyResourceTo(
-                        "lib/armeabi-v7a/EventReader.so",
+                        "EventReader.so",
                         "EventReader")
 
                 if (cmdName != null && gesture.su.isFileExists(cmdName)){
@@ -177,6 +177,8 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                     ?.second?.onEvent(evInput)
                     ?.apply { sensorEvent(this) }
         }
+
+        gesture.su.killJobs()
     }
 
     private fun threadLoop()
