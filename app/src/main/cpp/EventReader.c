@@ -9,7 +9,6 @@
 #include <dirent.h>
 #include <sys/inotify.h>
 #include <sys/poll.h>
-#include <errno.h>
 #include <time.h>
 
 #define MAX_DEVICE_INPUT 10
@@ -48,7 +47,6 @@ static nfds_t nfds = 0;
 static struct pollfd ufds[MAX_DEVICE_INPUT];
 static struct ThreadArg thisEvents[MAX_DEVICE_INPUT];
 
-void* readInput(void *arg);
 void sig_handler(int signo);
 
 int main(int argc, char **argv)
@@ -73,6 +71,11 @@ int main(int argc, char **argv)
 
         fprintf(stdout, "Opened: %s\n", thisEvents[nfds].device);
         ++nfds;
+    }
+
+    if (nfds == 0){
+        fprintf(stdout, "No input devices found\n");
+        exit(1);
     }
 
     int bOK = 1;
