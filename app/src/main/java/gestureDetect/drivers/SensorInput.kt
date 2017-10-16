@@ -126,15 +126,13 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             while(bRunning)
             {
                 if (!gesture.su.checkRootAccess()) break
-                
+
                 val reader = UnpackEventReader(context)
                 val cmdName = reader.copyResourceTo(
                         "EventReader.so",
                         "EventReader")
 
-                if (cmdName != null && gesture.su.isFileExists(cmdName)){
-                    threadLoopNew(cmdName)
-                }else {
+                if (!threadLoopNew(cmdName)){
                     threadLoop()
                 }
             }
@@ -146,8 +144,11 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         }
     }
 
-    private fun threadLoopNew(cmdName: String)
+    private fun threadLoopNew(cmdName: String?) : Boolean
     {
+        if (cmdName == null || !gesture.su.isFileExists(cmdName))
+            return false
+
         val arg = inputDevices.joinToString(" ") { it.first }
         gesture.su.exec("chmod 777 $cmdName")
         gesture.su.exec("$cmdName $arg&")
@@ -181,6 +182,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         }
 
         gesture.su.killJobs()
+        return true
     }
 
     private fun threadLoop()

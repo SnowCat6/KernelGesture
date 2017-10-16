@@ -29,6 +29,9 @@ class UnpackEventReader(val context: Context)
         } catch (x: Throwable) { return null }
 
         val destName = applicationInfo.dataDir + "/" + destinationName
+        try{
+            File(destName).delete()
+        }catch (e:Exception){}
 
         try {
             val zipFile = applicationInfo.publicSourceDir
@@ -48,8 +51,8 @@ class UnpackEventReader(val context: Context)
                     fout.close()
                     it.closeEntry()
 
+                    File(destName).deleteOnExit()
                     return destName
-
                 }
             }
         }catch (e:Exception){
