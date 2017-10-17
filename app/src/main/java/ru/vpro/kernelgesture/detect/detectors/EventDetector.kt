@@ -11,14 +11,13 @@ import gestureDetect.tools.InputReader
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
-import io.reactivex.schedulers.Schedulers
 
 class EventDetector(private val context: Context,
                     private val su : ShellSU)
     : LiveData<List<String>>()
 {
     private val composites      = CompositeDisposable()
-    private val rxInputReader   = InputReader(context, su)
+    private val rxInputReader   = InputReader(su).apply { create(context) }
 
     override fun onInactive() {
         super.onInactive()
@@ -56,7 +55,6 @@ class EventDetector(private val context: Context,
         rxInputReader.setDevices(SensorInput.getInputEvents().map { it.first })
 
         composites += rxInputReader
-                .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnDispose {
                     GestureService.bDisableService = false

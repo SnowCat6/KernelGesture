@@ -1,11 +1,11 @@
 package gestureDetect.drivers.input
 
-import android.util.Log
-import gestureDetect.GestureDetect
-import gestureDetect.drivers.SensorInput
 import android.content.Context
 import android.graphics.Point
+import android.util.Log
 import android.view.WindowManager
+import gestureDetect.GestureDetect
+import gestureDetect.tools.InputReader
 import ru.vpro.kernelgesture.BuildConfig
 
 
@@ -109,7 +109,7 @@ abstract class InputHandler(val gesture:GestureDetect)
      * Реакция на событие от устройства ввода
      */
     private var lastScreenPressTime = System.currentTimeMillis()
-    open fun onEvent(ev: SensorInput.EvData): String?
+    open fun onEvent(ev: InputReader.EvData): String?
     {
         if (ev.evButton != "BTN_TOUCH")
             return filter(ev, ev.evButton)
@@ -118,22 +118,22 @@ abstract class InputHandler(val gesture:GestureDetect)
         val timeout = System.currentTimeMillis() - lastScreenPressTime
         lastScreenPressTime = System.currentTimeMillis()
 
-        val dx = (coordinates.x-ev.coordinates.x).toDouble()
-        val dy = (coordinates.y-ev.coordinates.y).toDouble()
+//        val dx = (coordinates.x-ev.coordinates.x).toDouble()
+//        val dy = (coordinates.y-ev.coordinates.y).toDouble()
 
-        coordinates = ev.coordinates
+//        coordinates = ev.coordinates
 
 //        if (ev.coordinates.y !in 0 .. size.y ||
 //                ev.coordinates.x !in 0 .. size.x) return null
 
-        val radius = Math.sqrt(dx*dx + dy*dy).toInt()
-        val maxR = Math.min(size.x, size.y)/16
+//        val radius = Math.sqrt(dx*dx + dy*dy).toInt()
+//        val maxR = Math.min(size.x, size.y)/16
 
         if (BuildConfig.DEBUG) {
-            Log.d("Double tap", "r:$radius, rMax:$maxR, timeout:$timeout")
+//            Log.d("Double tap", "r:$radius, rMax:$maxR, timeout:$timeout")
         }
         if (timeout !in 50..500) return null
-        if (radius > maxR) return null
+ //       if (radius > maxR) return null
 
         if (!gesture.settings.getEnable("KEY_U_ON"))
             return null
@@ -164,7 +164,7 @@ abstract class InputHandler(val gesture:GestureDetect)
      * Отфильтровать не поддерживаемые жесты или сконвертировать частные жесты в поддерживаемые
      */
     var lastKeyPressTime = System.currentTimeMillis()
-    fun filter(ev: SensorInput.EvData, key: String?, convert: Array<Pair<String, String>>? = null): String?
+    fun filter(ev: InputReader.EvData, key: String?, convert: Array<Pair<String, String>>? = null): String?
     {
         if (key == null || key.isEmpty()) return null
         if (ev.evPress != "DOWN") return null

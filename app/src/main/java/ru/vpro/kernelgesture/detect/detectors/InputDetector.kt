@@ -24,9 +24,6 @@ class InputDetector (private val context: Context,
 
         emitter.apply {
 
-            su.close()
-            su.open()
-
             onNext("Android SDK:" + android.os.Build.VERSION.SDK_INT)
             onNext("Device name:" + android.os.Build.MODEL)
 

@@ -105,23 +105,34 @@ class GestureDetect (val context : Context,
     }
 
     private var bStart = false
-    private fun onResume(){
-        if (bStart) return
-        bStart = true
-
-        if (BuildConfig.DEBUG){
-            Log.d("GestureDetect", "start")
+        set(value) {
+            if (value != field)
+            {
+                field = value
+                if (value) {
+                    if (BuildConfig.DEBUG) {
+                        Log.d("GestureDetect", "start")
+                    }
+                    sensorHandlers.forEach { it.onResume() }
+                }else{
+                    if (BuildConfig.DEBUG){
+                        Log.d("GestureDetect", "stop")
+                    }
+                    sensorHandlers.forEach { it.onPause() }
+                }
+            }
         }
-        sensorHandlers.forEach { it.onResume() }
+
+    private fun onResume()
+    {
+        synchronized(bStart){
+            bStart = true
+        }
     }
     private fun onPause(){
-        if (!bStart) return
-        bStart = false
-
-        if (BuildConfig.DEBUG){
-            Log.d("GestureDetect", "stop")
+        synchronized(bStart){
+            bStart = false
         }
-        sensorHandlers.forEach { it.onPause() }
     }
 
     private  var sensorEventGesture = LinkedList<String>()
@@ -206,13 +217,17 @@ class GestureDetect (val context : Context,
 
     fun sensorEvent(value:String):Boolean
     {
-        if (bClosed) return false
-        if (!bStart) return false
-        if (!isEventEnable(value)) return false
-
         if (BuildConfig.DEBUG){
             Log.d("SensorEvent", value)
         }
+
+        if (bClosed) return false
+        synchronized(bStart){
+            if (!bStart) return false
+        }
+
+        if (!isEventEnable(value)) return false
+
         hw.powerON()
         synchronized(sensorEventGesture){
             sensorEventGesture.push(value)

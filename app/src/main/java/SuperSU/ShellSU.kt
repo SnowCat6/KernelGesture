@@ -117,11 +117,11 @@ class ShellSU(val su : ProcessSU = commonSU)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
-                processSU?.destroy()
                 processSU = null
                 writerSU = null
                 readerSU = null
                 errorSU = null
+                processSU?.destroy()
 
                 bEnableSU = false
                 if (rxRootEnable.value != bEnableSU)

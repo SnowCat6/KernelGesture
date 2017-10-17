@@ -184,9 +184,9 @@ class GestureService :
         composites.clear()
 
         gestureDetector?.hw?.screenLock()
+        gestureDetector?.hw?.unregisterEvents()
         gestureDetector?.close()
         gestureActions?.close()
-        su.close()
     }
     /************************************/
     /*

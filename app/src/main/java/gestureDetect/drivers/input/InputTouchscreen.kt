@@ -1,7 +1,7 @@
 package gestureDetect.drivers.input
 
 import gestureDetect.GestureDetect
-import gestureDetect.drivers.SensorInput
+import gestureDetect.tools.InputReader
 
 /*
 MT touchscreen with gestures
@@ -82,7 +82,7 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
         }
         return false
     }
-    override fun onEvent(ev: SensorInput.EvData): String?
+    override fun onEvent(ev: InputReader.EvData): String?
     {
         when(ev.evButton){
             //  Gesture events
@@ -130,7 +130,7 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     }
 
     //  KINGZONE_N5, doubletap and other gestures.. Need find gesture file
-    private fun onEventKING(ev: SensorInput.EvData): String?
+    private fun onEventKING(ev: InputReader.EvData): String?
     {
         val keys = arrayOf(
                 Pair("U",           "KEY_UP"),
@@ -157,7 +157,7 @@ open class InputTouchscreen(gesture: GestureDetect) : InputHandler(gesture)
     }
 
     //  HCT gesture give from file
-    private fun onEventHCT(ev: SensorInput.EvData):String?
+    private fun onEventHCT(ev: InputReader.EvData):String?
     {
         val keys = arrayOf(
                 Pair("UP",          "KEY_UP"),

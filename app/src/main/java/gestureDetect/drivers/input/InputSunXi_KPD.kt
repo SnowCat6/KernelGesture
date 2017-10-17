@@ -1,7 +1,7 @@
 package gestureDetect.drivers.input
 
 import gestureDetect.GestureDetect
-import gestureDetect.drivers.SensorInput
+import gestureDetect.tools.InputReader
 
 /*
 SunXI tablet
@@ -18,7 +18,7 @@ open class InputSunXi_KPD(gesture: GestureDetect) : InputHandler(gesture)
         return true
     }
 
-    override fun onEvent(ev: SensorInput.EvData): String?
+    override fun onEvent(ev: InputReader.EvData): String?
     {
         val keys = arrayOf(
                 Pair("KEY_MENU",     "KEY_VOLUMEUP"),

@@ -1,18 +1,14 @@
 package gestureDetect.drivers
 
-import android.graphics.Point
-import android.util.Log
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import gestureDetect.tools.GestureHW
-import gestureDetect.tools.UnpackEventReader
+import gestureDetect.tools.InputReader
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
-import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
 import java.io.FileReader
-import kotlin.concurrent.thread
 
 /**
  * Класс для получения событий мз устройств ввода, /dev/input/
@@ -20,8 +16,7 @@ import kotlin.concurrent.thread
 
 class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
-    private var bRunning = false
-    private var runThread:Thread? = null
+    private val rxInputReader = InputReader.getInstance(context)
 
     /**
      * Input devices
@@ -32,16 +27,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             InputSunXi_KPD(gesture),
             InputCypressTPD(gesture)
     )
-    data class EvData(
-            val evName      : String,
-            val evButton    : String,
-            val evPress     : String,
-            val evTimeout   : Int,
-            val coordinates : Point
-    )
 
     private var inputDevices = emptyList<Pair<String, InputHandler>>()
     private val composites = CompositeDisposable()
+    private val compositesEv = CompositeDisposable()
 
     override fun enable(bEnable: Boolean)
             = inputDevices.forEach { it.second.setEnable(bEnable) }
@@ -49,12 +38,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     override fun close()
     {
         composites.clear()
-        bRunning = false
-
-        if (runThread?.isAlive == true) {
-            //  Many execute for flush process buffer
-            for (ix in 0..15) gesture.su.exec("echo CLOSE_EVENTS>&2")
-        }
+        compositesEv.clear()
     }
 
     override fun onCreate()
@@ -62,203 +46,38 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         if (composites.size() != 0) return
 
         composites += gesture.su.su.rxRootEnable
-                .filter { it }
-                .subscribe {
+            .filter { it }
+            .subscribe {
 
-                    inputDevices = emptyList()
-                    getInputEvents().forEach { (input, name) ->
-                        inputHandlers.forEach {
-                            if (it.onDetect(name)) {
-                                if (BuildConfig.DEBUG) {
-                                    Log.d("SensorInput", "device $name => $input")
-                                }
-                                inputDevices += Pair(input, it)
-                            }
-                        }
-                    }
+                inputDevices = emptyList()
 
-                    startThread()
-                    inputDevices.isNotEmpty()
+                getInputEvents().forEach { (input, name) ->
+                    inputHandlers
+                        .filter { it.onDetect(name) }
+                        .forEach { inputDevices += Pair(input, it) }
                 }
+                rxInputReader.setDevices(inputDevices.map { it.first })
+            }
 
-        GestureHW.rxScreenOn
-                .filter { it }
-                .observeOn(Schedulers.io())
-                .subscribe {
-                    enable(true)
-                }
-    }
-
-    /**
-     * Exec command for get events from getevent linux binary
-     */
-    private fun evCmd(queryIx:Long, ix:Int, device:Pair<String, InputHandler>, nLimit:Int, nRepeat:Int)
-    {
-        if (nLimit > 0) {
-            val CR = "\\\\n"
-            val seq = (1..nRepeat).joinToString(" ")
-            gesture.su.exec("while true ; do v$ix=\$(getevent -c $nLimit -tl ${device.first} | grep ${device.second.rawFilter}) ; [ \"\$v$ix\" ] && for i in $seq ; do echo query$queryIx$CR${device.first}$CR\"\$v$ix\">&2 ; done ; done &")
-        }else{
-            gesture.su.exec("getevent -tl ${device.first}>&2 &")
-        }
+        composites += GestureHW.rxScreenOn
+            .filter { it }
+            .observeOn(Schedulers.io())
+            .subscribe { enable(true) }
     }
 
     override fun onResume()
     {
-        bRunning = true
-        startThread()
-    }
+        if (compositesEv.size() != 0) return
 
-    private fun startThread()
-    {
-        if (runThread?.isAlive == true || !bRunning)
-            return
+        compositesEv += rxInputReader
+            .filter { !gesture.isNearProximity }
+            .subscribe { evInput ->
 
-        if (!gesture.su.checkRootAccess() || inputDevices.isEmpty())
-            return
-
-        runThread = thread(priority = Thread.MAX_PRIORITY){
-
-            if (BuildConfig.DEBUG){
-                Log.d("SensorInput", "Start")
-            }
-
-            while(bRunning)
-            {
-                if (!gesture.su.checkRootAccess()) break
-
-                if (!threadLoopNew()) threadLoop()
-            }
-            runThread = null
-
-            if (BuildConfig.DEBUG){
-                Log.d("SensorInput", "Exit")
-            }
-        }
-    }
-
-    private fun threadLoopNew() : Boolean
-    {
-        val reader = UnpackEventReader(context)
-        val cmdName= reader.copyResourceTo(
-                "EventReader.so", "EventReader") ?: return false
-        gesture.su.exec("chmod 777 $cmdName")
-
-        val arg = inputDevices.joinToString(" ") { it.first }
-        gesture.su.exec("$cmdName $arg&")
-//        Runtime.getRuntime().exec("$cmdName $arg&")
-
-        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+):\\s+([^\\s]+)\\s+([^\\s]+)\\s*([^\\s]+)")
-        val coordinates = Point(-1, -1)
-
-        while(bRunning) {
-            //  Read line from input
-            val rawLine = gesture.su.readErrorLine() ?: break
-            //  Stop if gesture need stop run
-            if (!bRunning) break
-            //  Check device is near screen
-            if (gesture.isNearProximity) continue
-            val ev = regSplit.find(rawLine) ?: continue
-
-            val timeout = ev.groupValues[1].toDoubleOrNull()?:continue
-
-            if (ev.groupValues[3] != "EV_KEY") continue
-            val evInput = EvData(ev.groupValues[2],
-                    ev.groupValues[4],
-                    ev.groupValues[5],
-                    (timeout*1000).toInt(), coordinates)
-
-            inputDevices
-                    .find { it.first == ev.groupValues[2] }
-                    ?.second?.onEvent(evInput)
-                    ?.apply { sensorEvent(this) }
-        }
-
-        gesture.su.killJobs()
-        return true
-    }
-
-    private fun threadLoop()
-    {
-        var device = ""
-        var bQueryFound = false
-        val queryIx = System.currentTimeMillis()
-
-        //  For each device
-        var ix = 0
-        inputDevices.forEach {
-
-            //  Run input event detector
-            evCmd(queryIx, ++ix, it, 2, 4)
-            evCmd(queryIx, ++ix, it, 4, 2)
-        }
-
-        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
-        val coordinates = Point(-1, -1)
-        var lastEventTime = 0.0
-        var lastKeyEventTime = 0.0
-        var eqEvents = emptyList<String>()
-
-        while(bRunning)
-        {
-            //  Read line from input
-            val rawLine = gesture.su.readErrorLine() ?: break
-            //  Stop if gesture need stop run
-            if (!bRunning) break
-
-            //  Check query number for skip old events output
-
-            if (!bQueryFound){
-                bQueryFound = rawLine == "query$queryIx"
-                continue
-            }
-
-            //  Check device is near screen
-            if (gesture.isNearProximity) continue
-            if (eqEvents.contains(rawLine)) continue
-
-            if (rawLine.contains("/dev/input/")){
-                device = rawLine
-                continue
-            }
-
-            val ev = regSplit.find(rawLine) ?: continue
-            eqEvents += rawLine
-
-            val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
-            var timeout = timeLine - lastEventTime
-
-            if (timeout < -1000.0) timeout = 1.0
-            if (timeout < 0) continue
-            if (timeout > 0) eqEvents = listOf(rawLine)
-            lastEventTime = timeLine
-
-            //  Check only key events
-            if (ev.groupValues[3] == "ABS_MT_POSITION_X"){
-                coordinates.x = ev.groupValues[4].toInt(16)
-                continue
-            }
-            if (ev.groupValues[3] == "ABS_MT_POSITION_Y"){
-                coordinates.y = ev.groupValues[4].toInt(16)
-                continue
-            }
-
-            if (ev.groupValues[2] != "EV_KEY") continue
-
-            val evInput = EvData(ev.groupValues[2],
-                    ev.groupValues[3],
-                    ev.groupValues[4],
-                    ((timeLine - lastKeyEventTime)*1000).toInt(),
-                    coordinates)
-
-            lastKeyEventTime = timeLine
-
-            inputDevices
-                    .find { it.first == device }
+                inputDevices
+                    .find { it.first == evInput.device }
                     ?.second?.onEvent(evInput)
                     ?.also { sensorEvent(it) }
-        }
-        gesture.su.killJobs()
+            }
     }
 
     companion object

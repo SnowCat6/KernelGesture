@@ -9,8 +9,7 @@ import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.subjects.PublishSubject
 import kotlin.concurrent.thread
 
-class InputReader(val context: Context,
-                  val su: ShellSU = ShellSU())
+class InputReader(val su: ShellSU = ShellSU())
     : Observable<InputReader.EvData>()
 {
     data class EvData(
@@ -21,13 +20,22 @@ class InputReader(val context: Context,
             val evTimeout   : Int
     )
 
-    private var bPause = false
-
     private var inputDevices  = emptyList<String>()
     private var threadHandler : Thread? = null
     private var rxEmitter = PublishSubject.create<EvData>()
     private val composites = CompositeDisposable()
     private var cmdName : String? = null
+
+    fun create(context: Context){
+
+        val reader = UnpackEventReader(context)
+        cmdName = reader.copyResourceTo(
+            "EventReader.so",
+            "EventReader")
+            ?.also {
+                su.exec("chmod 777 $it")
+            }
+    }
 
     fun setDevices(devices : List<String>)
     {
@@ -57,10 +65,6 @@ class InputReader(val context: Context,
         if (!su.checkRootAccess()) return
     }
 
-    fun pause(bSetPause : Boolean){
-        bPause = bSetPause
-    }
-
     override fun subscribeActual(observer: Observer<in EvData>?) {
         observer?.also {
             rxEmitter.subscribe(it)
@@ -86,16 +90,6 @@ class InputReader(val context: Context,
 
     private fun threadLoopNew(): Boolean
     {
-        if (cmdName == null)
-        {
-            val reader = UnpackEventReader(context)
-            cmdName = reader.copyResourceTo(
-                    "EventReader.so",
-                    "EventReader")
-                    ?: return false
-            su.exec("chmod 777 $cmdName")
-        }
-
         val arg = inputDevices.joinToString(" ")
         su.exec("$cmdName $arg&")
 //        Runtime.getRuntime().exec("$cmdName $arg&")
@@ -108,7 +102,6 @@ class InputReader(val context: Context,
             //  Stop if gesture need stop run
             if (!hasObservers()) break
             //  Check device is near screen
-            if (bPause) continue
 
             val ev = regSplit.find(rawLine) ?: continue
             val timeout = ev.groupValues[1].toDoubleOrNull()?:continue
@@ -163,7 +156,6 @@ class InputReader(val context: Context,
             }
 
             //  Check device is near screen
-            if (bPause) continue
             if (eqEvents.contains(rawLine)) continue
 
             if (rawLine.contains("/dev/input/")){
@@ -214,5 +206,16 @@ class InputReader(val context: Context,
     private fun onNext(event : EvData)
     {
         rxEmitter.onNext(event)
+    }
+
+    companion object
+    {
+        private var rxInputReader : InputReader? = null
+        fun getInstance(context: Context)
+            = rxInputReader ?: InputReader().apply{
+
+                rxInputReader = this
+                create(context)
+            }
     }
 }
