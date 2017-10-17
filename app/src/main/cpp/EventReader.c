@@ -11,7 +11,7 @@
 #include <sys/poll.h>
 #include <time.h>
 #include <signal.h>
-
+#include <sys/prctl.h>
 
 #define MAX_DEVICE_INPUT 10
 #define LABEL(constant) { #constant, constant }
@@ -64,12 +64,15 @@ int main(int argc, char **argv)
     setbuf(stdout, NULL);
     setbuf(stderr, NULL);
 
+    //  KILL SIGNALS
     signal(SIGINT, sig_handler);
     signal(SIGKILL, sig_handler);
     signal(SIGHUP, sig_handler);
     signal(SIGQUIT, sig_handler);
     signal(SIGTERM, sig_handler);
     signal(SIGTSTP, sig_handler);
+    //  Parent process was killed
+    prctl(PR_SET_PDEATHSIG, SIGHUP);
 
     sigemptyset(&sact.sa_mask);
     sact.sa_flags = 0;

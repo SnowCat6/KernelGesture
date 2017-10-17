@@ -9,8 +9,8 @@ import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.subjects.PublishSubject
 import kotlin.concurrent.thread
 
-class InputReader(val su: ShellSU = ShellSU())
-    : Observable<InputReader.EvData>()
+class RxInputReader(val su: ShellSU = ShellSU())
+    : Observable<RxInputReader.EvData>()
 {
     data class EvData(
             val device      : String,
@@ -32,9 +32,10 @@ class InputReader(val su: ShellSU = ShellSU())
         cmdName = reader.copyResourceTo(
             "EventReader.so",
             "EventReader")
-            ?.also {
-                su.exec("chmod 777 $it")
-            }
+            ?.also { chmod(it) }
+    }
+    private fun chmod(it : String){
+        su.exec("chmod 777 $it")
     }
 
     fun setDevices(devices : List<String>)
@@ -47,17 +48,20 @@ class InputReader(val su: ShellSU = ShellSU())
         if (devices.isEmpty()) return
 
         if (!rxEmitter.hasObservers()) return
+
         rxEmitter.doOnDispose {
             synchronized(inputDevices) {
                  threadHandler = null
             }
             //  todo: sent any messages to flush buffer and self kill threads
+            su.killJobs()
         }
 
         composites += su.su.rxRootEnable
                 .filter { it }
                 .subscribe {
                     synchronized(inputDevices) {
+                        cmdName?.also { chmod(it) }
                         threadHandler = getThread()
                     }
                 }
@@ -82,6 +86,7 @@ class InputReader(val su: ShellSU = ShellSU())
 
     private fun getThread() = thread {
 
+        su.killJobs()
         if (!threadLoopNew()) threadLoop()
         synchronized(inputDevices) {
             if (isThread()) threadHandler = null
@@ -116,8 +121,6 @@ class InputReader(val su: ShellSU = ShellSU())
             )
             onNext(it)
         }
-
-        su.killJobs()
         return true
     }
 
@@ -187,7 +190,6 @@ class InputReader(val su: ShellSU = ShellSU())
 
             onNext(it)
         }
-        su.killJobs()
     }
 
     /**
@@ -210,9 +212,9 @@ class InputReader(val su: ShellSU = ShellSU())
 
     companion object
     {
-        private var rxInputReader : InputReader? = null
+        private var rxInputReader : RxInputReader? = null
         fun getInstance(context: Context)
-            = rxInputReader ?: InputReader().apply{
+            = rxInputReader ?: RxInputReader().apply{
 
                 rxInputReader = this
                 create(context)

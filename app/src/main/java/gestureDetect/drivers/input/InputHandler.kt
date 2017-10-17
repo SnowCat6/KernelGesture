@@ -5,7 +5,7 @@ import android.graphics.Point
 import android.util.Log
 import android.view.WindowManager
 import gestureDetect.GestureDetect
-import gestureDetect.tools.InputReader
+import gestureDetect.tools.RxInputReader
 import ru.vpro.kernelgesture.BuildConfig
 
 
@@ -109,7 +109,7 @@ abstract class InputHandler(val gesture:GestureDetect)
      * Реакция на событие от устройства ввода
      */
     private var lastScreenPressTime = System.currentTimeMillis()
-    open fun onEvent(ev: InputReader.EvData): String?
+    open fun onEvent(ev: RxInputReader.EvData): String?
     {
         if (ev.evButton != "BTN_TOUCH")
             return filter(ev, ev.evButton)
@@ -164,7 +164,7 @@ abstract class InputHandler(val gesture:GestureDetect)
      * Отфильтровать не поддерживаемые жесты или сконвертировать частные жесты в поддерживаемые
      */
     var lastKeyPressTime = System.currentTimeMillis()
-    fun filter(ev: InputReader.EvData, key: String?, convert: Array<Pair<String, String>>? = null): String?
+    fun filter(ev: RxInputReader.EvData, key: String?, convert: Array<Pair<String, String>>? = null): String?
     {
         if (key == null || key.isEmpty()) return null
         if (ev.evPress != "DOWN") return null

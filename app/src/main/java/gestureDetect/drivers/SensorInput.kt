@@ -3,7 +3,7 @@ package gestureDetect.drivers
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import gestureDetect.tools.GestureHW
-import gestureDetect.tools.InputReader
+import gestureDetect.tools.RxInputReader
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
@@ -16,7 +16,7 @@ import java.io.FileReader
 
 class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
-    private val rxInputReader = InputReader.getInstance(context)
+    private val rxInputReader = RxInputReader.getInstance(context)
 
     /**
      * Input devices

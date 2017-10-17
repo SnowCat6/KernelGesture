@@ -187,6 +187,7 @@ class GestureService :
         gestureDetector?.hw?.unregisterEvents()
         gestureDetector?.close()
         gestureActions?.close()
+//        su.killJobs()
     }
     /************************************/
     /*

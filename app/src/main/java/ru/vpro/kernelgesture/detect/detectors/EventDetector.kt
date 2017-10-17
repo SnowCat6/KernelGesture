@@ -7,7 +7,7 @@ import android.media.RingtoneManager
 import gestureDetect.GestureService
 import gestureDetect.drivers.SensorInput
 import gestureDetect.tools.GestureHW
-import gestureDetect.tools.InputReader
+import gestureDetect.tools.RxInputReader
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -17,7 +17,7 @@ class EventDetector(private val context: Context,
     : LiveData<List<String>>()
 {
     private val composites      = CompositeDisposable()
-    private val rxInputReader   = InputReader(su).apply { create(context) }
+    private val rxInputReader   = RxInputReader(su).apply { create(context) }
 
     override fun onInactive() {
         super.onInactive()
