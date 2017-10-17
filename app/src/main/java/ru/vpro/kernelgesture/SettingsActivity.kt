@@ -109,7 +109,7 @@ class SettingsActivity :
                         .subscribe { rxConfigUpdate.onNext(this) }
             }
         }
-
+/*
         val reader = InputReader( this, ShellSU(ShellSU.ProcessSU()))
         reader.setDevices(listOf("/dev/input/event2"))
         composites += reader
@@ -117,6 +117,7 @@ class SettingsActivity :
                 .subscribe {
             Log.d("Event", "${it.evButton} => ${it.evPress}")
         }
+*/
     }
 
     override fun onDestroy()
