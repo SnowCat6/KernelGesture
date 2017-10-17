@@ -131,7 +131,7 @@ class ShellSU(val su : ProcessSU = commonSU)
     }
 
     fun killJobs(){
-        exec("kill -s SIGINT \$(jobs -p)")
+        exec("kill %%")
     }
 
     fun getFileLine(name: String): String?
