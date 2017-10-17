@@ -16,7 +16,6 @@ import android.hardware.Sensor
 import android.hardware.SensorManager
 import io.reactivex.subjects.BehaviorSubject
 
-
 class GestureHW(val context:Context)
 {
     private val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
@@ -122,7 +121,6 @@ class GestureHW(val context:Context)
     /*
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD"/>
      */
-
     private var homeScreenActivity = listOf<String>()
     fun isHomeScreen():Boolean
     {
@@ -138,14 +136,12 @@ class GestureHW(val context:Context)
                 }
         }
 
-
         val packageName:String
         val mActivityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 //        packageName = mActivityManager.getRunningTasks(1).get(0).topActivity.getPackageName()
         packageName = mActivityManager.runningAppProcesses[0].processName
 
-        return homeScreenActivity.firstOrNull {
-            it == packageName } != null
+        return homeScreenActivity.firstOrNull { it == packageName } != null
     }
     fun hasProximity():Boolean
     {
