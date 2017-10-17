@@ -42,13 +42,14 @@ void onEvent(int nfds, struct input_event event);
 
 struct ThreadArg{
     const char* device;
-    int fd;
     struct input_event last_event;
 };
 static nfds_t nfds = 0;
 static struct pollfd ufds[MAX_DEVICE_INPUT];
 static struct ThreadArg thisEvents[MAX_DEVICE_INPUT];
 
+static int bWakeLock = 0;
+static const char* lockName = "EventReader";
 static struct sigaction sact;
 static int timerId = 0;
 
@@ -77,24 +78,23 @@ int main(int argc, char **argv)
 
     printf("Event reader started\n");
 
+    nfds = 0;
     for (int i = 1; i < argc && nfds < MAX_DEVICE_INPUT; i++)
     {
         thisEvents[nfds].device = argv[i];
-        thisEvents[nfds].fd = open(thisEvents[nfds].device, O_RDONLY);
-        if (thisEvents[nfds].fd <= 0) {
-            fprintf(stdout, "Error open: %s\n", thisEvents[nfds].device);
+        ufds[nfds].fd = open(thisEvents[nfds].device, O_RDONLY);
+        if (ufds[nfds].fd <= 0) {
+            fprintf(stderr, "Error open: %s\n", thisEvents[nfds].device);
             continue;
         }
 
-        ufds[nfds].fd = thisEvents[nfds].fd;
         ufds[nfds].events = POLLIN;
-
-        fprintf(stdout, "Opened: %s\n", thisEvents[nfds].device);
         ++nfds;
     }
 
-    if (nfds == 0){
-        fprintf(stdout, "No input devices found\n");
+    if (nfds < 1){
+        fprintf(stderr, "No input devices found\n");
+        closeAll();
         exit(1);
     }
 
@@ -103,20 +103,42 @@ int main(int argc, char **argv)
 
     while(bOK)
     {
-        poll(ufds, nfds, -1);
+        poll(ufds, nfds, 5*1000);
         for(int i = 0; i < nfds; i++)
         {
             if (ufds[i].revents == 0) continue;
             if((ufds[i].revents & POLLIN) == 0) continue;
 
             bOK = read(ufds[i].fd, &event, sizeof(event)) == sizeof(event);
-            if (!bOK) break;
+            if (!bOK){
+                fprintf(stderr, "Event read failed\n");
+                break;
+            }
 
             onEvent(i, event);
         }
     }
     closeAll();
     return 0;
+}
+
+int echo(const char* fileName, const char* message)
+{
+    int fd = open(fileName, O_RDWR, S_IWUSR);
+    if (fd == -1) return 0;
+
+    write(fd, message, strlen(message));
+    close(fd);
+
+    return 1;
+}
+
+void vibrate(int nTime){
+    char strTime[12];
+    sprintf(strTime, "%d", nTime);
+    if (echo("/sys/devices/virtual/timed_output/vibrator/enable", strTime) == 0){
+        fprintf(stderr, "Vibrate failed\n");
+    };
 }
 
 void onEvent(int nfds, struct input_event event)
@@ -127,7 +149,6 @@ void onEvent(int nfds, struct input_event event)
     struct timeval diff;
     timersub(&event.time, &thisEvent->last_event.time, &diff);
 
-    wakeLock();
     fprintf(stderr, "[%8ld.%06ld] %s: %-12.12s %-20.20s  %s\n",
             diff.tv_sec, diff.tv_usec,
             thisEvent->device,
@@ -146,43 +167,36 @@ void sig_handler(int signo)
 
 void closeAll()
 {
-    printf("Event reader exit\n");
     for(int i = 0; i < nfds; i++){
-        close(thisEvents->fd);
+        close(ufds->fd);
     }
     nfds = 0;
     wakeUnlock();
+    fprintf(stderr, "Event reader exit\n");
 }
 
-static const char* lockName = "EventReader";
-int echo(const char* fileName, const char* message)
-{
-    int fd = open(fileName, O_RDWR, S_IWUSR);
-    if (fd == -1) return 0;
-
-    write(fd, message, strlen(message));
-    close(fd);
-
-    return 1;
-}
 void wakeLock()
 {
+    if (bWakeLock == 1) return;
+
     if (echo("/sys/power/wake_lock", lockName) == 0){
         fprintf(stderr, "Wake lock failed\n");
         return;
     }
+    bWakeLock = 1;
     fprintf(stderr, "Wake lock\n");
     timerId = alarm(1);
 }
 void wakeUnlock()
 {
+    if (bWakeLock == 0) return;
     if (echo("/sys/power/wake_unlock", lockName) == 0){
         fprintf(stderr, "Wake unlock failed\n");
         return;
     }
+    bWakeLock = 0;
     fprintf(stderr, "Wake unlock\n");
 }
-
 void timer_handler(int sig){
     wakeUnlock();
 }

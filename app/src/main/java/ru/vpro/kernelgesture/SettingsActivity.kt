@@ -4,7 +4,6 @@ package ru.vpro.kernelgesture
 import SuperSU.ShellSU
 import android.app.AlertDialog
 import android.app.FragmentManager
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
@@ -30,6 +29,7 @@ import gestureDetect.GestureService
 import gestureDetect.action.ActionItem
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import gestureDetect.tools.InputReader
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -108,6 +108,14 @@ class SettingsActivity :
                 composites += gestureDetect!!.rxSupportUpdate
                         .subscribe { rxConfigUpdate.onNext(this) }
             }
+        }
+
+        val reader = InputReader( this, ShellSU(ShellSU.ProcessSU()))
+        reader.setDevices(listOf("/dev/input/event2"))
+        composites += reader
+                .subscribeOn(Schedulers.io())
+                .subscribe {
+            Log.d("Event", "${it.evButton} => ${it.evPress}")
         }
     }
 
