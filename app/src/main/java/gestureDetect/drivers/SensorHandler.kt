@@ -1,5 +1,6 @@
 package gestureDetect.drivers
 
+import android.content.Context
 import gestureDetect.GestureDetect
 
 /**
@@ -8,11 +9,10 @@ import gestureDetect.GestureDetect
 
 abstract class SensorHandler(val gesture:GestureDetect)
 {
-    val context = gesture.context
     /**
      * Определить доступность сенсора для работы
      */
-    abstract fun onCreate()
+    abstract fun onCreate(context: Context)
 
     /**
      * Начало процесса детектирования событий

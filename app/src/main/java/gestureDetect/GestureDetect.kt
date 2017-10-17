@@ -96,10 +96,10 @@ class GestureDetect (val context : Context,
         sensorHandlers.forEach { it.enable(bEnable) }
     }
 
-    fun onCreate()
+    fun onCreate(context: Context)
     {
         bLockSupportUpdate = true
-        sensorHandlers.forEach { it.onCreate() }
+        sensorHandlers.forEach { it.onCreate(context) }
         bLockSupportUpdate = false
         rxSupportUpdate.onNext(supported)
     }

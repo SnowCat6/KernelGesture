@@ -52,9 +52,9 @@ class SettingsActivity :
         val gestureDetect : GestureDetect?= null,
         val gestureAction : GestureAction? = null
     ) {
-        fun onCreate(){
+        fun onCreate(context: Context){
             gestureAction?.onCreate()
-            gestureDetect?.onCreate()
+            gestureDetect?.onCreate(context)
         }
         fun close() {
             gestureDetect?.close()
@@ -102,10 +102,10 @@ class SettingsActivity :
             gestureConfig = GestureConfig(
                     GestureDetect(this),
                     GestureAction(this)
-            ).apply {
-                onCreate()
-                composites += gestureDetect!!.rxSupportUpdate
-                        .subscribe { rxConfigUpdate.onNext(this) }
+            ).also { config->
+                config.onCreate(this)
+                composites += config.gestureDetect!!.rxSupportUpdate
+                        .subscribe { rxConfigUpdate.onNext(config) }
             }
         }
     }

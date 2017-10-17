@@ -19,8 +19,8 @@ import ru.vpro.kernelgesture.BuildConfig
 open class SensorProximity(gesture: GestureDetect) :
         SensorHandler(gesture), SensorEventListener
 {
-    private var mSensorManager: SensorManager? = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    private var mProximity: Sensor? = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+    private var mSensorManager: SensorManager? = null
+    private var mProximity: Sensor? = null
     private var bRegisterEvent = false
 
     private var bNearSensor = false
@@ -34,8 +34,11 @@ open class SensorProximity(gesture: GestureDetect) :
 
     private val composites = CompositeDisposable()
 
-    override fun onCreate()
+    override fun onCreate(context: Context)
     {
+        mSensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+        mProximity = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
+
         if (mProximity == null) return
 
         gesture.addSupport(listOf("PROXIMITY", "KEY_PROXIMITY"))

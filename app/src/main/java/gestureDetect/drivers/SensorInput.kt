@@ -1,5 +1,6 @@
 package gestureDetect.drivers
 
+import android.content.Context
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import gestureDetect.tools.GestureHW
@@ -16,7 +17,7 @@ import java.io.FileReader
 
 class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
 {
-    private val rxInputReader = RxInputReader.getInstance(context)
+    private var rxInputReader : RxInputReader? = null
 
     /**
      * Input devices
@@ -41,8 +42,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         compositesEv.clear()
     }
 
-    override fun onCreate()
+    override fun onCreate(context: Context)
     {
+        rxInputReader = RxInputReader.getInstance(context)
+
         if (composites.size() != 0) return
 
         composites += gesture.su.su.rxRootEnable
@@ -56,7 +59,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                         .filter { it.onDetect(name) }
                         .forEach { inputDevices += Pair(input, it) }
                 }
-                rxInputReader.setDevices(inputDevices.map { it.first })
+                rxInputReader?.setDevices(inputDevices.map { it.first })
             }
 
         composites += GestureHW.rxScreenOn
@@ -69,15 +72,17 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
     {
         if (compositesEv.size() != 0) return
 
-        compositesEv += rxInputReader
-            .filter { !gesture.isNearProximity }
-            .subscribe { evInput ->
+        rxInputReader?.apply {
+            compositesEv +=
+                filter { !gesture.isNearProximity }
+                .subscribe { evInput ->
 
-                inputDevices
-                    .find { it.first == evInput.device }
-                    ?.second?.onEvent(evInput)
-                    ?.also { sensorEvent(it) }
-            }
+                    inputDevices
+                        .find { it.first == evInput.device }
+                        ?.second?.onEvent(evInput)
+                        ?.also { sensorEvent(it) }
+                }
+        }
     }
 
     companion object
