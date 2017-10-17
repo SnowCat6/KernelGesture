@@ -10,6 +10,8 @@
 #include <sys/inotify.h>
 #include <sys/poll.h>
 #include <time.h>
+#include <signal.h>
+
 
 #define MAX_DEVICE_INPUT 10
 #define LABEL(constant) { #constant, constant }
@@ -47,7 +49,14 @@ static nfds_t nfds = 0;
 static struct pollfd ufds[MAX_DEVICE_INPUT];
 static struct ThreadArg thisEvents[MAX_DEVICE_INPUT];
 
+static struct sigaction sact;
+static int timerId = 0;
+
 void sig_handler(int signo);
+void closeAll();
+void wakeLock();
+void wakeUnlock();
+void timer_handler(int signo);
 
 int main(int argc, char **argv)
 {
@@ -60,6 +69,11 @@ int main(int argc, char **argv)
     signal(SIGQUIT, sig_handler);
     signal(SIGTERM, sig_handler);
     signal(SIGTSTP, sig_handler);
+
+    sigemptyset(&sact.sa_mask);
+    sact.sa_flags = 0;
+    sact.sa_handler = timer_handler;
+    sigaction(SIGALRM, &sact, NULL);
 
     printf("Event reader started\n");
 
@@ -101,7 +115,7 @@ int main(int argc, char **argv)
             onEvent(i, event);
         }
     }
-
+    closeAll();
     return 0;
 }
 
@@ -113,6 +127,7 @@ void onEvent(int nfds, struct input_event event)
     struct timeval diff;
     timersub(&event.time, &thisEvent->last_event.time, &diff);
 
+    wakeLock();
     fprintf(stderr, "[%8ld.%06ld] %s: %-12.12s %-20.20s  %s\n",
             diff.tv_sec, diff.tv_usec,
             thisEvent->device,
@@ -125,9 +140,49 @@ void onEvent(int nfds, struct input_event event)
 
 void sig_handler(int signo)
 {
+    closeAll();
+    exit(0);
+}
+
+void closeAll()
+{
     printf("Event reader exit\n");
     for(int i = 0; i < nfds; i++){
         close(thisEvents->fd);
     }
-    exit(0);
+    nfds = 0;
+    wakeUnlock();
+}
+
+static const char* lockName = "EventReader";
+int echo(const char* fileName, const char* message)
+{
+    int fd = open(fileName, O_RDWR, S_IWUSR);
+    if (fd == -1) return 0;
+
+    write(fd, message, strlen(message));
+    close(fd);
+
+    return 1;
+}
+void wakeLock()
+{
+    if (echo("/sys/power/wake_lock", lockName) == 0){
+        fprintf(stderr, "Wake lock failed\n");
+        return;
+    }
+    fprintf(stderr, "Wake lock\n");
+    timerId = alarm(1);
+}
+void wakeUnlock()
+{
+    if (echo("/sys/power/wake_unlock", lockName) == 0){
+        fprintf(stderr, "Wake unlock failed\n");
+        return;
+    }
+    fprintf(stderr, "Wake unlock\n");
+}
+
+void timer_handler(int sig){
+    wakeUnlock();
 }

@@ -33,11 +33,11 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             InputCypressTPD(gesture)
     )
     data class EvData(
-            val evName:String,
-            val evButton:String,
-            val evPress:String,
-            val evMilliTime:Double,
-            val coordinates:Point
+            val evName      : String,
+            val evButton    : String,
+            val evPress     : String,
+            val evTimeout   : Int,
+            val coordinates : Point
     )
 
     private var inputDevices = emptyList<Pair<String, InputHandler>>()
@@ -127,14 +127,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             {
                 if (!gesture.su.checkRootAccess()) break
 
-                val reader = UnpackEventReader(context)
-                val cmdName = reader.copyResourceTo(
-                        "EventReader.so",
-                        "EventReader")
-
-                if (!threadLoopNew(cmdName)){
-                    threadLoop()
-                }
+                if (!threadLoopNew()) threadLoop()
             }
             runThread = null
 
@@ -144,13 +137,14 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         }
     }
 
-    private fun threadLoopNew(cmdName: String?) : Boolean
+    private fun threadLoopNew() : Boolean
     {
-        if (cmdName == null || !gesture.su.isFileExists(cmdName))
-            return false
+        val reader = UnpackEventReader(context)
+        val cmdName= reader.copyResourceTo(
+                "EventReader.so", "EventReader") ?: return false
+        gesture.su.exec("chmod 777 $cmdName")
 
         val arg = inputDevices.joinToString(" ") { it.first }
-        gesture.su.exec("chmod 777 $cmdName")
         gesture.su.exec("$cmdName $arg&")
 //        Runtime.getRuntime().exec("$cmdName $arg&")
 
@@ -169,11 +163,10 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             val timeout = ev.groupValues[1].toDoubleOrNull()?:continue
 
             if (ev.groupValues[3] != "EV_KEY") continue
-            if (ev.groupValues[5] != "DOWN") continue
             val evInput = EvData(ev.groupValues[2],
                     ev.groupValues[4],
                     ev.groupValues[5],
-                    timeout, coordinates)
+                    (timeout*1000).toInt(), coordinates)
 
             inputDevices
                     .find { it.first == ev.groupValues[2] }
@@ -203,6 +196,7 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
         val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
         val coordinates = Point(-1, -1)
         var lastEventTime = 0.0
+        var lastKeyEventTime = 0.0
         var eqEvents = emptyList<String>()
 
         while(bRunning)
@@ -250,16 +244,19 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
             }
 
             if (ev.groupValues[2] != "EV_KEY") continue
-//                if (ev.groupValues[4] != "DOWN") continue
+
             val evInput = EvData(ev.groupValues[2],
                     ev.groupValues[3],
                     ev.groupValues[4],
-                    lastEventTime, coordinates)
+                    ((timeLine - lastKeyEventTime)*1000).toInt(),
+                    coordinates)
+
+            lastKeyEventTime = timeLine
 
             inputDevices
                     .find { it.first == device }
                     ?.second?.onEvent(evInput)
-                    ?.apply { sensorEvent(this) }
+                    ?.also { sensorEvent(it) }
         }
         gesture.su.killJobs()
     }
