@@ -25,7 +25,7 @@ abstract class ActionMusic(action: GestureAction, val cmd:String)
 
     override fun run(context: Context): Boolean
     {
-        action.vibrate()
+        action.vibrate(context)
         val intent = Intent(SERVICECMD)
         intent.putExtra(CMDNAME, cmd)
         context.sendBroadcast(intent)

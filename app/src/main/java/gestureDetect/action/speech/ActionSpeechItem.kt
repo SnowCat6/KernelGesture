@@ -28,9 +28,9 @@ abstract class ActionSpeechItem(action: GestureAction) :
         return super.onCreate(context)
     }
 
-    fun doSpeech(value: String): Boolean
+    fun doSpeech(context: Context, value: String): Boolean
     {
-        action.vibrate()
+        action.vibrate(context)
 
         try {
             tts?.apply {

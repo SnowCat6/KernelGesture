@@ -27,7 +27,7 @@ class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
     override fun run(context: Context): Boolean
     {
         val prefix = context.getString(R.string.ui_action_battery)
-        return doSpeech("$prefix ${getBatteryLevel(context)}%")
+        return doSpeech(context, "$prefix ${getBatteryLevel(context)}%")
     }
     private fun getBatteryLevel(context : Context):Int?
     {

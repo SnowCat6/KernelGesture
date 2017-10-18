@@ -17,8 +17,10 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             "/sys/class/leds/flashlight/brightness"
     )
 
+    private var context : Context? = null
     override fun onCreate(context: Context):Boolean
     {
+        this.context = context
         if (onDetectFlashlight(context)) return true
 
         composites += action.su.su.rxRootEnable
@@ -72,11 +74,19 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     override fun run(context: Context): Boolean
     {
         enable = !enable
+        flashLight(context)
+
         return false
+    }
+
+    private fun flashLight(context: Context) {
+        if (flashlightDirect != null) flashlightDirect(context)
+        else flashlightCamera(context)
     }
 
     override fun onStop() {
         enable = false
+        context?.also { flashLight(it) }
         closeCamera()
     }
 
@@ -89,22 +99,13 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     private var flashlightDirect:String? = null
     private var camera:Camera? = null
 
-    var enable : Boolean = false
-        set(value) {
-            if (field == value) return
-            field = value
+    private var enable : Boolean = false
 
-            if (bHasFlash) {
-                if (flashlightDirect != null) flashlightDirect()
-                else flashlightCamera()
-            }
-        }
-
-    private fun flashlightDirect(){
-        action.vibrate()
+    private fun flashlightDirect(context: Context) {
+        action.vibrate(context)
         action.su.exec("echo ${if (enable) 255 else 0} > $flashlightDirect" )
     }
-    private fun flashlightCamera()
+    private fun flashlightCamera(context: Context)
     {
         if (camera == null)
         {
@@ -122,12 +123,12 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         try {
             val params = camera?.parameters ?: return
             if (enable) {
-                action.vibrate()
+                action.vibrate(context)
                 params.flashMode = Camera.Parameters.FLASH_MODE_TORCH
                 camera?.parameters = params
                 camera?.startPreview()
             } else {
-                action.vibrate()
+                action.vibrate(context)
                 params.flashMode = Camera.Parameters.FLASH_MODE_OFF
                 camera?.parameters = params
                 camera?.stopPreview()

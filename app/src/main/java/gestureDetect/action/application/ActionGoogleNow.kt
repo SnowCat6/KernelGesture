@@ -28,7 +28,7 @@ class ActionGoogleNow(action: GestureAction) : ActionApp(action)
     {
         with(action){
             screenON(context)
-            screenUnlock()
+            screenUnlock(context)
             return startNewActivity(context, intent!!)
         }
     }

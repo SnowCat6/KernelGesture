@@ -29,6 +29,6 @@ class ActionSpeechTime(action: GestureAction) : ActionSpeechItem(action)
         if (BuildConfig.DEBUG) {
             Log.d("Time is", result)
         }
-        return doSpeech(result)
+        return doSpeech(context, result)
     }
 }

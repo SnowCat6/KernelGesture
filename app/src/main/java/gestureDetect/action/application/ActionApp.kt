@@ -63,7 +63,7 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
 
         with(action){
             screenON(context)
-            screenUnlock()
+            screenUnlock(context)
             return startNewActivity(context, applicationInfo!!.packageName)
         }
     }

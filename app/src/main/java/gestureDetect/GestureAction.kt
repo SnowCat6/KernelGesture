@@ -44,12 +44,12 @@ class GestureAction(val su : ShellSU = ShellSU())
     )
 
     private var hw      : GestureHW? = null
-    private var settings: GestureSettings? = null
+//    private var settings: GestureSettings? = null
 
     fun onCreate(context: Context)
     {
         hw = GestureHW(context)
-        settings = GestureSettings(context)
+//        settings = GestureSettings(context)
 
         allActions.forEach { it.onCreate(context) }
     }
@@ -79,12 +79,13 @@ class GestureAction(val su : ShellSU = ShellSU())
             Log.d("Gesture action", gestureKey)
         }
 
-        var action:String? = settings?.getAction(gestureKey)
+        val settings = GestureSettings(context)
+        var action:String? = settings.getAction(gestureKey)
 
         if ((action == null || action.isEmpty()) &&
-                settings?.getEnable("GESTURE_DEFAULT_ACTION") == true)
+                settings.getEnable("GESTURE_DEFAULT_ACTION"))
         {
-            action = settings?.getAction("GESTURE_DEFAULT_ACTION")
+            action = settings.getAction("GESTURE_DEFAULT_ACTION")
         }
         if (action == null || action.isEmpty()) return false
 
@@ -111,7 +112,7 @@ class GestureAction(val su : ShellSU = ShellSU())
             val intent = context.packageManager
                     ?.getLaunchIntentForPackage(action) ?: return false
             screenON(context)
-            screenUnlock()
+            screenUnlock(context)
             return startNewActivity(context, intent)
         }catch (e:Exception){}
         return false
@@ -137,16 +138,17 @@ class GestureAction(val su : ShellSU = ShellSU())
         }
         return true
     }
-    fun screenUnlock()
+    fun screenUnlock(context: Context)
     {
-        if (settings?.getEnable("GESTURE_UNLOCK_SCREEN") == true) {
+        val settings = GestureSettings(context)
+        if (settings.getEnable("GESTURE_UNLOCK_SCREEN")) {
             hw?.screenUnlock()
         }
     }
     fun screenON(context: Context)
     {
         playNotify(context)
-        vibrate()
+        vibrate(context)
         hw?.screenON()
     }
     private fun playNotify(context: Context):Boolean
@@ -166,8 +168,9 @@ class GestureAction(val su : ShellSU = ShellSU())
         }
         return false
     }
-    fun vibrate(){
-        if (settings?.getEnable("GESTURE_VIBRATION") == true) {
+    fun vibrate(context: Context) {
+        val settings = GestureSettings(context)
+        if (settings.getEnable("GESTURE_VIBRATION")) {
             hw?.vibrate()
         }
     }
@@ -175,7 +178,8 @@ class GestureAction(val su : ShellSU = ShellSU())
     fun getRingtone(context: Context) : Ringtone?
     {
         try {
-            val value = settings?.getPreference()
+            val settings = GestureSettings(context)
+            val value = settings.getPreference()
                     ?.getString("GESTURE_NOTIFY", null)
             if (value == null || value.isEmpty()) return null
 
