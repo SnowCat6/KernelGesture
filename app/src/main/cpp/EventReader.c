@@ -1,6 +1,6 @@
 
-#include "EventReader.h"
-#include "EventTools.h"
+#include "include/EventReader.h"
+#include "include/EventTools.h"
 
 int addInput(const char* deviceName);
 int readInputs();
