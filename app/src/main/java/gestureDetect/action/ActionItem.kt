@@ -1,5 +1,6 @@
 package gestureDetect.action
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
 import ru.vpro.kernelgesture.tools.getDrawableEx
@@ -10,12 +11,10 @@ import ru.vpro.kernelgesture.tools.getDrawableEx
 
 abstract class ActionItem(val action: GestureAction)
 {
-    val context = action.context
-
     /**
      * Определить доступность действий
      */
-    open fun onCreate():Boolean = true
+    open fun onCreate(context: Context):Boolean = true
     /**
      * Начало процесса ожидание жеста
      */
@@ -34,25 +33,28 @@ abstract class ActionItem(val action: GestureAction)
     /**
      * Получить строку идентификатор действия, к примеру screen.on
      */
-    abstract fun action(): String
+    abstract fun action(context: Context): String?
 
     /**
      * Определить по идентификатору действия, что действие имеет отношение к действию
      */
-    open fun isAction(action: String): Boolean = action == action()
+    open fun isAction(context: Context, action: String)
+            : Boolean = action == action(context)
 
     /**
      * Вернуть название действия
      */
-    open fun name(): String = action()
+    open fun name(context: Context)
+            : String? = action(context)
 
     /**
      * Вернуть иконку действия
      */
-    open fun icon(): Drawable = action.context.getDrawableEx(android.R.color.transparent)
+    open fun icon(context: Context)
+            : Drawable? = context.getDrawableEx(android.R.color.transparent)
 
     /**
      * Выполнитть действие
      */
-    abstract fun run(): Boolean
+    abstract fun run(context: Context): Boolean
 }

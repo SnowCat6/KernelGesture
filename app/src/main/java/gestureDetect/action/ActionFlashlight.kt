@@ -1,5 +1,6 @@
 package gestureDetect.action
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
@@ -15,19 +16,21 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     private val devices = arrayOf(
             "/sys/class/leds/flashlight/brightness"
     )
-    override fun onCreate():Boolean
+
+    override fun onCreate(context: Context):Boolean
     {
-        if (onDetectFlashlight()) return true
+        if (onDetectFlashlight(context)) return true
 
         composites += action.su.su.rxRootEnable
                 .filter { it }
                 .subscribe {
-                    onDetectFlashlight()
+                    onDetectFlashlight(context)
+                    composites.clear()
                 }
 
         return bHasFlash
     }
-    private fun onDetectFlashlight():Boolean
+    private fun onDetectFlashlight(context: Context):Boolean
     {
         bHasFlash = false
 
@@ -41,13 +44,13 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
             }
         }
 
-        if (action.context.packageManager
+        if (context.packageManager
                 .hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH))
         {
             try{
-                val camera = Camera.open()
+                camera = Camera.open()
+                closeCamera()
                 bHasFlash = true
-                camera?.release()
                 return bHasFlash
             }catch (e:Exception){
                 e.printStackTrace()
@@ -56,21 +59,19 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         return false
     }
 
-    override fun action(): String {
+    override fun action(context: Context): String? {
         return if (bHasFlash) "application.flashlight" else ""
     }
 
-    override fun name(): String
+    override fun name(context: Context): String?
             = context.getString(R.string.ui_action_flashlight)
 
-    override fun icon(): Drawable
+    override fun icon(context: Context): Drawable?
             = context.getDrawableEx(R.drawable.icon_flashlight)
 
-    override fun run(): Boolean
+    override fun run(context: Context): Boolean
     {
         enable = !enable
-        action.vibrate()
-//        if (enable) action.playNotify()
         return false
     }
 
@@ -88,24 +89,27 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     private var flashlightDirect:String? = null
     private var camera:Camera? = null
 
-    var enable:Boolean = false
+    var enable : Boolean = false
         set(value) {
             if (field == value) return
             field = value
 
-            if (flashlightDirect != null) flashlightDirect()
-            else flashlightCamera()
+            if (bHasFlash) {
+                if (flashlightDirect != null) flashlightDirect()
+                else flashlightCamera()
+            }
         }
 
     private fun flashlightDirect(){
+        action.vibrate()
         action.su.exec("echo ${if (enable) 255 else 0} > $flashlightDirect" )
     }
     private fun flashlightCamera()
     {
-        if (!bHasFlash) return
-
         if (camera == null)
         {
+            if (!enable) return
+
             camera = try {
                 Camera.open()
             } catch (e: RuntimeException) {
@@ -118,13 +122,16 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         try {
             val params = camera?.parameters ?: return
             if (enable) {
+                action.vibrate()
                 params.flashMode = Camera.Parameters.FLASH_MODE_TORCH
                 camera?.parameters = params
                 camera?.startPreview()
             } else {
+                action.vibrate()
                 params.flashMode = Camera.Parameters.FLASH_MODE_OFF
                 camera?.parameters = params
                 camera?.stopPreview()
+                closeCamera()
             }
         }catch (e:Exception){
         }

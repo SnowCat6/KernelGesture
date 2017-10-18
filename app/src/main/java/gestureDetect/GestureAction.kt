@@ -6,7 +6,6 @@ import android.content.Intent
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
-import android.preference.PreferenceManager
 import android.util.Log
 import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.action.*
@@ -24,7 +23,7 @@ import gestureDetect.tools.GestureSettings
 import ru.vpro.kernelgesture.BuildConfig
 
 
-class GestureAction(val context:Context, val su : ShellSU = ShellSU())
+class GestureAction(val su : ShellSU = ShellSU())
 {
     private val allActions = arrayOf(
             ActionScreenOn(this),
@@ -43,24 +42,19 @@ class GestureAction(val context:Context, val su : ShellSU = ShellSU())
             ActionMail(this),
             ActionCamera(this)
     )
-    val hw      = GestureHW(context)
-    val settings= GestureSettings(context)
 
-    fun onCreate(){
-        allActions.forEach { it.onCreate() }
+    private var hw      : GestureHW? = null
+    private var settings: GestureSettings? = null
+
+    fun onCreate(context: Context)
+    {
+        hw = GestureHW(context)
+        settings = GestureSettings(context)
+
+        allActions.forEach { it.onCreate(context) }
     }
 
     fun onStart() {
-        //  Preload notify
-        try {
-            ringtone = null
-            val value = PreferenceManager.getDefaultSharedPreferences(context).getString("GESTURE_NOTIFY", null)
-            if (value != null && !value.isEmpty()) {
-                val notify = Uri.parse(value)
-                if (notify != null) ringtone = RingtoneManager.getRingtone(context, notify)
-            }
-        }catch (e:Exception){}
-
        allActions.forEach { it.onStart() }
     }
     fun onStop(){
@@ -71,28 +65,32 @@ class GestureAction(val context:Context, val su : ShellSU = ShellSU())
         allActions.forEach { it.close() }
     }
 
-    fun getAction(action: String?): ActionItem?
-            = if (action == null) null else allActions.find {  action.isNotEmpty() && it.isAction(action) }
+    fun getAction(context: Context, action: String?): ActionItem?
+            = action?.let {
+                allActions.find {  action.isNotEmpty() && it.isAction(context, action) }
+            }
 
-    fun getActions(): List<ActionItem>
-            = allActions.filter { it.action().isNotEmpty() }
+    fun getActions(context: Context): List<ActionItem>
+            = allActions.filter { it.action(context)?.isNotEmpty() == true }
 
-    fun onGestureEvent(gestureKey:String):Boolean
+    fun onGestureEvent(context: Context, gestureKey: String):Boolean
     {
         if (BuildConfig.DEBUG) {
             Log.d("Gesture action", gestureKey)
         }
 
-        var action:String? = settings.getAction(gestureKey)
+        var action:String? = settings?.getAction(gestureKey)
 
-        if ((action == null || action.isEmpty()) && settings.getEnable("GESTURE_DEFAULT_ACTION")){
-            action = settings.getAction("GESTURE_DEFAULT_ACTION")
+        if ((action == null || action.isEmpty()) &&
+                settings?.getEnable("GESTURE_DEFAULT_ACTION") == true)
+        {
+            action = settings?.getAction("GESTURE_DEFAULT_ACTION")
         }
         if (action == null || action.isEmpty()) return false
 
         try {
-            getAction(action)?.apply {
-                return run()
+            getAction(context, action)?.apply {
+                return run(context)
             }
         }catch (e:Exception){
             e.printStackTrace()
@@ -110,27 +108,26 @@ class GestureAction(val context:Context, val su : ShellSU = ShellSU())
             "phone.call.#############"
 */
         try {
-            val intent = context.packageManager.getLaunchIntentForPackage(action) ?: return false
-            screenON()
+            val intent = context.packageManager
+                    ?.getLaunchIntentForPackage(action) ?: return false
+            screenON(context)
             screenUnlock()
-            return startNewActivity(intent)
+            return startNewActivity(context, intent)
         }catch (e:Exception){}
         return false
     }
 
-    private var ringtone: Ringtone? = null
-
-    fun startNewActivity(packageName: String):Boolean
+    fun startNewActivity(context: Context, packageName: String):Boolean
     {
-        var intent = context.packageManager.getLaunchIntentForPackage(packageName)
+        var intent = context.packageManager?.getLaunchIntentForPackage(packageName)
         if (intent == null) {
             // Bring user to the market or let them choose an app?
             intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse("market://details?id=$packageName")
         }
-        return startNewActivity(intent)
+        return startNewActivity(context, intent)
     }
-    fun startNewActivity(intent: Intent):Boolean
+    fun startNewActivity(context: Context, intent: Intent):Boolean
     {
         try {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -142,27 +139,27 @@ class GestureAction(val context:Context, val su : ShellSU = ShellSU())
     }
     fun screenUnlock()
     {
-        if (settings.getEnable("GESTURE_UNLOCK_SCREEN")) {
-            hw.screenUnlock()
+        if (settings?.getEnable("GESTURE_UNLOCK_SCREEN") == true) {
+            hw?.screenUnlock()
         }
     }
-    fun screenON()
+    fun screenON(context: Context)
     {
-        playNotify()
+        playNotify(context)
         vibrate()
-        hw.screenON()
+        hw?.screenON()
     }
-    private fun playNotify():Boolean
+    private fun playNotify(context: Context):Boolean
     {
-        ringtone?.apply {
+        getRingtone(context)?.apply {
             play()
             return false
         }
         return true
     }
-    fun playNotifyToEnd():Boolean
+    fun playNotifyToEnd(context: Context):Boolean
     {
-        ringtone?.apply {
+        getRingtone(context)?.apply {
             play()
             while(isPlaying) Thread.sleep(50)
             return true
@@ -170,8 +167,23 @@ class GestureAction(val context:Context, val su : ShellSU = ShellSU())
         return false
     }
     fun vibrate(){
-        if (settings.getEnable("GESTURE_VIBRATION")) {
-            hw.vibrate()
+        if (settings?.getEnable("GESTURE_VIBRATION") == true) {
+            hw?.vibrate()
         }
+    }
+
+    fun getRingtone(context: Context) : Ringtone?
+    {
+        try {
+            val value = settings?.getPreference()
+                    ?.getString("GESTURE_NOTIFY", null)
+            if (value == null || value.isEmpty()) return null
+
+            val notify = Uri.parse(value)
+            if (notify != null)
+                return RingtoneManager.getRingtone(context, notify)
+
+        }catch (e:Exception){  }
+        return null
     }
 }

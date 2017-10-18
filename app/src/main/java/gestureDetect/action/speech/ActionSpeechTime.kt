@@ -1,5 +1,6 @@
 package gestureDetect.action.speech
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.util.Log
 import gestureDetect.GestureAction
@@ -14,16 +15,16 @@ import java.util.*
  */
 class ActionSpeechTime(action: GestureAction) : ActionSpeechItem(action)
 {
-    override fun action(): String
+    override fun action(context: Context): String?
             = if (isSpeechSupport()) "speech.time" else ""
 
-    override fun name(): String
+    override fun name(context: Context): String?
             = context.getString(R.string.ui_action_speech_time)
 
-    override fun icon(): Drawable
+    override fun icon(context: Context): Drawable?
             = context.getDrawableEx(R.drawable.icon_speech_time)
 
-    override fun run(): Boolean {
+    override fun run(context: Context): Boolean {
         val result = MessageFormat.format("{0,time,short}", Date())
         if (BuildConfig.DEBUG) {
             Log.d("Time is", result)

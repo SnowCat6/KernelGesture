@@ -1,5 +1,6 @@
 package gestureDetect.action.speech
 
+import android.content.Context
 import android.content.Context.BATTERY_SERVICE
 import android.graphics.drawable.Drawable
 import android.os.BatteryManager
@@ -14,21 +15,21 @@ import java.io.File
  */
 class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
 {
-    override fun action(): String
-            = if (getBatteryLevel() is Int && isSpeechSupport()) "speech.battery" else ""
+    override fun action(context: Context): String?
+            = if (getBatteryLevel(context) is Int && isSpeechSupport()) "speech.battery" else ""
 
-    override fun name(): String
+    override fun name(context: Context): String?
             = context.getString(R.string.ui_action_speech_battery)
 
-    override fun icon(): Drawable
+    override fun icon(context: Context): Drawable?
             = context.getDrawableEx(R.drawable.icon_speech_battery)
 
-    override fun run(): Boolean
+    override fun run(context: Context): Boolean
     {
         val prefix = context.getString(R.string.ui_action_battery)
-        return doSpeech("$prefix ${getBatteryLevel()}%")
+        return doSpeech("$prefix ${getBatteryLevel(context)}%")
     }
-    private fun getBatteryLevel():Int?
+    private fun getBatteryLevel(context : Context):Int?
     {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {

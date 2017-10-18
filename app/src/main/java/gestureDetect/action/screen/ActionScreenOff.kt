@@ -1,8 +1,10 @@
 package gestureDetect.action.screen
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
 import gestureDetect.action.ActionItem
+import gestureDetect.tools.GestureHW
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.tools.getDrawableEx
 
@@ -11,17 +13,17 @@ import ru.vpro.kernelgesture.tools.getDrawableEx
  */
 class ActionScreenOff(action: GestureAction) : ActionItem(action)
 {
-    override fun action(): String
+    override fun action(context: Context): String?
             = if (action.su.hasRootProcess()) "screen.off" else ""
 
-    override fun name(): String
+    override fun name(context: Context): String?
             = context.getString(R.string.ui_action_screen_off)
 
-    override fun icon(): Drawable
+    override fun icon(context: Context): Drawable?
             = context.getDrawableEx(R.drawable.icon_screen_off)
 
-    override fun run(): Boolean {
-        action.hw.vibrate()
+    override fun run(context: Context): Boolean {
+        GestureHW(context).vibrate()
         action.su.exec("input keyevent 26")
         return true
     }

@@ -1,5 +1,6 @@
 package gestureDetect.action.speech
 
+import android.content.Context
 import android.os.Build
 import android.speech.tts.TextToSpeech
 import com.google.firebase.crash.FirebaseCrash
@@ -20,6 +21,13 @@ abstract class ActionSpeechItem(action: GestureAction) :
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP
     }
 
+    override fun onCreate(context: Context): Boolean {
+        if (tts == null) {
+            tts = TextToSpeech(context, this)
+        }
+        return super.onCreate(context)
+    }
+
     fun doSpeech(value: String): Boolean
     {
         action.vibrate()
@@ -38,12 +46,6 @@ abstract class ActionSpeechItem(action: GestureAction) :
         }
 
         return false
-    }
-
-    override fun onStart()
-    {
-        if (tts != null) return
-        tts = TextToSpeech(context, this)
     }
 
     override fun close()

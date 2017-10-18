@@ -53,7 +53,7 @@ class SettingsActivity :
         val gestureAction : GestureAction? = null
     ) {
         fun onCreate(context: Context){
-            gestureAction?.onCreate()
+            gestureAction?.onCreate(context)
             gestureDetect?.onCreate(context)
         }
         fun close() {
@@ -101,7 +101,7 @@ class SettingsActivity :
         thread{
             gestureConfig = GestureConfig(
                     GestureDetect(this),
-                    GestureAction(this)
+                    GestureAction()
             ).also { config->
                 config.onCreate(this)
                 composites += config.gestureDetect!!.rxSupportUpdate
@@ -297,17 +297,6 @@ class SettingsActivity :
                 isEnabled = hw.hasVibrate()
             }
 
-            preferenceItems.forEach {
-
-                findPreference(it.key)?.apply {
-
-                    icon = it.icon
-                    onPreferenceChangeListener = changeListener()
-                    onPreferenceClickListener = actionListener
-                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
-                }
-            }
-
             arrayOf(
                     Pair("TOUCH_PREFERENCE", TouchscreenPreferenceFragment::class.java),
                     Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
@@ -341,7 +330,9 @@ class SettingsActivity :
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe {
                         updateControls()
+                        updateActions()
                     }
+            updateActions()
         }
 
         override fun onDestroy(){
@@ -490,6 +481,20 @@ class SettingsActivity :
                     = applicationInfo ?: uiAppInfo(activity, action)
         }
 
+        private fun updateActions()
+        {
+            preferenceItems.forEach {
+
+                findPreference(it.key)?.apply {
+
+                    icon = it.icon
+                    onPreferenceChangeListener = changeListener()
+                    onPreferenceClickListener = actionListener
+                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
+                }
+            }
+        }
+
         private var dlg:AlertDialog? = null
         private fun updateControls()
         {
@@ -572,7 +577,7 @@ class SettingsActivity :
             init{
                 objects += ActionListItem("none")
 
-                rxConfigUpdate.value?.gestureAction?.getActions()
+                rxConfigUpdate.value?.gestureAction?.getActions(context)
                         ?.forEach { objects += ActionListItem(it) }
 
                 thread{
@@ -636,9 +641,9 @@ class SettingsActivity :
                 "none" -> ""
                 is BoxAdapter.ActionListItem -> item.action
                 is ApplicationInfo -> item.packageName
-                is ActionItem -> item.action()
+                is ActionItem -> item.action(context) ?: ""
                 is String -> {
-                    rxConfigUpdate.value?.gestureAction?.getAction(item)?.apply { return item  }
+                    rxConfigUpdate.value?.gestureAction?.getAction(context, item)?.apply { return item  }
                     uiAppInfo(context, item)?.apply { return item }
                     ""
                 }
@@ -654,8 +659,9 @@ class SettingsActivity :
 
                 "" ->  context.getString(R.string.ui_default_action)
                 "none"  -> context.getString(R.string.ui_no_action)
-                is ActionItem -> item.name()
-                is String -> rxConfigUpdate.value?.gestureAction?.getAction(item)?.name() ?: ""
+                is ActionItem -> item.name(context) ?: ""
+                is String -> rxConfigUpdate.value?.gestureAction
+                        ?.getAction(context, item)?.name(context) ?: ""
                 else -> ""
             }
         }
@@ -663,9 +669,13 @@ class SettingsActivity :
         {
             return when(item){
                 is BoxAdapter.ActionListItem -> item.icon
-                is ApplicationInfo -> context.packageManager.getApplicationIcon(item)?: context.getDrawableEx(android.R.color.transparent)
-                is ActionItem -> item.icon()
-                is String -> rxConfigUpdate.value?.gestureAction?.getAction(item)?.icon() ?: context.getDrawableEx(android.R.color.transparent)
+                is ApplicationInfo -> context.packageManager.getApplicationIcon(item)
+                        ?: context.getDrawableEx(android.R.color.transparent)
+                is ActionItem -> item.icon(context)
+                        ?: context.getDrawableEx(android.R.color.transparent)
+                is String -> rxConfigUpdate.value?.gestureAction
+                        ?.getAction(context, item)?.icon(context)
+                        ?: context.getDrawableEx(android.R.color.transparent)
                 else -> context.getDrawableEx(android.R.color.transparent)
             }
         }

@@ -54,13 +54,13 @@ class GestureService :
         val gesture = gestureDetector ?: GestureDetect(this, su)
         gestureDetector = gesture
 
-        val actions = gestureActions ?: GestureAction(this, su)
+        val actions = gestureActions ?: GestureAction( su)
         gestureActions = actions
 
         gesture.onCreate(this)
         //  Enable/disable gestures on start service
         gesture.enable(true)
-        actions.onCreate()
+        actions.onCreate(this)
 
         setServiceForeground(!hw.isScreenOn())
 
@@ -81,7 +81,7 @@ class GestureService :
             val ev = gesture.waitGesture() ?: break
             if (bDisableService) continue
             try {
-                actions.onGestureEvent(ev)
+                actions.onGestureEvent(this, ev)
             }catch (e:Exception){
                 e.printStackTrace()
                 FirebaseCrash.report(e)

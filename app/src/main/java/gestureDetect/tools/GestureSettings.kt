@@ -8,6 +8,9 @@ class GestureSettings(val context: Context)
 {
     private val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
+    fun getPreference()
+            = sharedPreferences
+
     fun getAllEnable(): Boolean
             = getEnable(GESTURE_ENABLE)
 

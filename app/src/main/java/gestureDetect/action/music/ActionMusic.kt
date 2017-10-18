@@ -1,5 +1,6 @@
 package gestureDetect.action.music
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import gestureDetect.GestureAction
@@ -7,7 +8,8 @@ import gestureDetect.action.ActionItem
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.tools.getDrawableEx
 
-abstract class ActionMusic(action: GestureAction, val cmd:String):ActionItem(action)
+abstract class ActionMusic(action: GestureAction, val cmd:String)
+    :ActionItem(action)
 {
     companion object
     {
@@ -21,7 +23,7 @@ abstract class ActionMusic(action: GestureAction, val cmd:String):ActionItem(act
         val CMDNEXT = "next"
     }
 
-    override fun run(): Boolean
+    override fun run(context: Context): Boolean
     {
         action.vibrate()
         val intent = Intent(SERVICECMD)
@@ -34,32 +36,32 @@ abstract class ActionMusic(action: GestureAction, val cmd:String):ActionItem(act
 class ActionMusicPlayPause(action:GestureAction):
         ActionMusic(action, CMDTOGGLEPAUSE)
 {
-    override fun action(): String
+    override fun action(context: Context): String?
             = "music.playPause"
-    override fun name(): String
+    override fun name(context: Context): String?
             = context.getString(R.string.ui_action_music_playpause)
-    override fun icon(): Drawable
+    override fun icon(context: Context): Drawable?
             = context.getDrawableEx(R.drawable.icon_music_playstop)
 }
 
 class ActionMusicPrev(action:GestureAction):
         ActionMusic(action, CMDPREVIOUS)
 {
-    override fun action(): String
+    override fun action(context: Context): String?
             = "music.playPrev"
-    override fun name(): String
+    override fun name(context: Context): String?
             = context.getString(R.string.ui_action_music_prev)
-    override fun icon(): Drawable
+    override fun icon(context: Context): Drawable?
             = context.getDrawableEx(R.drawable.icon_music_prev)
 }
 
 class ActionMusicNext(action:GestureAction):
         ActionMusic(action, CMDNEXT)
 {
-    override fun action(): String
+    override fun action(context: Context): String?
             = "music.playNext"
-    override fun name(): String
+    override fun name(context: Context): String?
             = context.getString(R.string.ui_action_music_next)
-    override fun icon(): Drawable
+    override fun icon(context: Context): Drawable?
             = context.getDrawableEx(R.drawable.icon_music_next)
 }

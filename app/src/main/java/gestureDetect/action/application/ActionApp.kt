@@ -1,5 +1,6 @@
 package gestureDetect.action.application
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageManager
@@ -15,19 +16,23 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
     private var applicationInfo: ApplicationInfo? = null
     var intent:Intent? = null
 
-    override fun onCreate(): Boolean = false
+    override fun onCreate(context: Context): Boolean = false
 
     fun onDetect(intent:Intent?): Boolean {
         this.intent = intent
         return true
     }
 
-    open fun getInfo():ApplicationInfo?
+    open fun getInfo(context: Context):ApplicationInfo?
     {
         if (applicationInfo == null)
         {
             try {
-                val resolveInfo = context.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)
+                val resolveInfo = context.packageManager
+                        ?.resolveActivity(
+                                intent,
+                                PackageManager.MATCH_DEFAULT_ONLY)
+
                 applicationInfo = resolveInfo?.activityInfo?.applicationInfo
             }catch (e:Exception){
                 e.printStackTrace()
@@ -36,30 +41,30 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
         return applicationInfo
     }
 
-    override fun action(): String
-            = getInfo()?.packageName ?: ""
+    override fun action(context: Context): String?
+            = getInfo(context)?.packageName ?: ""
 
-    fun action(appAction:String): String
-            = if (getInfo() != null) appAction else ""
+    fun action(context: Context, appAction: String): String
+            = if (getInfo(context) != null) appAction else ""
 
-    override fun name(): String {
-        if (getInfo() == null) return super.name()
-        return context.packageManager.getApplicationLabel(getInfo()).toString()
+    override fun name(context: Context): String? {
+        if (getInfo(context) == null) return super.name(context)
+        return context.packageManager?.getApplicationLabel(getInfo(context)).toString()
     }
 
-    override fun icon(): Drawable {
-        if (getInfo() == null) return super.icon()
-        return context.packageManager.getApplicationIcon(getInfo())
+    override fun icon(context: Context): Drawable? {
+        if (getInfo(context) == null) return super.icon(context)
+        return context.packageManager?.getApplicationIcon(getInfo(context))
     }
 
-    override fun run(): Boolean
+    override fun run(context: Context): Boolean
     {
         if (applicationInfo == null) return false
 
         with(action){
-            screenON()
+            screenON(context)
             screenUnlock()
-            return startNewActivity(applicationInfo!!.packageName)
+            return startNewActivity(context, applicationInfo!!.packageName)
         }
     }
 }
