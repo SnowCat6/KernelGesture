@@ -54,7 +54,7 @@ class GestureService :
         val gesture = gestureDetector ?: GestureDetect(this, su)
         gestureDetector = gesture
 
-        val actions = gestureActions ?: GestureAction( su)
+        val actions = GestureAction.getInstance(this)
         gestureActions = actions
 
         gesture.onCreate(this)

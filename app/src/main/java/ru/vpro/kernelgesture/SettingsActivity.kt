@@ -5,20 +5,14 @@ import SuperSU.ShellSU
 import android.app.AlertDialog
 import android.app.FragmentManager
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
-import android.media.RingtoneManager
-import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.preference.*
 import android.util.Log
 import android.view.*
-import android.widget.BaseAdapter
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd
@@ -27,16 +21,15 @@ import gestureDetect.GestureAction
 import gestureDetect.GestureDetect
 import gestureDetect.GestureService
 import gestureDetect.action.ActionItem
-import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
-import kotlinx.android.synthetic.main.adapter_choose_item.view.*
 import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
+import ru.vpro.kernelgesture.tools.BoxAdapter
 import ru.vpro.kernelgesture.tools.getDrawableEx
 import kotlin.concurrent.thread
 
@@ -47,24 +40,6 @@ class SettingsActivity :
 {
     private var mInterstitialAd: InterstitialAd? = null
     private val composites = CompositeDisposable()
-
-    data class GestureConfig(
-        val gestureDetect : GestureDetect?= null,
-        val gestureAction : GestureAction? = null
-    ) {
-        fun onCreate(context: Context){
-            gestureAction?.onCreate(context)
-            gestureDetect?.onCreate(context)
-        }
-        fun close() {
-            gestureDetect?.close()
-            gestureAction?.close()
-        }
-
-        fun isEmpty()= gestureAction == null || gestureDetect == null
-    }
-
-    private var gestureConfig : GestureConfig ? = null
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -98,14 +73,18 @@ class SettingsActivity :
                     supportActionBar.subtitle = it
                 }
 
-        thread{
-            gestureConfig = GestureConfig(
-                    GestureDetect(this),
-                    GestureAction()
-            ).also { config->
-                config.onCreate(this)
-                composites += config.gestureDetect!!.rxSupportUpdate
-                        .subscribe { rxConfigUpdate.onNext(config) }
+        if (rxConfigUpdate.value == null)
+        {
+            GestureDetect(this).also {
+                composites += it.rxSupportUpdate
+                    .subscribe { list->
+                        rxConfigUpdate.onNext(it)
+                    }
+
+                thread{
+                    it.onCreate(this)
+                }
+
             }
         }
     }
@@ -113,10 +92,6 @@ class SettingsActivity :
     override fun onDestroy()
     {
         composites.clear()
-        gestureConfig?.close()
-        gestureConfig = null
-        rxConfigUpdate.onNext(GestureConfig())
-
         super.onDestroy()
     }
 
@@ -209,441 +184,30 @@ class SettingsActivity :
                 GesturePreferenceFragment::class.java.name
         ).contains(fragmentName)
 
-     /**
-     * This fragment shows data and sync preferences only. It is used when the
-     * activity is showing a two-pane settings UI.
-     */
-    open class GesturePreferenceFragment : PreferenceFragment()
+    class TouchscreenPreferenceFragment : GesturePreferenceFragment()
+    { init {  xmlResourceId = R.xml.pref_gesture_touch; iconResource = R.drawable.icon_gesture_touch } }
+
+    class KeyPreferenceFragment : GesturePreferenceFragment()
+    { init { xmlResourceId = R.xml.pref_gesture_keys; iconResource = R.drawable.icon_gesture_key }}
+
+    companion object
     {
-        private val preferenceItems = arrayOf(
-                GestureItem("KEY_U",       "screen.on"),
-                GestureItem("KEY_U_ON",    ""),
-                GestureItem("KEY_UP",      "application.dialer"),
-                GestureItem("KEY_DOWN",    "application.contacts"),
-                GestureItem("KEY_LEFT",    ""),
-                GestureItem("KEY_RIGHT",   ""),
-                GestureItem("KEY_O",       ""),
-                GestureItem("KEY_E",       ""),
-                GestureItem("KEY_M",       "application.email"),
-                GestureItem("KEY_L",       ""),
-                GestureItem("KEY_W",       "application.browser"),
-                GestureItem("KEY_S",       "application.camera"),
-                GestureItem("KEY_V",       ""),
-                GestureItem("KEY_Z",       "speech.battery"),
-                GestureItem("KEY_VOLUMEUP",             ""),
-                GestureItem("KEY_VOLUMEUP_DELAY",       ""),
-                GestureItem("KEY_VOLUMEUP_DELAY_ON",    ""),
-                GestureItem("KEY_VOLUMEDOWN",           ""),
-                GestureItem("KEY_VOLUMEDOWN_DELAY",     ""),
-                GestureItem("KEY_VOLUMEDOWN_DELAY_ON",  ""),
-                GestureItem("KEY_PROXIMITY",            "speech.time"),
-                GestureItem("GESTURE_DEFAULT_ACTION",   "")
-        )
-
-        var xmlResourceId = R.xml.pref_gesture
-        var iconResource = 0
-
-        var settings: GestureSettings? = null
-
-        private val composites = CompositeDisposable()
-
-        override fun onCreate(savedInstanceState: Bundle?)
-        {
-            super.onCreate(savedInstanceState)
-            addPreferencesFromResource(xmlResourceId)
-        }
-
-        override fun onActivityCreated(savedInstanceState: Bundle?) {
-            super.onActivityCreated(savedInstanceState)
-
-            settings = GestureSettings(activity)
-            val hw = GestureHW(activity)
-            updateControls()
-
-            findPreference(GestureSettings.GESTURE_ENABLE)?.apply{
-                this as SwitchPreference
-                onPreferenceChangeListener = enableAllListener
-                onPreferenceChangeListener.onPreferenceChange(this, settings!!.getAllEnable())
-
-                composites += GestureSettings.rxUpdateValue
-                        .filter{ it.key == GestureSettings.GESTURE_ENABLE && it.value !=  isChecked }
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe {
-                            isChecked = it.value as Boolean
-                        }
-            }
-
-            findPreference("GESTURE_NOTIFY")?.apply{
-                onPreferenceChangeListener = notifyListener
-                onPreferenceChangeListener.onPreferenceChange(this, null)
-            }
-
-            findPreference("pref_ROOT")?.apply{
-                setOnPreferenceClickListener {
-                    thread {
-                        val su = ShellSU()
-                        su.enable(true)
-                        if (su.checkRootAccess())
-                            settings?.setAllEnable(true)
-                    }
-                    true
-                }
-            }
-
-            findPreference("GESTURE_PROXIMITY")?.apply {
-                isEnabled = hw.hasProximity()
-            }
-            findPreference("GESTURE_VIBRATION")?.apply {
-                isEnabled = hw.hasVibrate()
-            }
-
-            arrayOf(
-                    Pair("TOUCH_PREFERENCE", TouchscreenPreferenceFragment::class.java),
-                    Pair("KEY_PREFERENCE", KeyPreferenceFragment::class.java)
-            ).forEach { (preferenceName, preferenceClass) ->
-
-                findPreference(preferenceName)?.apply {
-
-                    val item = preferenceClass.newInstance()
-                    if (item.iconResource > 0)
-                        icon = context.getDrawableEx(item.iconResource)
-
-                    setOnPreferenceClickListener {
-                        fragmentManager
-                                .beginTransaction()
-                                .replace(android.R.id.content, item)
-                                .addToBackStack(null)
-                                .commit()
-                        true
-                    }
-                }
-            }
-
-            composites += GestureSettings.rxUpdateValue
-                    .filter { it.key ==  GestureSettings.GESTURE_ENABLE }
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe {
-                        updateControls()
-                    }
-
-            composites += rxConfigUpdate
-                    .observeOn(AndroidSchedulers.mainThread())
-                    .subscribe {
-                        updateControls()
-                        updateActions()
-                    }
-            updateActions()
-        }
-
-        override fun onDestroy(){
-            settings = null
-            composites.clear()
-            super.onDestroy()
-        }
-
-        private val enableAllListener = Preference.OnPreferenceChangeListener { preference, value ->
-            settings?.setAllEnable(value as Boolean)
-            true
-        }
-
-        private fun changeListener(): Preference.OnPreferenceChangeListener {
-            return Preference.OnPreferenceChangeListener { preference, value ->
-
-                value as Boolean
-
-                getItemInstance(preference.key)?.apply {
-                    enable = value
-                    preference.summary = actionName
-                }
-
-                true
-            }
-        }
-        private val actionListener= Preference.OnPreferenceClickListener { preference ->
-
-                val adapter = BoxAdapter(preference)
-
-                with(AlertDialog.Builder(activity))
-                {
-                    setTitle(getString(R.string.iu_choose_action))
-                    setAdapter(adapter, onClickListener)
-                    dlg = create()
-                    dlg?.setOnDismissListener {  dlg = null }
-                    dlg?.show()
-                }
-
-                true
-            }
-
-        private val notifyListener = Preference.OnPreferenceChangeListener { preference, value ->
-
-                var notify:String? = value as String?
-
-                try {
-                    if (notify == null) {
-                        val sharedPreferences = PreferenceManager.getDefaultSharedPreferences(activity)
-                        notify = sharedPreferences.getString("GESTURE_NOTIFY", null)
-                    }
-                }catch (e:Exception){}
-
-                if (notify == null || notify.isEmpty()) {
-                    preference.summary = getString(R.string.ui_no_notify)
-                }else{
-                    val ringtone = RingtoneManager.getRingtone(activity, Uri.parse(notify))
-                    preference.summary = ringtone?.getTitle(activity) ?: getString(R.string.ui_sound_default)
-                }
-
-                true
-            }
-
-        private val onClickListener = DialogInterface.OnClickListener { dialogInterface: DialogInterface, i: Int ->
-
-            val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
-            val item = adapter.getItem(i) as? BoxAdapter.ActionListItem ?: return@OnClickListener
-            val preference = adapter.preference as TwoStatePreference
-            val itemAction =  uiAction(activity, item)
-
-            if (BuildConfig.DEBUG) {
-                Log.d("Set gesture action", itemAction)
-            }
-
-            getItemInstance(preference.key)?.apply {
-
-                action = itemAction
-                enable = itemAction.isNotEmpty()
-
-                preference.isChecked = enable
-                preference.icon = icon
-                preference.onPreferenceChangeListener.onPreferenceChange(preference, enable)
-            }
-        }
-
-        private fun getItemInstance(key:String):GestureItem?
-                = preferenceItems.find { it.key == key }
-
-        inner class GestureItem(val key:String, private var defaultAction:String)
-        {
-            private var applicationInfo:ApplicationInfo? = null
-
-            var action:String
-                get() {
-                    val a = settings?.getAction(key)
-                    if (uiAction(activity, a).isNotEmpty()) return a!!
-                    if (a != null) return ""
-                    if (uiAction(activity, defaultAction).isEmpty()) return ""
-
-                    action = defaultAction
-                    enable = true
-                    return defaultAction
-                }
-                set(value) {
-                    icon = null
-                    applicationInfo = null
-                    settings?.setAction(key, value)
-                }
-
-            var enable:Boolean
-                get() = settings?.getEnable(key) == true
-                set(value){
-                    icon = null
-                    settings?.setEnable(key, value)
-                }
-
-            val actionName:String
-                get() {
-                    getAppInfo()?.apply {
-                        return uiName(activity, this)
-                    }
-
-                    if (action.isEmpty()){
-                        if (key == "GESTURE_DEFAULT_ACTION")
-                            return getString(R.string.ui_no_action)
-                        if (!enable) return getString(R.string.ui_no_action)
-                    }
-
-                    return uiName(activity, action)
-                }
-
-            var icon:Drawable? = null
-                get(){
-                    field?.apply { return field }
-
-                    getAppInfo()?.apply {
-                        field = uiIcon(activity, this)
-                        return field
-                    }
-
-                    field = uiIcon(activity, action)
-                    return field
-                }
-
-            private fun getAppInfo():ApplicationInfo?
-                    = applicationInfo ?: uiAppInfo(activity, action)
-        }
-
-        private fun updateActions()
-        {
-            preferenceItems.forEach {
-
-                findPreference(it.key)?.apply {
-
-                    icon = it.icon
-                    onPreferenceChangeListener = changeListener()
-                    onPreferenceClickListener = actionListener
-                    onPreferenceChangeListener.onPreferenceChange(this, it.enable)
-                }
-            }
-        }
-
-        private var dlg:AlertDialog? = null
-        private fun updateControls()
-        {
-            val su = ShellSU()
-            if (su.hasRootProcess()) preferenceScreen.findPreference("pref_ROOT")?.apply {
-                preferenceScreen.removePreference(this)
-            }
-
-            val fragment = fragmentManager
-                    .findFragmentById(android.R.id.content) as? PreferenceFragment? ?: return
-
-            val context = fragment.activity
-            val support = rxConfigUpdate.value?.gestureDetect?.getSupport() ?: emptyList()
-            val settings = GestureSettings(context)
-
-            var titles = emptyList<String>()
-            var alertMessage:String? = null
-            val bAllEnable = settings.getAllEnable()
-
-            val bGesture = support.contains("GESTURE")
-            val bGestureON = support.contains("GESTURE_ON")
-            val bGestureHW = support.contains("GESTURE_HW")
-            if (bGestureHW) titles += context.getString(R.string.ui_title_gestures)
-
-            val bKeys = support.contains("KEYS")
-            if (bKeys) titles += context.getString(R.string.ui_title_keys)
-
-            val bProximity = support.contains("PROXIMITY")
-            if (bProximity) titles += context.getString(R.string.ui_title_gesture)
-
-            if (rxConfigUpdate.value.isEmpty()) return
-
-            val subtitle = if (!titles.isEmpty()) titles.joinToString(", ")
-            else context.getString(R.string.ui_title_no_any_support)
-            rxSubTitle.onNext(subtitle)
-
-            if (titles.isEmpty())
-                alertMessage = context.getString(R.string.ui_alert_gs_message_wo_keys)
-            else
-                if (!bGestureHW)
-                    alertMessage = context.getString(R.string.ui_alert_gs_message_keys) + " " + titles.joinToString(", ")
-
-            with(preferenceScreen){
-                val bEnable = su.hasRootProcess() && bAllEnable && titles.isNotEmpty()
-                findPreference("GESTURE_GROUP")?.isEnabled = bGesture && bEnable
-                findPreference("GESTURE_GROUP_ON")?.isEnabled = bGestureON && bEnable
-                findPreference("KEY_GROUP")?.isEnabled = bKeys && bEnable
-                findPreference("KEY_GROUP_ON")?.isEnabled = bKeys && bEnable
-                findPreference("SENSOR_GROUP")?.isEnabled = bProximity && bAllEnable
-            }
-
-            if (!su.hasRootProcess()) return
-            if (alertMessage == null || !bShowAlertDlg) return
-            bShowAlertDlg = false
-
-            with(AlertDialog.Builder(context))
-            {
-                setTitle(context.getString(R.string.ui_alert_gs_title))
-                setMessage(alertMessage)
-                dlg = create()
-                dlg?.setOnDismissListener {  dlg = null }
-                dlg?.show()
-            }
-        }
-
-        inner class BoxAdapter internal constructor(
-                internal val preference: Preference) : BaseAdapter()
-        {
-            private var objects = emptyList<Any>()
-            private val context = preference.context
-            private val lInflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            private val currentAction = settings?.getAction(preference.key)
-
-            inner class ActionListItem(val action:String, val name:String, val icon:Drawable)
-            {
-                constructor(action:Any) :
-                        this(uiAction(context, action), uiName(context, action), uiIcon(context, action))
-            }
-
-            init{
-                objects += ActionListItem("none")
-
-                rxConfigUpdate.value?.gestureAction?.getActions(context)
-                        ?.forEach { objects += ActionListItem(it) }
-
-                thread{
-                    val pm =  context.packageManager
-                    val mainIntent = Intent(Intent.ACTION_MAIN, null)
-                    mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
-                    val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
-
-                    var items = listOf<Any>("-")
-                    var filterMap = listOf<String>()
-                    pkgAppsList.forEach {
-                        if (!filterMap.contains(it.activityInfo.applicationInfo.packageName)) {
-                            items += ActionListItem(it.activityInfo.applicationInfo)
-                            filterMap += it.activityInfo.applicationInfo.packageName
-                        }
-                    }
-
-                    Handler(Looper.getMainLooper()).post {
-                        objects += items
-                        notifyDataSetChanged()
-                    }
-                }
-            }
-
-            //  Количество объектов
-            override fun getCount(): Int = objects.size
-            //  Объект
-            override fun getItem(position: Int): Any = objects[position]
-            // id по позиции
-            override fun getItemId(position: Int): Long = position.toLong()
-            // пункт списка
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View
-            {
-                val thisItem = getItem(position)
-                val bSplitView:View? = convertView?.findViewById(R.id.splitter)
-
-                if (thisItem == "-")
-                {
-                    if (bSplitView != null) return convertView
-                    return lInflater.inflate(R.layout.adapter_splitter, parent, false)
-                }
-                // используем созданные, но не используемые view
-                val view:View = if (bSplitView != null || convertView == null)
-                    lInflater.inflate(R.layout.adapter_choose_item, parent, false)
-                else convertView
-
-                view.title?.text = uiName(context, thisItem)
-                view.icon?.setImageDrawable(uiIcon(context, thisItem))
-
-                view.background = if (currentAction == uiAction(context, thisItem)) context.getDrawableEx(android.R.color.holo_orange_light)
-                else null
-
-                return view
-            }
-        }
-
-        fun uiAction(context:Context, item:Any?):String
+        var bShowAlertDlg   = true
+        val rxSubTitle      = BehaviorSubject.createDefault(String())
+        val rxConfigUpdate  = BehaviorSubject.create<GestureDetect>()
+
+        fun uiAction(context:Context, item:Any?):String?
         {
             return when(item)
             {
-                "none" -> ""
+                "none" -> null
                 is BoxAdapter.ActionListItem -> item.action
                 is ApplicationInfo -> item.packageName
                 is ActionItem -> item.action(context) ?: ""
                 is String -> {
-                    rxConfigUpdate.value?.gestureAction?.getAction(context, item)?.apply { return item  }
+                    GestureAction.getInstance(context)
+                            .getAction(context, item)
+                            ?.apply { return item  }
                     uiAppInfo(context, item)?.apply { return item }
                     ""
                 }
@@ -660,8 +224,8 @@ class SettingsActivity :
                 "" ->  context.getString(R.string.ui_default_action)
                 "none"  -> context.getString(R.string.ui_no_action)
                 is ActionItem -> item.name(context) ?: ""
-                is String -> rxConfigUpdate.value?.gestureAction
-                        ?.getAction(context, item)?.name(context) ?: ""
+                is String -> GestureAction.getInstance(context)
+                        .getAction(context, item)?.name(context) ?: ""
                 else -> ""
             }
         }
@@ -673,8 +237,8 @@ class SettingsActivity :
                         ?: context.getDrawableEx(android.R.color.transparent)
                 is ActionItem -> item.icon(context)
                         ?: context.getDrawableEx(android.R.color.transparent)
-                is String -> rxConfigUpdate.value?.gestureAction
-                        ?.getAction(context, item)?.icon(context)
+                is String -> GestureAction.getInstance(context)
+                        .getAction(context, item)?.icon(context)
                         ?: context.getDrawableEx(android.R.color.transparent)
                 else -> context.getDrawableEx(android.R.color.transparent)
             }
@@ -688,16 +252,4 @@ class SettingsActivity :
         }
     }
 
-    class TouchscreenPreferenceFragment : GesturePreferenceFragment()
-    { init {  xmlResourceId = R.xml.pref_gesture_touch; iconResource = R.drawable.icon_gesture_touch } }
-
-    class KeyPreferenceFragment : GesturePreferenceFragment()
-    { init { xmlResourceId = R.xml.pref_gesture_keys; iconResource = R.drawable.icon_gesture_key }}
-
-    companion object
-    {
-        var bShowAlertDlg   = true
-        val rxSubTitle      = BehaviorSubject.createDefault(String())
-        val rxConfigUpdate  = BehaviorSubject.createDefault(GestureConfig())
-    }
 }

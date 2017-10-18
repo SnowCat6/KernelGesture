@@ -1,6 +1,7 @@
 package gestureDetect
 
 import SuperSU.ShellSU
+import android.arch.lifecycle.LiveData
 import android.content.Context
 import android.content.Intent
 import android.media.Ringtone
@@ -8,7 +9,8 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.crash.FirebaseCrash
-import gestureDetect.action.*
+import gestureDetect.action.ActionFlashlight
+import gestureDetect.action.ActionItem
 import gestureDetect.action.application.*
 import gestureDetect.action.music.ActionMusicNext
 import gestureDetect.action.music.ActionMusicPlayPause
@@ -24,8 +26,9 @@ import ru.vpro.kernelgesture.BuildConfig
 
 
 class GestureAction(val su : ShellSU = ShellSU())
+    : LiveData<List<ActionItem>>()
 {
-    private val allActions = arrayOf(
+    private val allActions = listOf(
             ActionScreenOn(this),
             ActionScreenUnlock(this),
             ActionScreenOff(this),
@@ -43,14 +46,16 @@ class GestureAction(val su : ShellSU = ShellSU())
             ActionCamera(this)
     )
 
-    private var hw      : GestureHW? = null
-//    private var settings: GestureSettings? = null
+    init{
+        value = allActions
+    }
+
+    fun notifyChanged(action: ActionItem) {
+        value = allActions
+    }
 
     fun onCreate(context: Context)
     {
-        hw = GestureHW(context)
-//        settings = GestureSettings(context)
-
         allActions.forEach { it.onCreate(context) }
     }
 
@@ -71,7 +76,7 @@ class GestureAction(val su : ShellSU = ShellSU())
             }
 
     fun getActions(context: Context): List<ActionItem>
-            = allActions.filter { it.action(context)?.isNotEmpty() == true }
+            = allActions//.filter { it.action(context)?.isNotEmpty() == true }
 
     fun onGestureEvent(context: Context, gestureKey: String):Boolean
     {
@@ -142,14 +147,14 @@ class GestureAction(val su : ShellSU = ShellSU())
     {
         val settings = GestureSettings(context)
         if (settings.getEnable("GESTURE_UNLOCK_SCREEN")) {
-            hw?.screenUnlock()
+            GestureHW(context).screenUnlock()
         }
     }
     fun screenON(context: Context)
     {
         playNotify(context)
         vibrate(context)
-        hw?.screenON()
+        GestureHW(context).screenON()
     }
     private fun playNotify(context: Context):Boolean
     {
@@ -171,7 +176,7 @@ class GestureAction(val su : ShellSU = ShellSU())
     fun vibrate(context: Context) {
         val settings = GestureSettings(context)
         if (settings.getEnable("GESTURE_VIBRATION")) {
-            hw?.vibrate()
+            GestureHW(context).vibrate()
         }
     }
 
@@ -189,5 +194,15 @@ class GestureAction(val su : ShellSU = ShellSU())
 
         }catch (e:Exception){  }
         return null
+    }
+
+    companion object {
+
+        private var actions : GestureAction? = null
+        fun getInstance(context: Context)
+            = actions ?: GestureAction().apply {
+                actions = this
+                onCreate(context)
+            }
     }
 }

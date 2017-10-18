@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
 import gestureDetect.GestureAction
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import ru.vpro.kernelgesture.R
@@ -24,10 +25,12 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
         if (onDetectFlashlight(context)) return true
 
         composites += action.su.su.rxRootEnable
+                .observeOn(AndroidSchedulers.mainThread())
                 .filter { it }
                 .subscribe {
                     onDetectFlashlight(context)
                     composites.clear()
+                    action.notifyChanged(this)
                 }
 
         return bHasFlash
