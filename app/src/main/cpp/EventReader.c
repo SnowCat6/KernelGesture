@@ -1,118 +1,47 @@
-#include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <linux/input.h>
-#include <string.h>
-#include <stdio.h>
-#include<pthread.h>
-#include <stdint.h>
-#include <dirent.h>
-#include <sys/inotify.h>
-#include <sys/poll.h>
-#include <time.h>
-#include <signal.h>
-#include <sys/prctl.h>
 
-#define MAX_DEVICE_INPUT 10
-#define LABEL(constant) { #constant, constant }
-#define LABEL_END { NULL, -1 }
+#include "EventReader.h"
+#include "EventTools.h"
 
-struct label {
-    const char *name;
-    int         value;
-};
-
-static struct label key_value_labels[] = {
-        { "UP", 0 },
-        { "DOWN", 1 },
-        { "REPEAT", 2 },
-        LABEL_END,
-};
-#include "input.h-labels.h"
-
-static const char *get_label(const struct label *labels, int value)
-{
-    while(labels->name && value != labels->value) {
-        labels++;
-    }
-    return labels->name;
-}
-
-void onEvent(int nfds, struct input_event event);
-
-struct ThreadArg{
-    const char* device;
-    struct input_event last_event;
-};
-static nfds_t nfds = 0;
-static struct pollfd ufds[MAX_DEVICE_INPUT];
-static struct ThreadArg thisEvents[MAX_DEVICE_INPUT];
-
-static int bWakeLock = 0;
-static const char* lockName = "EventReader";
-static struct sigaction sact;
-static int timerId = 0;
-
-void sig_handler(int signo);
-void closeAll();
-void wakeLock();
-void wakeUnlock();
-void timer_handler(int signo);
+int addInput(const char* deviceName);
+int readInputs();
+void onEvent(int inputNdx, struct input_event event);
 
 int main(int argc, char **argv)
 {
-    setbuf(stdout, NULL);
-    setbuf(stderr, NULL);
-
-    //  KILL SIGNALS
-    signal(SIGINT, sig_handler);
-    signal(SIGKILL, sig_handler);
-    signal(SIGHUP, sig_handler);
-    signal(SIGQUIT, sig_handler);
-    signal(SIGTERM, sig_handler);
-    signal(SIGTSTP, sig_handler);
-    //  Parent process was killed
-    prctl(PR_SET_PDEATHSIG, SIGHUP);
-
-    sigemptyset(&sact.sa_mask);
-    sact.sa_flags = 0;
-    sact.sa_handler = timer_handler;
-    sigaction(SIGALRM, &sact, NULL);
-
+    initIO();
     printf("Event reader started\n");
 
-    nfds = 0;
-    for (int i = 1; i < argc && nfds < MAX_DEVICE_INPUT; i++)
-    {
-        thisEvents[nfds].device = argv[i];
-        ufds[nfds].fd = open(thisEvents[nfds].device, O_RDONLY);
-        if (ufds[nfds].fd <= 0) {
-            fprintf(stderr, "Error open: %s\n", thisEvents[nfds].device);
-            continue;
-        }
-
-        ufds[nfds].events = POLLIN;
-        ++nfds;
+    eventInputNdx = 0;
+    for (int i = 1; i < argc; i++){
+        addInput(argv[i]);
     }
 
-    if (nfds < 1){
+    if (eventInputNdx < 1){
         fprintf(stderr, "No input devices found\n");
         closeAll();
         exit(1);
     }
 
+    readInputs();
+
+    closeAll();
+    return 0;
+}
+
+int readInputs()
+{
     int bOK = 1;
     struct input_event event;
 
     while(bOK)
     {
-        poll(ufds, nfds, 5*1000);
-        for(int i = 0; i < nfds; i++)
+        poll(eventInputPuuls, eventInputNdx, -1);
+        for(int i = 0; i < eventInputNdx; i++)
         {
-            if (ufds[i].revents == 0) continue;
-            if((ufds[i].revents & POLLIN) == 0) continue;
+            if (eventInputPuuls[i].revents == 0) continue;
+            if((eventInputPuuls[i].revents & POLLIN) == 0) continue;
 
-            bOK = read(ufds[i].fd, &event, sizeof(event)) == sizeof(event);
+            bOK = read(eventInputPuuls[i].fd, &event, sizeof(event)) == sizeof(event);
             if (!bOK){
                 fprintf(stderr, "Event read failed\n");
                 break;
@@ -121,35 +50,33 @@ int main(int argc, char **argv)
             onEvent(i, event);
         }
     }
-    closeAll();
-    return 0;
+    return bOK;
 }
 
-int echo(const char* fileName, const char* message)
+int addInput(const char* deviceName)
 {
-    int fd = open(fileName, O_RDWR, S_IWUSR);
-    if (fd == -1) return 0;
+    if (eventInputNdx == MAX_DEVICE_INPUT) return 0;
 
-    write(fd, message, strlen(message));
-    close(fd);
+    int fd = open(deviceName, O_RDONLY);
+    if (fd <= 0) {
+        fprintf(stderr, "Error open: %s\n", deviceName);
+        return 0;
+    }
+
+    eventInputPuuls[eventInputNdx].fd = fd;
+    thisEvents[eventInputNdx].device = deviceName;
+    eventInputPuuls[eventInputNdx].events = POLLIN;
+    ++eventInputNdx;
 
     return 1;
 }
-
-void vibrate(int nTime){
-    char strTime[12];
-    sprintf(strTime, "%d", nTime);
-    if (echo("/sys/devices/virtual/timed_output/vibrator/enable", strTime) == 0){
-        fprintf(stderr, "Vibrate failed\n");
-    };
-}
-
-void onEvent(int nfds, struct input_event event)
+void onEvent(int inputNdx, struct input_event event)
 {
     if (event.type != EV_KEY) return;
-    struct ThreadArg *thisEvent = &thisEvents[nfds];
 
+    struct ThreadArg *thisEvent = &thisEvents[inputNdx];
     struct timeval diff;
+
     timersub(&event.time, &thisEvent->last_event.time, &diff);
 
     fprintf(stderr, "[%8ld.%06ld] %s: %-12.12s %-20.20s  %s\n",
@@ -162,44 +89,12 @@ void onEvent(int nfds, struct input_event event)
     memcpy(&thisEvent->last_event, &event, sizeof(event));
 }
 
-void sig_handler(int signo)
-{
-    closeAll();
-    exit(0);
-}
-
 void closeAll()
 {
-    for(int i = 0; i < nfds; i++){
-        close(ufds->fd);
+    for(int i = 0; i < eventInputNdx; i++){
+        close(eventInputPuuls->fd);
     }
-    nfds = 0;
+    eventInputNdx = 0;
     wakeUnlock();
-    fprintf(stderr, "Event reader exit\n");
-}
-
-void wakeLock()
-{
-    if (bWakeLock == 1) return;
-
-    if (echo("/sys/power/wake_lock", lockName) == 0){
-        fprintf(stderr, "Wake lock failed\n");
-        return;
-    }
-    bWakeLock = 1;
-    fprintf(stderr, "Wake lock\n");
-    timerId = alarm(1);
-}
-void wakeUnlock()
-{
-    if (bWakeLock == 0) return;
-    if (echo("/sys/power/wake_unlock", lockName) == 0){
-        fprintf(stderr, "Wake unlock failed\n");
-        return;
-    }
-    bWakeLock = 0;
-    fprintf(stderr, "Wake unlock\n");
-}
-void timer_handler(int sig){
-    wakeUnlock();
+    fprintf(stderr, "Event reader closed\n");
 }
