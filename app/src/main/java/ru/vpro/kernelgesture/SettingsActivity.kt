@@ -10,9 +10,10 @@ import android.content.pm.ApplicationInfo
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.preference.*
+import android.preference.PreferenceFragment
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.InterstitialAd

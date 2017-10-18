@@ -2,6 +2,8 @@ package ru.vpro.kernelgesture.tools
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.PorterDuff
 import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.os.Looper
@@ -91,6 +93,9 @@ class BoxAdapter constructor(
         view.background = if (currentAction == action)
             context.getDrawableEx(android.R.color.holo_orange_light)
         else null
+
+        if (action == "") view.alpha = 0.35f
+        else view.alpha = 1f
 
         return view
     }
