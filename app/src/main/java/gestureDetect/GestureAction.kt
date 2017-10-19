@@ -201,5 +201,7 @@ class GestureAction(val su : ShellSU = ShellSU())
                 actions = this
                 onCreate(context)
             }
+        fun getInstance()
+                = actions ?: GestureAction().apply { actions = this }
     }
 }

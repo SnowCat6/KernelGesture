@@ -219,7 +219,7 @@ class SettingsActivity :
                 is ApplicationInfo -> item.packageName
                 is ActionItem -> item.action(context) ?: ""
                 is String -> {
-                    GestureAction.getInstance(context)
+                    GestureAction.getInstance()
                             .getAction(context, item)
                             ?.apply { return item  }
                     uiAppInfo(context, item)?.apply { return item }
@@ -238,7 +238,7 @@ class SettingsActivity :
                 "" ->  context.getString(R.string.ui_default_action)
                 "none"  -> context.getString(R.string.ui_no_action)
                 is ActionItem -> item.name(context) ?: ""
-                is String -> GestureAction.getInstance(context)
+                is String -> GestureAction.getInstance()
                         .getAction(context, item)?.name(context) ?: ""
                 else -> ""
             }
@@ -251,7 +251,7 @@ class SettingsActivity :
                         ?: context.getDrawableEx(android.R.color.transparent)
                 is ActionItem -> item.icon(context)
                         ?: context.getDrawableEx(android.R.color.transparent)
-                is String -> GestureAction.getInstance(context)
+                is String -> GestureAction.getInstance()
                         .getAction(context, item)?.icon(context)
                         ?: context.getDrawableEx(android.R.color.transparent)
                 else -> context.getDrawableEx(android.R.color.transparent)

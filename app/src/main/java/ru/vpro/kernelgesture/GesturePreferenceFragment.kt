@@ -185,7 +185,7 @@ open class GesturePreferenceFragment : PreferenceFragment()
            setAdapter(adapter, onClickListener)
            dlg = create()
 
-           composites += GestureAction.getInstance(context).rxUpdateItems
+           composites += GestureAction.getInstance().rxUpdateItems
                    .observeOn(AndroidSchedulers.mainThread())
                    .subscribe {
                        fillAdapter(adapter, preference)
@@ -220,7 +220,7 @@ open class GesturePreferenceFragment : PreferenceFragment()
 
         objects.add(ActionListItem(context, "none"))
 
-        val actions = GestureAction.getInstance(context).getActions(context)
+        val actions = GestureAction.getInstance().getActions(context)
         objects.addAll(actions.map { ActionListItem(context, it) })
         adapter.setItems(objects)
 
