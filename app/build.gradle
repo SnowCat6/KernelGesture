@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
+def jniLibs = 'src/main/jniLibs'
 def getReleaseVersionCode() {
 
     def versionPropsFile = file('version.properties')
@@ -71,21 +72,17 @@ task copyJniLibs(type: Copy) {
     from ("build/intermediates/ndkBuild/$variant/obj/local/"){
         include '*/EventReader'
     }
-    into 'src/main/jniLibs'
+    into jniLibs
     rename ('EventReader', 'EventReader.so')
 }
 
 afterEvaluate {
     assembleDebug.dependsOn copyJniLibs
     assembleRelease.dependsOn copyJniLibs
-/*
-    compileDebugSources.doFirst{
-        tasks.copyJniLibs.execute()
-    }
-    compileReleaseSources.doFirst{
-        tasks.copyJniLibs.execute()
-    }
-*/
+}
+
+clean {
+    delete jniLibs
 }
 
 dependencies {
