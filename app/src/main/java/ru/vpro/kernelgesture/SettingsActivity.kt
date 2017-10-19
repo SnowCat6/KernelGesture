@@ -30,7 +30,6 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.AppCompatPreferenceActivity
-import ru.vpro.kernelgesture.tools.BoxAdapter
 import ru.vpro.kernelgesture.tools.getDrawableEx
 import kotlin.concurrent.thread
 
@@ -202,7 +201,7 @@ class SettingsActivity :
             return when(item)
             {
                 "none" -> null
-                is BoxAdapter.ActionListItem -> item.action
+                is GesturePreferenceFragment.ActionListItem -> item.action
                 is ApplicationInfo -> item.packageName
                 is ActionItem -> item.action(context) ?: ""
                 is String -> {
@@ -218,7 +217,7 @@ class SettingsActivity :
         fun uiName(context:Context, item:Any?):String
         {
             return when(item){
-                is BoxAdapter.ActionListItem -> item.name
+                is GesturePreferenceFragment.ActionListItem -> item.name
                 is ApplicationInfo -> context.packageManager
                         .getApplicationLabel(item)?.toString() ?: ""
 
@@ -233,7 +232,7 @@ class SettingsActivity :
         fun uiIcon(context:Context, item:Any?): Drawable
         {
             return when(item){
-                is BoxAdapter.ActionListItem -> item.icon
+                is GesturePreferenceFragment.ActionListItem -> item.icon
                 is ApplicationInfo -> context.packageManager.getApplicationIcon(item)
                         ?: context.getDrawableEx(android.R.color.transparent)
                 is ActionItem -> item.icon(context)

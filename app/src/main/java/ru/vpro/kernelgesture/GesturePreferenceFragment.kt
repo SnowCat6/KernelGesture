@@ -2,18 +2,24 @@ package ru.vpro.kernelgesture
 
 import SuperSU.ShellSU
 import android.app.AlertDialog
+import android.content.Context
 import android.content.DialogInterface
+import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.preference.*
+import gestureDetect.GestureAction
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
+import ru.vpro.kernelgesture.SettingsActivity.Companion.uiAction
 import ru.vpro.kernelgesture.tools.BoxAdapter
 import ru.vpro.kernelgesture.tools.getDrawableEx
 import kotlin.concurrent.thread
@@ -168,21 +174,85 @@ open class GesturePreferenceFragment : PreferenceFragment()
            true
        }
    }
+
    private val actionListener= Preference.OnPreferenceClickListener { preference ->
 
-           val adapter = BoxAdapter(preference)
+       val adapter = BoxAdapter(preference)
 
-           with(AlertDialog.Builder(activity))
-           {
-               setTitle(getString(R.string.iu_choose_action))
-               setAdapter(adapter, onClickListener)
-               dlg = create()
-               dlg?.setOnDismissListener {  dlg = null }
-               dlg?.show()
-           }
+       with(AlertDialog.Builder(activity))
+       {
+           setTitle(getString(R.string.iu_choose_action))
+           setAdapter(adapter, onClickListener)
+           dlg = create()
 
-           true
+           composites += GestureAction.getInstance(context).rxUpdateItems
+                   .observeOn(AndroidSchedulers.mainThread())
+                   .subscribe {
+                       fillAdapter(adapter, preference)
+                   }.apply {
+                       dlg?.setOnDismissListener {
+                           dlg = null
+                           dispose()
+                       }
+                    }
+           dlg?.show()
        }
+
+       true
+   }
+
+    class ActionListItem(val action:String?, val name:String, val icon: Drawable)
+    {
+        constructor(context: Context, action : Any)
+                : this(SettingsActivity.uiAction(context, action),
+                SettingsActivity.uiName(context, action),
+                SettingsActivity.uiIcon(context, action))
+    }
+
+    private fun fillAdapter(adapter : BoxAdapter, preference : Preference)
+    {
+        val context = preference.context
+        val objects = mutableListOf<Any>()
+
+        val settings = GestureSettings(context)
+
+        objects.add(ActionListItem(context, "none"))
+
+        val actions = GestureAction.getInstance(context).getActions(context)
+        objects.addAll(actions.map { ActionListItem(context, it) })
+        adapter.setItems(objects)
+
+        val currentAction = settings.getAction(preference.key)
+                ?.let { if (it.isEmpty()) null else it }
+        adapter.setCurrent(objects.firstOrNull { uiAction(context, it) == currentAction })
+
+        thread {
+            val pm = context.packageManager
+            val mainIntent = Intent(Intent.ACTION_MAIN, null)
+            mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
+            val pkgAppsList = pm.queryIntentActivities(mainIntent, 0)
+
+            var items = listOf<Any>("-")
+            var filterMap = listOf<String>()
+
+            pkgAppsList.forEach {
+                if (!filterMap.contains(it.activityInfo.applicationInfo.packageName)) {
+                    items += ActionListItem(context, it.activityInfo.applicationInfo)
+                    filterMap += it.activityInfo.applicationInfo.packageName
+                }
+            }
+
+            Handler(Looper.getMainLooper()).post {
+                objects.addAll(items)
+                adapter.setCurrent(objects.firstOrNull { uiAction(context, it) == currentAction })
+                adapter.setItems(objects)
+            }
+        }
+    }
+    private fun updateAdapterItems(adapter : BoxAdapter, preference : Preference)
+    {
+
+    }
 
    private val notifyListener = Preference.OnPreferenceChangeListener { preference, value ->
 
@@ -209,7 +279,8 @@ open class GesturePreferenceFragment : PreferenceFragment()
        dialogInterface: DialogInterface, i: Int ->
 
        val adapter = (dialogInterface as AlertDialog).listView.adapter as BoxAdapter
-       val item = adapter.getItem(i) as? BoxAdapter.ActionListItem ?: return@OnClickListener
+       val item = adapter.getItem(i) as? ActionListItem ?: return@OnClickListener
+
        val preference = adapter.preference as TwoStatePreference
        val itemAction = SettingsActivity.uiAction(activity, item)
 

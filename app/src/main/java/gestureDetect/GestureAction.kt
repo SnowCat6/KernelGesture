@@ -22,11 +22,11 @@ import gestureDetect.action.speech.ActionSpeechBattery
 import gestureDetect.action.speech.ActionSpeechTime
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.BuildConfig
 
 
 class GestureAction(val su : ShellSU = ShellSU())
-    : LiveData<List<ActionItem>>()
 {
     private val allActions = listOf(
             ActionScreenOn(this),
@@ -46,12 +46,10 @@ class GestureAction(val su : ShellSU = ShellSU())
             ActionCamera(this)
     )
 
-    init{
-        value = allActions
-    }
+    val rxUpdateItems = BehaviorSubject.createDefault(allActions)
 
     fun notifyChanged(action: ActionItem) {
-        value = allActions
+        rxUpdateItems.onNext(allActions)
     }
 
     fun onCreate(context: Context)
