@@ -60,7 +60,6 @@ class GestureService :
         gesture.onCreate(this)
         //  Enable/disable gestures on start service
         gesture.enable(true)
-        actions.onCreate(this)
 
         setServiceForeground(!hw.isScreenOn())
 
