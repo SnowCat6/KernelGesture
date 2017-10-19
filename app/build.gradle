@@ -25,6 +25,7 @@ def compileType(){
     if (':app:assembleRelease' in runTasks) return 'release'
     return 'debug'
 }
+
 android {
     def code = getReleaseVersionCode()
 
@@ -73,8 +74,14 @@ task copyJniLibs(type: Copy) {
     into 'src/main/jniLibs'
     rename ('EventReader', 'EventReader.so')
 }
-tasks.withType(JavaCompile) {
-    compileTask -> compileTask.dependsOn(copyJniLibs)
+
+afterEvaluate {
+    compileDebugSources.doFirst{
+        tasks.copyJniLibs.execute()
+    }
+    compileReleaseSources.doFirst{
+        tasks.copyJniLibs.execute()
+    }
 }
 
 dependencies {

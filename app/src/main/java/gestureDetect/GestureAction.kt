@@ -1,7 +1,6 @@
 package gestureDetect
 
 import SuperSU.ShellSU
-import android.arch.lifecycle.LiveData
 import android.content.Context
 import android.content.Intent
 import android.media.Ringtone
