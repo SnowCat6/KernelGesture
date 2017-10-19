@@ -2,4 +2,5 @@
 <resources>
     <item name="primary" type="color">#004040</item>
     <item name="primaryText" type="color">#ffffff</item>
+    <item name="splash" type="color">#004040</item>
 </resources>

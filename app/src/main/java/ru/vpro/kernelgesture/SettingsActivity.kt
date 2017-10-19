@@ -11,7 +11,6 @@ import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Bundle
 import android.preference.PreferenceFragment
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.google.android.gms.ads.AdListener
@@ -38,27 +37,19 @@ class SettingsActivity :
         FragmentManager.OnBackStackChangedListener
 
 {
+    private var bAutoShowAdv = false
     private var mInterstitialAd: InterstitialAd? = null
     private val composites = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
+        setTheme(R.style.AppTheme)
         super.onCreate(savedInstanceState)
         if (BuildConfig.DEBUG){
             FirebaseCrash.setCrashCollectionEnabled(false)
         }
         setupActionBar()
 
-        mInterstitialAd = InterstitialAd(this)
-        mInterstitialAd?.adUnitId = "ca-app-pub-5004205414285338/5364605548"
-        mInterstitialAd?.loadAd(AdRequest.Builder().build())
-
-        mInterstitialAd?.adListener = object : AdListener() {
-            override fun onAdClosed() {
-                // Load the next interstitial.
-                mInterstitialAd?.loadAd(AdRequest.Builder().build())
-            }
-        }
         composites += GestureSettings.rxUpdateValue
                 .filter { it.key == GestureSettings.GESTURE_ENABLE && it.value == true }
                 .observeOn(Schedulers.computation())
@@ -139,17 +130,39 @@ class SettingsActivity :
                     super.onBackPressed()
             }
             R.id.menu_adv -> {
-                val ctx = this
-                mInterstitialAd?.apply {
-                    if (isLoaded) show()
-                    else with(AlertDialog.Builder(ctx)){
+
+                mInterstitialAd = mInterstitialAd
+                        ?: InterstitialAd(this).also {
+
+                    it.adUnitId = "ca-app-pub-5004205414285338/5364605548"
+                    it.loadAd(AdRequest.Builder().build())
+
+                    it.adListener = object : AdListener() {
+                        override fun onAdLoaded() {
+                            super.onAdLoaded()
+                            if (bAutoShowAdv) {
+                                dlg?.dismiss()
+                                it.show()
+                            }
+                        }
+                        override fun onAdClosed() {
+                            bAutoShowAdv = false
+                            // Load the next interstitial.
+                            it.loadAd(AdRequest.Builder().build())
+                        }
+                    }
+                }
+
+                mInterstitialAd?.also {
+                    if (it.isLoaded) it.show()
+                    else with(AlertDialog.Builder(this)){
+                        bAutoShowAdv = true
                         setTitle(getString(R.string.ui_adv_title))
                         setMessage(getString(R.string.ui_adv_content))
                         dlg = create()
                         dlg?.show()
                     }
                 }
-                Log.d("TAG", "The interstitial wasn't loaded yet.")
             }
             R.id.menu_settings -> InputDetectActivity.startActivity(this)
             else -> return super.onOptionsItemSelected(item)

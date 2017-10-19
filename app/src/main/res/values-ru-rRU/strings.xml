@@ -73,8 +73,8 @@
     <string name="ui_action_music_playpause">Старт/Пауза музыки</string>
     <string name="ui_action_music_prev">Предыдущий трек</string>
     <string name="ui_action_music_next">Следующий трек</string>
-    <string name="ui_adv_title">Реклама не загружена</string>
-    <string name="ui_adv_content">Пожалуйста посмотрите позже</string>
+    <string name="ui_adv_title">Реклама загружается...</string>
+    <string name="ui_adv_content">Пожалуйста посмотрите мою рекламу</string>
     <string name="ui_screen_unlock">Разблокировать экран</string>
     <string name="ui_detect2_title">Шаг 2</string>
     <string name="ui_detect_title">Шаг 1</string>

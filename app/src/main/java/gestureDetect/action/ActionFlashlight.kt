@@ -40,7 +40,7 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     {
         bHasFlash = false
 
-        if (action.su.hasRootProcess())
+        if (action.su.checkRootAccess())
         {
             for (it in devices) {
                 if (!action.su.isFileExists(it)) continue
