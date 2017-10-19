@@ -77,19 +77,22 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     override fun run(context: Context): Boolean
     {
         enable = !enable
-        flashLight(context)
+        if (flashLight(context) && enable)
+            action.vibrate(context)
 
         return false
     }
 
-    private fun flashLight(context: Context) {
-        if (flashlightDirect != null) flashlightDirect(context)
-        else flashlightCamera(context)
+    private fun flashLight(context: Context):Boolean
+    {
+        if (flashlightDirect != null) return flashlightDirect(context)
+        return flashlightCamera(context)
     }
 
     override fun onStop() {
         enable = false
         context?.also { flashLight(it) }
+        context = null
         closeCamera()
     }
 
@@ -104,41 +107,40 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
 
     private var enable : Boolean = false
 
-    private fun flashlightDirect(context: Context) {
-        action.vibrate(context)
+    private fun flashlightDirect(context: Context):Boolean {
         action.su.exec("echo ${if (enable) 255 else 0} > $flashlightDirect" )
+        return true
     }
-    private fun flashlightCamera(context: Context)
+    private fun flashlightCamera(context: Context):Boolean
     {
         if (camera == null)
         {
-            if (!enable) return
+            if (!enable) return true
 
             camera = try {
                 Camera.open()
             } catch (e: RuntimeException) {
                 e.printStackTrace()
                 closeCamera()
-                return
+                return false
             }
         }
 
         try {
-            val params = camera?.parameters ?: return
+            val params = camera?.parameters ?: return false
             if (enable) {
-                action.vibrate(context)
                 params.flashMode = Camera.Parameters.FLASH_MODE_TORCH
                 camera?.parameters = params
                 camera?.startPreview()
             } else {
-                action.vibrate(context)
                 params.flashMode = Camera.Parameters.FLASH_MODE_OFF
                 camera?.parameters = params
                 camera?.stopPreview()
                 closeCamera()
             }
-        }catch (e:Exception){
-        }
+            return true
+        }catch (e:Exception){}
+        return false
     }
     private fun closeCamera(){
         camera?.release()

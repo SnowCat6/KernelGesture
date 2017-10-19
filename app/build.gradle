@@ -77,10 +77,12 @@ task copyJniLibs(type: Copy) {
 }
 
 afterEvaluate {
-    assembleDebug.dependsOn copyJniLibs
-    assembleRelease.dependsOn copyJniLibs
-}
 
+    assembleDebug.dependsOn copyJniLibs
+    if (project.hasProperty('assembleRelease')) {
+        assembleRelease.dependsOn copyJniLibs
+    }
+}
 clean {
     delete jniLibs
 }
