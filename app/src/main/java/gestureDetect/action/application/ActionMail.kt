@@ -15,7 +15,7 @@ class ActionMail(action: GestureAction) : ActionApp(action)
             = super.onDetect(Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:")))
 
     override fun action(context: Context): String?
-            = ""//super.action("application.email")
+            = super.action(context, "application.email")
 
     override fun name(context: Context): String?
             = context.getString(R.string.ui_action_mail)

@@ -197,6 +197,19 @@ class SettingsActivity :
         val rxSubTitle      = BehaviorSubject.createDefault(String())
         val rxConfigUpdate  = BehaviorSubject.create<GestureDetect>()
 
+        fun uiEnable(context:Context, item:Any?):Boolean
+        {
+            return when(item)
+            {
+                "none" -> true
+                is GesturePreferenceFragment.ActionListItem -> item.isEnable
+                is ApplicationInfo -> true
+                is ActionItem -> item.isEnable(context)
+                is String -> true
+                else -> true
+            }
+        }
+
         fun uiAction(context:Context, item:Any?):String?
         {
             return when(item)

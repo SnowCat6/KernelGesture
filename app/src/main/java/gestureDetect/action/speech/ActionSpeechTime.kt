@@ -16,7 +16,9 @@ import java.util.*
 class ActionSpeechTime(action: GestureAction) : ActionSpeechItem(action)
 {
     override fun action(context: Context): String?
-            = if (isSpeechSupport()) "speech.time" else ""
+            = "speech.time"
+
+    override fun isEnable(context: Context) : Boolean = isSpeechSupport()
 
     override fun name(context: Context): String?
             = context.getString(R.string.ui_action_speech_time)

@@ -55,18 +55,18 @@ class EventDetector(private val context: Context,
         rxInputReader.setDevices(SensorInput.getInputEvents().map { it.first })
 
         composites += rxInputReader
-                .observeOn(AndroidSchedulers.mainThread())
-                .doOnDispose {
-                    GestureService.bDisableService = false
-                    onCompleteAction?.invoke()
+            .observeOn(AndroidSchedulers.mainThread())
+            .doOnDispose {
+                GestureService.bDisableService = false
+                onCompleteAction?.invoke()
+            }
+            .subscribe {
+                if (!events.contains(it.evButton))
+                {
+                    events.add(it.evButton)
+                    value = events
+                    hw.vibrate()
                 }
-                .subscribe {
-                    if (!events.contains(it.evButton))
-                    {
-                        events.add(it.evButton)
-                        value = events
-                        hw.vibrate()
-                    }
-                }
+            }
     }
 }

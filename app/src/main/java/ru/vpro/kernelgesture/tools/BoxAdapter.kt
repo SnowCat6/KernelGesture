@@ -67,7 +67,7 @@ class BoxAdapter (val preference: Preference) : BaseAdapter()
 
     override fun isEnabled(position: Int): Boolean {
         return ctx?.let {
-            SettingsActivity.uiAction(it, getItem(position)) != ""
+            SettingsActivity.uiEnable(it, getItem(position))
         } ?: false
     }
 

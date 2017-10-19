@@ -14,7 +14,7 @@ import ru.vpro.kernelgesture.tools.getDrawableEx
 class ActionScreenOff(action: GestureAction) : ActionItem(action)
 {
     override fun action(context: Context): String?
-            = if (action.su.hasRootProcess()) "screen.off" else ""
+            = "screen.off"
 
     override fun name(context: Context): String?
             = context.getString(R.string.ui_action_screen_off)

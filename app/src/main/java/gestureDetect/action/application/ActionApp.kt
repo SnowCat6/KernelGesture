@@ -45,7 +45,9 @@ abstract class ActionApp(action: GestureAction) : ActionItem(action)
             = getInfo(context)?.packageName ?: ""
 
     fun action(context: Context, appAction: String): String
-            = if (getInfo(context) != null) appAction else ""
+            = appAction
+
+    override fun isEnable(context: Context) : Boolean = getInfo(context) != null
 
     override fun name(context: Context): String? {
         if (getInfo(context) == null) return super.name(context)

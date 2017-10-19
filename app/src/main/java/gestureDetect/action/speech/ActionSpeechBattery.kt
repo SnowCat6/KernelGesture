@@ -16,7 +16,7 @@ import java.io.File
 class ActionSpeechBattery(action: GestureAction) : ActionSpeechItem(action)
 {
     override fun action(context: Context): String?
-            = if (getBatteryLevel(context) is Int && isSpeechSupport()) "speech.battery" else ""
+            = "speech.battery"
 
     override fun name(context: Context): String?
             = context.getString(R.string.ui_action_speech_battery)

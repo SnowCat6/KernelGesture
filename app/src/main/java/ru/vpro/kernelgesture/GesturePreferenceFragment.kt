@@ -201,12 +201,14 @@ open class GesturePreferenceFragment : PreferenceFragment()
        true
    }
 
-    class ActionListItem(val action:String?, val name:String, val icon: Drawable)
+    class ActionListItem(val action:String?, val name:String,
+                         val icon: Drawable, val isEnable : Boolean)
     {
         constructor(context: Context, action : Any)
                 : this(SettingsActivity.uiAction(context, action),
                 SettingsActivity.uiName(context, action),
-                SettingsActivity.uiIcon(context, action))
+                SettingsActivity.uiIcon(context, action),
+                SettingsActivity.uiEnable(context, action))
     }
 
     private fun fillAdapter(adapter : BoxAdapter, preference : Preference)
@@ -248,10 +250,6 @@ open class GesturePreferenceFragment : PreferenceFragment()
                 adapter.setItems(objects)
             }
         }
-    }
-    private fun updateAdapterItems(adapter : BoxAdapter, preference : Preference)
-    {
-
     }
 
    private val notifyListener = Preference.OnPreferenceChangeListener { preference, value ->

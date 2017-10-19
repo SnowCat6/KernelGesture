@@ -28,9 +28,10 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
                 .observeOn(AndroidSchedulers.mainThread())
                 .filter { it }
                 .subscribe {
-                    onDetectFlashlight(context)
-                    composites.clear()
-                    action.notifyChanged(this)
+                    if (onDetectFlashlight(context)) {
+                        composites.clear()
+                        action.notifyChanged(this)
+                    }
                 }
 
         return bHasFlash
@@ -65,8 +66,9 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     }
 
     override fun action(context: Context): String? {
-        return if (bHasFlash) "application.flashlight" else ""
+        return "application.flashlight"
     }
+    override fun isEnable(context: Context) : Boolean = bHasFlash
 
     override fun name(context: Context): String?
             = context.getString(R.string.ui_action_flashlight)

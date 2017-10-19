@@ -34,7 +34,8 @@ abstract class ActionItem(val action: GestureAction)
      * Получить строку идентификатор действия, к примеру screen.on
      */
     abstract fun action(context: Context): String?
-
+    open fun isEnable(context: Context) : Boolean
+            = action(context)?.let { it.isNotEmpty() } ?: false
     /**
      * Определить по идентификатору действия, что действие имеет отношение к действию
      */
