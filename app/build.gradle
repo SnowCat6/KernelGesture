@@ -76,12 +76,16 @@ task copyJniLibs(type: Copy) {
 }
 
 afterEvaluate {
+    assembleDebug.dependsOn copyJniLibs
+    assembleRelease.dependsOn copyJniLibs
+/*
     compileDebugSources.doFirst{
         tasks.copyJniLibs.execute()
     }
     compileReleaseSources.doFirst{
         tasks.copyJniLibs.execute()
     }
+*/
 }
 
 dependencies {

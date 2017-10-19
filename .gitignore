@@ -11,3 +11,6 @@ libs/
 release/
 src/androidTest/
 src/test/
+/app/src/main/jniLibs/
+app/src/androidTest/
+app/src/test/
