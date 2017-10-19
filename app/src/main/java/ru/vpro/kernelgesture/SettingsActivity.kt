@@ -82,6 +82,7 @@ class SettingsActivity :
                     }
 
                 thread{
+                    GestureAction.getInstance(this)
                     it.onCreate(this)
                 }
 

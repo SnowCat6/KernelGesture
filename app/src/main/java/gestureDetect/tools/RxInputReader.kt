@@ -5,8 +5,8 @@ import android.content.Context
 import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.plusAssign
-import io.reactivex.subjects.PublishSubject
 import kotlin.concurrent.thread
 
 class RxInputReader(val su: ShellSU = ShellSU())
@@ -22,7 +22,8 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
     private var inputDevices  = emptyList<String>()
     private var threadHandler : Thread? = null
-    private var rxEmitter = PublishSubject.create<EvData>()
+//    private var rxEmitter = PublishSubject.create<EvData>()
+    private val observers = mutableListOf<Observer<in EvData>>()
     private val composites = CompositeDisposable()
     private var cmdName : String? = null
 
@@ -47,15 +48,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
         composites.clear()
         if (devices.isEmpty()) return
 
-        if (!rxEmitter.hasObservers()) return
-
-        rxEmitter.doOnDispose {
-            synchronized(inputDevices) {
-                 threadHandler = null
-            }
-            //  todo: sent any messages to flush buffer and self kill threads
-            su.killJobs()
-        }
+        if (!hasObservers()) return
 
         composites += su.su.rxRootEnable
                 .filter { it }
@@ -71,13 +64,46 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
     override fun subscribeActual(observer: Observer<in EvData>?) {
         observer?.also {
-            rxEmitter.subscribe(it)
-            setDevices(inputDevices)
+            observers.add(observer)
+            val dispose = EvDispose(observer)
+            observer.onSubscribe(dispose)
+            if (observers.size == 1)
+                setDevices(inputDevices)
+        }
+    }
+    inner class EvDispose(private val observer: Observer<in EvData>)
+        : Disposable
+    {
+        override fun isDisposed(): Boolean {
+            return observers.contains(observer)
+        }
+
+        override fun dispose() {
+            observers.remove(observer)
+            if (!hasObservers()) onDispose()
         }
     }
 
-    private fun hasObservers()
-        = rxEmitter.hasObservers() && isThread()
+    private fun onDispose()
+    {
+        synchronized(inputDevices) {
+//            threadHandler?.interrupt()
+            threadHandler = null
+        }
+        //  todo: sent any messages to flush buffer and self kill threads
+        su.killJobs()
+    }
+
+    private fun onNext(event : EvData)
+    {
+        observers.subList(0, observers.size)
+                .forEach { it.onNext(event) }
+    }
+    fun hasObservers()
+        = observers.size > 0
+
+    private fun hasThreadObservers()
+            = hasObservers() && isThread()
 
     private fun isThread()
         = synchronized(inputDevices){
@@ -101,7 +127,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
         val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+):\\s+([^\\s]+)\\s+([^\\s]+)\\s*([^\\s]+)")
 
-        while(hasObservers()) {
+        while(hasThreadObservers()) {
             //  Read line from input
             val rawLine = su.readErrorLine() ?: break
             //  Stop if gesture need stop run
@@ -144,7 +170,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
         var lastKeyEventTime = 0.0
         var eqEvents = emptyList<String>()
 
-        while(hasObservers())
+        while(hasThreadObservers())
         {
             //  Read line from input
             val rawLine = su.readErrorLine() ?: break
@@ -204,10 +230,6 @@ class RxInputReader(val su: ShellSU = ShellSU())
         }else{
             su.exec("getevent -tl $device | grep EV_KEY>&2 &")
         }
-    }
-    private fun onNext(event : EvData)
-    {
-        rxEmitter.onNext(event)
     }
 
     companion object
