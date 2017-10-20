@@ -17,6 +17,8 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
         where T : Any
 {
 
+    private var refItems            = items
+
     private val thisItems           = ArrayList<T>()
     private val thisFiltered        = ArrayList<T>()
 
@@ -25,7 +27,7 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
 
     private var nSelectMode         = SELECT_MODE_NONE
             val selected            = ArrayList<T>()
-    private val thisHoldersSelected = ArrayList<viewBinder<T>>()
+    private val thisHoldersSelected = ArrayList<HolderBinder<T>>()
 
     private val binderMap           = ArrayList<Pair<Class<*>, Class<*>>>()
     private var onBindTypeAction    : ((T) -> Class<*>?)? = null
@@ -41,7 +43,7 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
         fun hasDivider():Boolean
     }
 
-    open class viewBinder<T>(parent: ViewGroup, nLayout: Int) :
+    open class HolderBinder<T>(parent: ViewGroup, nLayout: Int) :
             RecyclerView.ViewHolder(
                     LayoutInflater.from(parent.context)
                     .inflate(nLayout, parent, false)
@@ -107,8 +109,8 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
                 if (adapter.getItemViewType(nAdapterIX + 1) < 0) break
 
                 //  Не рисовать если не разрешено
-                val thisHolder = parent.findViewHolderForAdapterPosition(nAdapterIX) as? viewBinder<*>? ?: continue
-                val nextHolder = parent.findViewHolderForAdapterPosition(nAdapterIX + 1) as viewBinder<*>? ?: continue
+                val thisHolder = parent.findViewHolderForAdapterPosition(nAdapterIX) as? HolderBinder<*>? ?: continue
+                val nextHolder = parent.findViewHolderForAdapterPosition(nAdapterIX + 1) as HolderBinder<*>? ?: continue
 
                 if (thisHolder.hasDivider() && !nextHolder.hasDivider()) continue
                 if (!thisHolder.hasDivider() && !nextHolder.hasDivider()) continue
@@ -157,6 +159,7 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
         get() = thisFiltered
         set(value)
         {
+            refItems = value
             thisItems.clear()
             thisItems.addAll(value)
             selected.clear()
@@ -213,7 +216,7 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
         }
 
         val item = getThisItem(position)?:return
-        val itemHolder = holder as? viewBinder<T>?
+        val itemHolder = holder as? HolderBinder<T>?
 
         itemHolder?.itemView?.setOnClickListener {
             val nPos = thisFiltered.indexOfFirst { it == item }
@@ -239,10 +242,10 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
         itemHolder?.bind(item)
     }
 
-    open fun onCreateView(parent: ViewGroup, viewType: Int): viewBinder<T>? {
+    open fun onCreateView(parent: ViewGroup, viewType: Int): HolderBinder<T>? {
         val cl = binderMap[viewType].second
         val obj = cl.getConstructor(ViewGroup::class.java)
-        return obj.newInstance(parent) as? viewBinder<T>
+        return obj.newInstance(parent) as? HolderBinder<T>
     }
 
     fun getThisItem(position: Int): T? {
@@ -287,6 +290,7 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
     }
 
     fun clear() {
+        refItems = null
         thisFiltered.clear()
         thisHeaders.clear()
         thisFooters.clear()
@@ -305,7 +309,7 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
         val vg = v.parent as? ViewGroup?
         vg?.removeView(v)
     }
-    private fun onItemSelect(holder: viewBinder<T>, item: T)
+    private fun onItemSelect(holder: HolderBinder<T>, item: T)
     {
         if (nSelectMode == SELECT_MODE_NONE) return
         if (selected.contains(item)) {
@@ -411,7 +415,6 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
                             newItems.subList(thisFiltered.size, newItems.size))
         }
     }
-
     /**
      * Manipulates
      */
