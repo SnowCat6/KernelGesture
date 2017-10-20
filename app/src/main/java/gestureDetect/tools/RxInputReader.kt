@@ -4,9 +4,11 @@ import SuperSU.ShellSU
 import android.content.Context
 import io.reactivex.Observable
 import io.reactivex.Observer
+import io.reactivex.Scheduler
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.plusAssign
+import io.reactivex.schedulers.Schedulers
 import kotlin.concurrent.thread
 
 class RxInputReader(val su: ShellSU = ShellSU())
@@ -21,7 +23,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
     )
 
     private var inputDevices  = emptyList<String>()
-    private var threadHandler : Thread? = null
+//    private var threadHandler : Thread? = null
     private val observers = mutableListOf<Observer<in EvData>>()
     private val composites = CompositeDisposable()
     private var cmdName : String? = null
@@ -40,25 +42,122 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
     fun setDevices(devices : List<String>)
     {
-        if (inputDevices == devices && threadHandler != null)
+        if (inputDevices == devices && composites.size() > 0)
             return
 
         inputDevices = devices
         composites.clear()
         if (devices.isEmpty()) return
-
         if (!hasObservers()) return
 
         composites += su.su.rxRootEnable
                 .filter { it }
                 .subscribe {
-                    synchronized(inputDevices) {
-                        cmdName?.also { chmod(it) }
-                        threadHandler = getThread()
-                    }
+                    cmdName?.also { chmod(it) }
+                    if (cmdName != null) doWorkNew()
+                    else doWork()
                 }
 
         if (!su.checkRootAccess()) return
+    }
+    private fun doWorkNew()
+    {
+        su.readErrorLine()?.also {
+
+            val arg = inputDevices.joinToString(" ")
+            su.exec("$cmdName $arg&")
+
+            val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+):\\s+([^\\s]+)\\s+([^\\s]+)\\s*([^\\s]+)")
+
+            composites += it
+                    .subscribeOn(Schedulers.io())
+                    .filter{ hasObservers() }
+                    .subscribe {
+
+                val ev = regSplit.find(it) ?: return@subscribe
+
+                if (ev.groupValues[3] != "EV_KEY") return@subscribe
+                val timeout = ev.groupValues[1].toDoubleOrNull() ?: 0.0
+
+                EvData(
+                        ev.groupValues[2],
+                        ev.groupValues[3],
+                        ev.groupValues[4],
+                        ev.groupValues[5],
+                        (timeout * 1000).toInt()
+                ).also {
+                    onNext(it)
+                }
+            }
+        }
+    }
+    private fun doWork()
+    {
+        su.readErrorLine()?.also {
+
+            var device = ""
+            var bQueryFound = false
+            val queryIx = System.currentTimeMillis()
+
+            //  For each device
+            var ix = 0
+            inputDevices.forEach {
+
+                //  Run input event detector
+                evCmd(queryIx, ++ix, it, 2, 4)
+                evCmd(queryIx, ++ix, it, 4, 2)
+            }
+
+            val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
+            var lastEventTime = 0.0
+            var lastKeyEventTime = 0.0
+            var eqEvents = emptyList<String>()
+
+            composites += it
+                    .subscribeOn(Schedulers.io())
+                    .filter{ hasObservers() }
+                    .subscribe { rawLine ->
+
+                        //  Check query number for skip old events output
+                        if (!bQueryFound){
+                            bQueryFound = rawLine == "query$queryIx"
+                            return@subscribe
+                        }
+                        //  Check device is near screen
+                        if (eqEvents.contains(rawLine))
+                            return@subscribe
+
+                        if (rawLine.contains("/dev/input/")) {
+                            device = rawLine
+                            return@subscribe
+                        }
+
+                        val ev = regSplit.find(rawLine) ?: return@subscribe
+                        eqEvents += rawLine
+
+                        val timeLine = ev.groupValues[1].toDoubleOrNull() ?: return@subscribe
+                        var timeout = timeLine - lastEventTime
+
+                        if (timeout < -1000.0) timeout = 1.0
+                        if (timeout < 0) return@subscribe
+                        if (timeout > 0) eqEvents = listOf(rawLine)
+                        lastEventTime = timeLine
+
+                        if (ev.groupValues[2] != "EV_KEY") return@subscribe
+
+                        EvData(
+                                device,
+                                ev.groupValues[2],
+                                ev.groupValues[3],
+                                ev.groupValues[4],
+                                ((timeLine - lastKeyEventTime) * 1000).toInt())
+                                .also {
+                                    lastKeyEventTime = timeLine
+                                    onNext(it)
+                                }
+
+                    }
+        }
     }
 
     override fun subscribeActual(observer: Observer<in EvData>?)
@@ -95,9 +194,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
     private fun onDispose()
     {
-        synchronized(inputDevices) {
-            threadHandler = null
-        }
+        composites.clear()
         //  todo: sent any messages to flush buffer and self kill threads
         su.killJobs()
     }
@@ -109,122 +206,6 @@ class RxInputReader(val su: ShellSU = ShellSU())
     }
     fun hasObservers()
         = observers.size > 0
-
-    private fun hasThreadObservers()
-            = hasObservers() && isThread()
-
-    private fun isThread()
-        = synchronized(inputDevices){
-            threadHandler?.id == Thread.currentThread().id
-        }
-
-    private fun getThread() = thread {
-
-        su.killJobs()
-        if (!threadLoopNew()) threadLoop()
-        synchronized(inputDevices) {
-            if (isThread()) threadHandler = null
-        }
-    }
-
-    private fun threadLoopNew(): Boolean
-    {
-        val arg = inputDevices.joinToString(" ")
-        su.exec("$cmdName $arg&")
-//        Runtime.getRuntime().exec("$cmdName $arg&")
-
-        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+):\\s+([^\\s]+)\\s+([^\\s]+)\\s*([^\\s]+)")
-
-        while(hasThreadObservers()) {
-            //  Read line from input
-            val rawLine = su.readErrorLine() ?: break
-            //  Stop if gesture need stop run
-            if (!hasObservers()) break
-            //  Check device is near screen
-
-            val ev = regSplit.find(rawLine) ?: continue
-            val timeout = ev.groupValues[1].toDoubleOrNull()?:continue
-
-            if (ev.groupValues[3] != "EV_KEY") continue
-            val it = EvData(
-                    ev.groupValues[2],
-                    ev.groupValues[3],
-                    ev.groupValues[4],
-                    ev.groupValues[5],
-                    (timeout*1000).toInt()
-            )
-            onNext(it)
-        }
-        return true
-    }
-
-    private fun threadLoop()
-    {
-        var device = ""
-        var bQueryFound = false
-        val queryIx = System.currentTimeMillis()
-
-        //  For each device
-        var ix = 0
-        inputDevices.forEach {
-
-            //  Run input event detector
-            evCmd(queryIx, ++ix, it, 2, 4)
-            evCmd(queryIx, ++ix, it, 4, 2)
-        }
-
-        val regSplit = Regex("\\[\\s*([^\\s]+)\\]\\s*([^\\s]+)\\s+([^\\s]+)\\s+([^\\s]+)")
-        var lastEventTime = 0.0
-        var lastKeyEventTime = 0.0
-        var eqEvents = emptyList<String>()
-
-        while(hasThreadObservers())
-        {
-            //  Read line from input
-            val rawLine = su.readErrorLine() ?: break
-            //  Stop if gesture need stop run
-            if (!hasObservers()) break
-
-            //  Check query number for skip old events output
-
-            if (!bQueryFound){
-                bQueryFound = rawLine == "query$queryIx"
-                continue
-            }
-
-            //  Check device is near screen
-            if (eqEvents.contains(rawLine)) continue
-
-            if (rawLine.contains("/dev/input/")){
-                device = rawLine
-                continue
-            }
-
-            val ev = regSplit.find(rawLine) ?: continue
-            eqEvents += rawLine
-
-            val timeLine = ev.groupValues[1].toDoubleOrNull()?:continue
-            var timeout = timeLine - lastEventTime
-
-            if (timeout < -1000.0) timeout = 1.0
-            if (timeout < 0) continue
-            if (timeout > 0) eqEvents = listOf(rawLine)
-            lastEventTime = timeLine
-
-            if (ev.groupValues[2] != "EV_KEY") continue
-
-            val it = EvData(
-                    device,
-                    ev.groupValues[2],
-                    ev.groupValues[3],
-                    ev.groupValues[4],
-                    ((timeLine - lastKeyEventTime)*1000).toInt())
-
-            lastKeyEventTime = timeLine
-
-            onNext(it)
-        }
-    }
 
     /**
      * Exec command for get events from getevent linux binary

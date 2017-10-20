@@ -2,6 +2,7 @@ package SuperSU
 
 import android.util.Log
 import com.google.firebase.crash.FirebaseCrash
+import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.BuildConfig
 import java.io.BufferedReader
@@ -26,6 +27,9 @@ class ShellSU(val su : ProcessSU = commonSU)
         var bEnableSU = false
         var bEnableCheck = true
         val rxRootEnable = BehaviorSubject.createDefault(false)
+
+        var rxReader : Observable<String>? = null
+        var rxError  : Observable<String>? = null
     }
 
     fun checkRootAccess() = open() != null
@@ -57,6 +61,16 @@ class ShellSU(val su : ProcessSU = commonSU)
                     readerSU = processSU?.inputStream?.bufferedReader()
                     errorSU = processSU?.errorStream?.bufferedReader()
                     writerSU = processSU?.outputStream
+
+                    rxReader = Observable.create<String> {
+                        while(!it.isDisposed) {
+                            readerSU?.readLine()?.apply {
+                                it.onNext(this)
+                            } ?: return@create
+                        }
+                    }.doOnDispose {
+                        rxReader = null
+                    }
 
                     writerSU?.apply {
                         write("id\n".toByteArray())
@@ -121,7 +135,12 @@ class ShellSU(val su : ProcessSU = commonSU)
                 writerSU = null
                 readerSU = null
                 errorSU = null
+                readerSU?.close()
+                errorSU?.close()
                 processSU?.destroy()
+
+                rxReader = null
+                rxError = null
 
                 bEnableSU = false
                 if (rxRootEnable.value != bEnableSU)
@@ -152,7 +171,17 @@ class ShellSU(val su : ProcessSU = commonSU)
         }
         return null
     }
+    fun readErrorLine() : Observable<String>?
+        = su.rxError ?: Observable.create<String> {
+        while(!it.isDisposed) {
+            su.errorSU?.readLine()
+                    ?.apply {it.onNext(this)}
+                    ?: break
+        }
+        it.onComplete()
+    }.also { su.rxError = it }
 
+    /*
     fun readErrorLine() : String? {
         try {
             return  su.errorSU?.readLine()
@@ -162,6 +191,7 @@ class ShellSU(val su : ProcessSU = commonSU)
         }
         return null
     }
+*/
     fun writeErr(value:String):Boolean
         = exec("echo $value>&2")
 }
