@@ -155,7 +155,7 @@ class GestureDetect (val context : Context,
                     Log.d("Lock gesture", thisEvent)
                 }
 
-                if (GestureHW.screenON)
+                if (hw.isScreenOn())
                 {
                     delayEvents.find { it.first == thisEvent  }?.apply {
                         screenEvents.firstOrNull {
@@ -172,7 +172,7 @@ class GestureDetect (val context : Context,
                     }
                 }
 
-                if (GestureHW.screenON){
+                if (hw.isScreenOn()){
                     thisEvent = screenEvents.find {
                         it.first == thisEvent && settings.getEnable(it.second)
                     }?.second
@@ -242,7 +242,7 @@ class GestureDetect (val context : Context,
      */
     private fun isEventEnable(event:String):Boolean
     {
-        if (GestureHW.screenON){
+        if (hw.isScreenOn()){
             var ev = event
             delayEvents.find { it.first == ev}?.second?.apply { ev = this }
             return screenEvents.find { it.first == ev && settings.getEnable(it.second) } != null

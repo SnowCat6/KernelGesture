@@ -7,7 +7,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.util.Log
 import gestureDetect.GestureDetect
-import gestureDetect.tools.GestureHW
+import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import ru.vpro.kernelgesture.BuildConfig
@@ -32,6 +32,8 @@ open class SensorProximity(gesture: GestureDetect) :
     private val sensor1wait = 1*1000
     private val sensor2wait = 1*1000
 
+    private var rxScreen : RxScreenOn? = null
+
     private val composites = CompositeDisposable()
 
     override fun onCreate(context: Context)
@@ -46,9 +48,8 @@ open class SensorProximity(gesture: GestureDetect) :
 
         if (composites.size() != 0) return
 
-        composites += GestureHW.rxScreenOn.subscribe {
-            onResume()
-        }
+        rxScreen = rxScreen ?: RxScreenOn(context.applicationContext)
+        composites += rxScreen!!.subscribe { onResume() }
     }
 
     override fun close()
@@ -59,7 +60,7 @@ open class SensorProximity(gesture: GestureDetect) :
 
     override fun onResume()
     {
-        if (GestureHW.screenON)
+        if (rxScreen?.isScreenOn() == true)
         {
             if (!gesture.settings.getEnable("KEY_PROXIMITY_ON")) {
                 onPause()

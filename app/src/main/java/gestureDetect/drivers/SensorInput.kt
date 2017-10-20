@@ -5,6 +5,7 @@ import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.RxInputReader
+import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
@@ -62,7 +63,8 @@ class SensorInput(gesture: GestureDetect): SensorHandler(gesture)
                 rxInputReader?.setDevices(inputDevices.map { it.first })
             }
 
-        composites += GestureHW.rxScreenOn
+        val rxScreen = RxScreenOn(context.applicationContext)
+        composites += rxScreen
             .filter { it }
             .observeOn(Schedulers.io())
             .subscribe { enable(true) }

@@ -22,7 +22,6 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
     private var inputDevices  = emptyList<String>()
     private var threadHandler : Thread? = null
-//    private var rxEmitter = PublishSubject.create<EvData>()
     private val observers = mutableListOf<Observer<in EvData>>()
     private val composites = CompositeDisposable()
     private var cmdName : String? = null
@@ -62,32 +61,41 @@ class RxInputReader(val su: ShellSU = ShellSU())
         if (!su.checkRootAccess()) return
     }
 
-    override fun subscribeActual(observer: Observer<in EvData>?) {
+    override fun subscribeActual(observer: Observer<in EvData>?)
+    {
         observer?.also {
-            observers.add(observer)
-            val dispose = EvDispose(observer)
-            observer.onSubscribe(dispose)
-            if (observers.size == 1)
-                setDevices(inputDevices)
+            val size = synchronized(observers) {
+                observers.add(observer)
+                val dispose = EvDispose(observer)
+                observer.onSubscribe(dispose)
+                observers.size
+            }
+            if (size == 1) setDevices(inputDevices)
         }
     }
     inner class EvDispose(private val observer: Observer<in EvData>)
         : Disposable
     {
         override fun isDisposed(): Boolean {
-            return observers.contains(observer)
+            return synchronized(observers) {
+                observers.contains(observer)
+            }
         }
 
         override fun dispose() {
-            observers.remove(observer)
-            if (!hasObservers()) onDispose()
+            val bDispose = synchronized(observers) {
+                if (observers.size > 0) {
+                    observers.remove(observer)
+                    observers.size == 0
+                }else false
+            }
+            if (bDispose) onDispose()
         }
     }
 
     private fun onDispose()
     {
         synchronized(inputDevices) {
-//            threadHandler?.interrupt()
             threadHandler = null
         }
         //  todo: sent any messages to flush buffer and self kill threads
@@ -96,8 +104,8 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
     private fun onNext(event : EvData)
     {
-        observers.subList(0, observers.size)
-                .forEach { it.onNext(event) }
+        synchronized(observers){ observers.subList(0, observers.size) }
+        .forEach { it.onNext(event) }
     }
     fun hasObservers()
         = observers.size > 0

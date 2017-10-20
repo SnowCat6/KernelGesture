@@ -24,6 +24,7 @@ class GestureHW(val context:Context)
     companion object {
         private var keyguardLock: KeyguardManager.KeyguardLock? = null
 
+/*
         var rxScreenOn  = BehaviorSubject.create<Boolean>()
         var screenON : Boolean
             get() = rxScreenOn.value == true
@@ -44,10 +45,11 @@ class GestureHW(val context:Context)
                 }
             }
         }
+        */
     }
 
     private var bRegistred = false
-
+/*
     fun registerEvents()
     {
         if (bRegistred) return
@@ -69,6 +71,7 @@ class GestureHW(val context:Context)
             context.unregisterReceiver(onEventIntent)
         }catch (e:Exception){}
     }
+*/
     /*
         <uses-permission android:name="android.permission.WAKE_LOCK" />
     */

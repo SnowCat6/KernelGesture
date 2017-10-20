@@ -10,6 +10,7 @@ import android.util.Log
 import android.view.MenuItem
 import android.widget.ArrayAdapter
 import gestureDetect.tools.GestureHW
+import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_detect_2.*
@@ -49,7 +50,6 @@ class InputDetect2Activity : AppCompatActivity()
         keyEventList?.adapter = logListAdapter
 
         hw = GestureHW(this)
-        hw?.registerEvents()
         hw?.screenON()
 
         btnStart.setOnClickListener {
@@ -59,7 +59,8 @@ class InputDetect2Activity : AppCompatActivity()
         btnClose.isEnabled = false
         btnClose.setOnClickListener { finish() }
 
-        composites += GestureHW.rxScreenOn
+        val rxScreen = RxScreenOn(application)
+        composites += rxScreen
             .subscribe {
                 if (it) {
                     val v = DetectModelView.getModel(this)
@@ -82,8 +83,6 @@ class InputDetect2Activity : AppCompatActivity()
     override fun onDestroy()
     {
         composites.clear()
-        hw?.unregisterEvents()
-
         super.onDestroy()
     }
 

@@ -15,6 +15,7 @@ import android.util.Log
 import com.google.firebase.crash.FirebaseCrash
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
@@ -143,9 +144,7 @@ class GestureService :
             Log.d("Start service", "**************************")
         }
 
-        hw = hw ?: GestureHW(this).also {
-            it.registerEvents()
-        }
+        hw = hw ?: GestureHW(this)
         //  Get sensor devices
         mSensorManager  = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity      = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
@@ -155,7 +154,8 @@ class GestureService :
                 .observeOn(Schedulers.io())
                 .subscribe { stopSelf() }
 
-        composites += GestureHW.rxScreenOn.subscribe {
+        val rxScreen = RxScreenOn(application)
+        composites += rxScreen.subscribe {
 
             setServiceForeground(!it)
             if (!it) gestureDetector?.hw?.screenLock()
@@ -187,8 +187,6 @@ class GestureService :
             it.hw.screenLock()
             it.close()
         }
-        hw?.unregisterEvents()
-        hw = null
     }
     /************************************/
     /*
