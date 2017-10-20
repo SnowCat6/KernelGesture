@@ -8,8 +8,10 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MenuItem
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import gestureDetect.tools.GestureHW
+import gestureDetect.tools.RxInputReader
 import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -26,11 +28,11 @@ class InputDetect2Activity : AppCompatActivity()
 
     private var hw : GestureHW? = null
 
-    private val detectObserver = Observer<List<String>> {
+    private val detectObserver = Observer<List<RxInputReader.EvData>> {
         Log.d("Event detect", it?.size.toString())
         it?.let {
             events.clear()
-            events.addAll(it)
+            events.addAll(it.map { "${it.device}=>${it.evButton}" })
             logListAdapter?.notifyDataSetChanged()
         }
     }
@@ -78,6 +80,14 @@ class InputDetect2Activity : AppCompatActivity()
                     }
                 }
             }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val wind = window
+        wind.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
+        wind.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+        wind.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
     }
 
     override fun onDestroy()

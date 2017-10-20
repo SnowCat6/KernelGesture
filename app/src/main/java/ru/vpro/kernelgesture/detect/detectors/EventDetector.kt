@@ -14,7 +14,7 @@ import io.reactivex.rxkotlin.plusAssign
 
 class EventDetector(private val context: Context,
                     private val su : ShellSU)
-    : LiveData<List<String>>()
+    : LiveData<List<RxInputReader.EvData>>()
 {
     private val composites      = CompositeDisposable()
     private val rxInputReader   = RxInputReader(su).apply { create(context) }
@@ -51,7 +51,7 @@ class EventDetector(private val context: Context,
         }
 
         GestureService.bDisableService = true
-        val events = mutableListOf<String>()
+        val events = mutableListOf<RxInputReader.EvData>()
         rxInputReader.setDevices(SensorInput.getInputEvents().map { it.first })
 
         composites += rxInputReader
@@ -60,10 +60,12 @@ class EventDetector(private val context: Context,
                 GestureService.bDisableService = false
                 onCompleteAction?.invoke()
             }
-            .subscribe {
-                if (!events.contains(it.evButton))
+            .subscribe { event ->
+                if (events.firstOrNull {
+                    it.evButton == event.evButton && it.device == event.device
+                } == null)
                 {
-                    events.add(it.evButton)
+                    events.add(event)
                     value = events
                     hw.vibrate()
                 }
