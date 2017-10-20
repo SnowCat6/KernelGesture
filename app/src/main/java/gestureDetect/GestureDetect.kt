@@ -136,8 +136,7 @@ class GestureDetect (val context : Context,
     }
 
     private  var sensorEventGesture = LinkedList<String>()
-    fun waitGesture(): String?
-            = getEventThread()
+    fun waitGesture() = getEventThread()
 
     private fun getEventThread():String?
     {
@@ -208,7 +207,6 @@ class GestureDetect (val context : Context,
                 if (isNotEmpty()) return pop()
             }
             eventMutex.lock(timeout)
-//            Thread.sleep(timeout)
             synchronized(sensorEventGesture) {
                 return if (isNotEmpty()) pop() else null
             }

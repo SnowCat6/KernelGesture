@@ -5,6 +5,8 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.hardware.Camera
 import gestureDetect.GestureAction
+import gestureDetect.tools.GestureHW
+import gestureDetect.tools.RxScreenOn
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -22,6 +24,14 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
     override fun onCreate(context: Context):Boolean
     {
         this.context = context
+
+        composites += RxScreenOn(context)
+                .filter{ it && enable }
+                .subscribe {
+                    enable = false
+                    flashLight(context)
+                }
+
         if (onDetectFlashlight(context)) return true
 
         composites += action.su.su.rxRootEnable
@@ -29,7 +39,6 @@ class ActionFlashlight(action: GestureAction) : ActionItem(action)
                 .filter { it }
                 .subscribe {
                     if (onDetectFlashlight(context)) {
-                        composites.clear()
                         action.notifyChanged(this)
                     }
                 }

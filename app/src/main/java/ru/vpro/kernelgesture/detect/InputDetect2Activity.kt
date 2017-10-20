@@ -6,6 +6,7 @@ import android.arch.lifecycle.Observer
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.JsonReader
 import android.util.Log
 import android.view.MenuItem
 import android.view.WindowManager
@@ -15,15 +16,17 @@ import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_detect_2.*
+import org.inowave.planning.ui.common.adapter.TwoString
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.detect.detectors.DetectModelView
 import ru.vpro.kernelgesture.tools.adapter.ReAdapter
 import ru.vpro.kernelgesture.tools.adapter.bindAdapter
+import java.io.StringReader
 
 class InputDetect2Activity : AppCompatActivity()
 {
     private val composites  = CompositeDisposable()
-    private var events      = mutableListOf<String>()
+    private var events      = mutableListOf<Any>()
     private var adapter     = ReAdapter(events)
     private var bNeedRun    = false
 
@@ -33,7 +36,7 @@ class InputDetect2Activity : AppCompatActivity()
         Log.d("Event detect", it?.size.toString())
         it?.let {
             events.clear()
-            events.addAll(it.map { "${it.device}=>${it.evButton}" })
+            events.addAll(it.map { TwoString(it.device, it.evButton) })
             adapter.items = events
         }
     }
@@ -106,21 +109,6 @@ class InputDetect2Activity : AppCompatActivity()
         return super.onOptionsItemSelected(item)
     }
 
-    companion object
-    {
-        private val RESULT_ID = R.layout.activity_detect_2 and 0xFF
-        fun startActivity(activity: Activity){
-            val intent = Intent(activity, InputDetect2Activity::class.java)
-            activity.startActivityForResult(intent, RESULT_ID)
-        }
-        fun getActivityResult(requestCode:Int, resultCode:Int, data:Intent?): Array<String>?
-        {
-            if (requestCode != RESULT_ID || resultCode != Activity.RESULT_OK || data == null)
-                return null
-            return data.getStringArrayExtra("geteventResult")
-        }
-    }
-
     private var dlg: AlertDialog? = null
     private fun closeDialog(){
         try{
@@ -130,10 +118,9 @@ class InputDetect2Activity : AppCompatActivity()
         dlg = null
     }
 
-    private fun reportLog(events:List<String>)
+    private fun reportLog(events:List<Any>)
     {
-        val intent = Intent()
-        intent.putExtra("geteventResult", events.toTypedArray())
+        resilt = events
         setResult(Activity.RESULT_OK, intent)
 
         closeDialog()
@@ -147,5 +134,14 @@ class InputDetect2Activity : AppCompatActivity()
             dlg?.setOnDismissListener {  dlg = null }
             dlg?.show()
         }
+    }
+    companion object
+    {
+        private val RESULT_ID = R.layout.activity_detect_2 and 0xFF
+        fun startActivity(activity: Activity){
+            val intent = Intent(activity, InputDetect2Activity::class.java)
+            activity.startActivityForResult(intent, RESULT_ID)
+        }
+        var resilt = emptyList<Any>()
     }
 }

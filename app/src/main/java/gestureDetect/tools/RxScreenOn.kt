@@ -64,14 +64,14 @@ class RxScreenOn(val context: Context): Observable<Boolean>()
             //  Register screen activity event
             val intentFilter = IntentFilter(Intent.ACTION_SCREEN_ON)
             intentFilter.addAction(Intent.ACTION_SCREEN_OFF)
-            context.registerReceiver(onEventIntent, intentFilter)
+            context.applicationContext.registerReceiver(onEventIntent, intentFilter)
         }
     }
     private fun onDispose()
     {
         synchronized(observers) {
             try {
-                context.unregisterReceiver(onEventIntent)
+                context.applicationContext.unregisterReceiver(onEventIntent)
             } catch (e: Exception) {
             }
         }
@@ -87,11 +87,11 @@ class RxScreenOn(val context: Context): Observable<Boolean>()
 
     fun isScreenOn(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            val displayManager = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
+            val displayManager = context.applicationContext.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
             return displayManager?.displays?.any { it.state != Display.STATE_OFF } == true
         }
 
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
+        val powerManager = context.applicationContext.getSystemService(Context.POWER_SERVICE) as PowerManager
         return powerManager.isScreenOn
     }
 }

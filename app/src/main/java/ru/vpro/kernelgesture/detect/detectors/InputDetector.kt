@@ -10,31 +10,31 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
+import org.inowave.planning.ui.common.adapter.HeaderString
+import org.inowave.planning.ui.common.adapter.TwoString
 import ru.vpro.kernelgesture.BuildConfig
 
 
 class InputDetector (private val context: Context,
                      private val su : ShellSU)
-    : LiveData<List<String>>() {
+    : LiveData<List<Any>>() {
 
     private val composites = CompositeDisposable()
-    private val thisValue  = mutableListOf<String>()
+    private val thisValue  = mutableListOf<Any>()
 
-    private fun threadAction()  = Observable.create<String> { emitter ->
+    private fun threadAction()  = Observable.create<Any> { emitter ->
 
         emitter.apply {
 
-            onNext("Android SDK:" + android.os.Build.VERSION.SDK_INT)
-            onNext("Device name:" + android.os.Build.MODEL)
+            onNext(TwoString("Android SDK", android.os.Build.VERSION.SDK_INT.toString()))
+            onNext(TwoString("Device name", android.os.Build.MODEL))
 
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            onNext("App version:${pInfo.versionName}")
+            onNext(TwoString("App version", pInfo.versionName))
 
-            onNext(String())
-
-            onNext("Add input devices list")
+            onNext(HeaderString( "Input devices list"))
             SensorInput.getInputEvents().forEach {
-                onNext("${it.second}=>${it.first}")
+                onNext(TwoString(it.first, it.second))
             }
 
             if (!su.checkRootAccess())
@@ -46,12 +46,11 @@ class InputDetector (private val context: Context,
             if (BuildConfig.DEBUG) {
                 return@apply
             }
-            onNext(String())
 
-            onNext("Run find cmd to search /sys/ devices")
+            onNext(HeaderString("Run find cmd to search /sys/ devices"))
             doSearch(this, su, "/sys", listOf("*gesture*", "*gesenable*", "*wakeup_mode*"))
 
-            onNext("Run find cmd to search /proc/ functions")
+            onNext(HeaderString("Run find cmd to search /proc/ functions"))
             doSearch(this, su, "/proc", listOf("*goodix*"))
 
             /**
@@ -59,15 +58,15 @@ class InputDetector (private val context: Context,
             // ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-0038/wakeup_mode /data/tp/wakeup_mode
             //  ln -s /sys/devices/soc.0/78b8000.i2c/i2c-4/4-004a/wakeup_mode /data/tp/wakeup_mode
              */
-            onNext("Run find cmd to search /data/tp/ devices")
+            onNext(HeaderString("Run find cmd to search /data/tp/ devices"))
             doSearch(this, su, "/data/tp", listOf("*wakeup*"))
         }
         emitter.onComplete()
     }
 
-    private fun doSearch(emitter : ObservableEmitter<String>,
+    private fun doSearch(emitter : ObservableEmitter<Any>,
                          su:ShellSU, path:String,
-                         search: List<String>) : Boolean
+                         search: List<Any>) : Boolean
     {
         if (!hasObservers()) return true
 
@@ -109,8 +108,8 @@ class InputDetector (private val context: Context,
                 files += line
             }
             files.forEach {
-                val value = su.getFileLine(it)
-                emitter.onNext("path:$it=>$value")
+                val value = su.getFileLine(it) ?: return@forEach
+                emitter.onNext(TwoString(it, value))
             }
         }
 

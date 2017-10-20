@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_detect_1.*
+import org.inowave.planning.ui.common.adapter.HeaderString
 import ru.vpro.kernelgesture.tools.adapter.bindAdapter
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.detect.detectors.DetectModelView
@@ -17,7 +18,7 @@ import ru.vpro.kernelgesture.tools.adapter.ReAdapter
 
 class InputDetectActivity : AppCompatActivity() {
 
-    private var logx    = ArrayList<String>()
+    private var logx    = ArrayList<Any>()
     private var adapter = ReAdapter(logx)
 
     override fun onCreate(savedInstanceState: Bundle?)
@@ -105,13 +106,9 @@ class InputDetectActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
     {
-        InputDetect2Activity.getActivityResult(requestCode, resultCode, data)?.apply {
-            logx.add(String())
-            logx.add("Gesture events")
-            logx.addAll(this)
-            updateProgress()
-            return
-        }
+        logx.add(HeaderString("Gesture events"))
+        logx.addAll(InputDetect2Activity.resilt)
+        updateProgress()
 
         super.onActivityResult(requestCode, resultCode, data)
     }
