@@ -28,6 +28,10 @@
             android:singleLine="false"
             android:text="@string/ui_detect2_help" />
 
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/item_margin" />
+
         <Button
             android:id="@+id/btnStart"
             android:layout_width="match_parent"
@@ -46,7 +50,7 @@
 
     </LinearLayout>
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/keyEventList"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

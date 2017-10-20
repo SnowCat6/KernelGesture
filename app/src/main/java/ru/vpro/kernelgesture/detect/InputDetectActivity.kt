@@ -8,16 +8,17 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
-import android.widget.ArrayAdapter
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_detect_1.*
+import ru.vpro.kernelgesture.tools.adapter.bindAdapter
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.detect.detectors.DetectModelView
+import ru.vpro.kernelgesture.tools.adapter.ReAdapter
 
 class InputDetectActivity : AppCompatActivity() {
 
-    private var logListAdapter : ArrayAdapter<String>? = null
-    private var logx        = ArrayList<String>()
+    private var logx    = ArrayList<String>()
+    private var adapter = ReAdapter(logx)
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
@@ -28,13 +29,6 @@ class InputDetectActivity : AppCompatActivity() {
             subtitle = getString(R.string.ui_detect_subtitle)
             setDisplayHomeAsUpEnabled(true)
         }
-
-        logListAdapter = ArrayAdapter(this,
-                android.R.layout.simple_list_item_1,
-                logx)
-
-//        logList?.addHeaderView(listHeader)
-        logList?.adapter = logListAdapter
 
         startLog?.apply {
             setOnClickListener {
@@ -100,6 +94,9 @@ class InputDetectActivity : AppCompatActivity() {
                 }
             })
         }
+        adapter.addHeaderView(buttonLayout)
+        adapter.addHeaderView(listHeader)
+        logList?.bindAdapter(adapter)
     }
     private fun onButtonDetect(button : Button)
     {
@@ -146,7 +143,7 @@ class InputDetectActivity : AppCompatActivity() {
 
     private fun updateProgress()
     {
-        logListAdapter?.notifyDataSetChanged()
+        adapter.items = logx
     }
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
         when (item?.itemId) {

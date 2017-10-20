@@ -25,8 +25,8 @@ class ShellSU(val su : ProcessSU = commonSU)
         var writerSU: OutputStream? = null
         var bEnableSU = false
         var bEnableCheck = true
-        val rxRootEnable = BehaviorSubject.createDefault(false)
 
+        val rxRootEnable = BehaviorSubject.createDefault(false)
         var rxError  : Observable<String>? = null
     }
 

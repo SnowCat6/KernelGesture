@@ -9,7 +9,6 @@ import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.view.MenuItem
 import android.view.WindowManager
-import android.widget.ArrayAdapter
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.RxInputReader
 import gestureDetect.tools.RxScreenOn
@@ -18,12 +17,14 @@ import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_detect_2.*
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.detect.detectors.DetectModelView
+import ru.vpro.kernelgesture.tools.adapter.ReAdapter
+import ru.vpro.kernelgesture.tools.adapter.bindAdapter
 
 class InputDetect2Activity : AppCompatActivity()
 {
     private val composites  = CompositeDisposable()
     private var events      = mutableListOf<String>()
-    private var logListAdapter: ArrayAdapter<String>? = null
+    private var adapter     = ReAdapter(events)
     private var bNeedRun    = false
 
     private var hw : GestureHW? = null
@@ -33,7 +34,7 @@ class InputDetect2Activity : AppCompatActivity()
         it?.let {
             events.clear()
             events.addAll(it.map { "${it.device}=>${it.evButton}" })
-            logListAdapter?.notifyDataSetChanged()
+            adapter.items = events
         }
     }
 
@@ -46,10 +47,6 @@ class InputDetect2Activity : AppCompatActivity()
             subtitle = getString(R.string.ui_detect2_subtitle)
             setDisplayHomeAsUpEnabled(true)
         }
-
-        logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, events)
-//        keyEventList?.addHeaderView(listHeader)
-        keyEventList?.adapter = logListAdapter
 
         hw = GestureHW(this)
         hw?.screenON()
@@ -80,6 +77,8 @@ class InputDetect2Activity : AppCompatActivity()
                     }
                 }
             }
+        adapter.addHeaderView(listHeader)
+        keyEventList?.bindAdapter(adapter)
     }
 
     override fun onResume() {
@@ -133,8 +132,6 @@ class InputDetect2Activity : AppCompatActivity()
 
     private fun reportLog(events:List<String>)
     {
-        logListAdapter?.notifyDataSetChanged()
-
         val intent = Intent()
         intent.putExtra("geteventResult", events.toTypedArray())
         setResult(Activity.RESULT_OK, intent)

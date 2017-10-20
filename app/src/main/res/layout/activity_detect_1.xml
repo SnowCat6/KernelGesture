@@ -8,6 +8,7 @@
     android:orientation="vertical">
 
     <LinearLayout
+        android:id="@+id/buttonLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
@@ -58,12 +59,12 @@
             android:text="@string/ui_detect_help" />
     </LinearLayout>
 
-    <ListView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/logList"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
 
-    </ListView>
+    </android.support.v7.widget.RecyclerView>
 
 </LinearLayout>

@@ -34,7 +34,7 @@ class InputDetector (private val context: Context,
 
             onNext("Add input devices list")
             SensorInput.getInputEvents().forEach {
-                onNext("device:${it.second}=>${it.first}")
+                onNext("${it.second}=>${it.first}")
             }
 
             if (!su.checkRootAccess())

@@ -37,6 +37,7 @@ abstract class SensorHandler(val gesture:GestureDetect)
     /**
      * Вызвать срабатывание события
      */
-    fun sensorEvent(event : String)
-            = gesture.sensorEvent(event)
+    fun sensorEvent(event : String): Boolean {
+        return gesture.sensorEvent(event)
+    }
 }
