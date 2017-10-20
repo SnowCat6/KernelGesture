@@ -106,8 +106,7 @@ class InputDetectActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
     {
-        logx.add(HeaderString("Gesture events"))
-        logx.addAll(InputDetect2Activity.resilt)
+        logx.addAll(DetectModelView.eventLog)
         updateProgress()
 
         super.onActivityResult(requestCode, resultCode, data)

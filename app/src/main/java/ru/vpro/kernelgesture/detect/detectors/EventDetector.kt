@@ -11,6 +11,7 @@ import gestureDetect.tools.RxInputReader
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
+import org.inowave.planning.ui.common.adapter.HeaderString
 
 class EventDetector(private val context: Context,
                     su : ShellSU)

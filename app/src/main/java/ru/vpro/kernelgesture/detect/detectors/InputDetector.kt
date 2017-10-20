@@ -26,6 +26,8 @@ class InputDetector (private val context: Context,
 
         emitter.apply {
 
+            onNext(HeaderString("Device info"))
+
             onNext(TwoString("Android SDK", android.os.Build.VERSION.SDK_INT.toString()))
             onNext(TwoString("Device name", android.os.Build.MODEL))
 

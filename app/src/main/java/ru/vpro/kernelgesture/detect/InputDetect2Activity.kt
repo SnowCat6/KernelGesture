@@ -16,6 +16,7 @@ import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_detect_2.*
+import org.inowave.planning.ui.common.adapter.HeaderString
 import org.inowave.planning.ui.common.adapter.TwoString
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.detect.detectors.DetectModelView
@@ -36,6 +37,7 @@ class InputDetect2Activity : AppCompatActivity()
         Log.d("Event detect", it?.size.toString())
         it?.let {
             events.clear()
+            events.add(HeaderString("Gesture events"))
             events.addAll(it.map { TwoString(it.device, it.evButton) })
             adapter.items = events
         }
@@ -120,14 +122,14 @@ class InputDetect2Activity : AppCompatActivity()
 
     private fun reportLog(events:List<Any>)
     {
-        resilt = events
+        DetectModelView.eventLog = events
         setResult(Activity.RESULT_OK, intent)
 
         closeDialog()
         with(AlertDialog.Builder(this))
         {
             val title = getString(R.string.ui_detect2_dlg_title)
-            setTitle("$title ${events.size}")
+            setTitle("$title ${events.size-1}")
             setMessage(getString(R.string.ui_detect2_dlg_content))
 
             dlg = create()
@@ -142,6 +144,5 @@ class InputDetect2Activity : AppCompatActivity()
             val intent = Intent(activity, InputDetect2Activity::class.java)
             activity.startActivityForResult(intent, RESULT_ID)
         }
-        var resilt = emptyList<Any>()
     }
 }
