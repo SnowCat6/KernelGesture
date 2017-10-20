@@ -46,6 +46,7 @@ class GestureAction(val su : ShellSU = ShellSU())
     )
 
     val rxUpdateItems = BehaviorSubject.createDefault(allActions)
+    private var bIsOpened = false
 
     fun notifyChanged(action: ActionItem) {
         rxUpdateItems.onNext(allActions)
@@ -53,6 +54,8 @@ class GestureAction(val su : ShellSU = ShellSU())
 
     fun onCreate(context: Context)
     {
+        if (bIsOpened) return
+        bIsOpened = true
         allActions.forEach { it.onCreate(context) }
     }
 
@@ -64,6 +67,8 @@ class GestureAction(val su : ShellSU = ShellSU())
     }
 
     fun close(){
+        if (!bIsOpened) return
+        bIsOpened = false
         allActions.forEach { it.close() }
     }
 
@@ -197,10 +202,9 @@ class GestureAction(val su : ShellSU = ShellSU())
 
         private var actions : GestureAction? = null
         fun getInstance(context: Context)
-            = actions ?: GestureAction().apply {
-                actions = this
-                onCreate(context)
-            }
+            = (actions ?: GestureAction().apply { actions = this })
+                .apply { onCreate(context) }
+
         fun getInstance()
                 = actions ?: GestureAction().apply { actions = this }
     }

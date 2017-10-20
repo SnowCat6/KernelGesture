@@ -59,6 +59,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
         tts = null
     }
 
+    //  TTS init
     override fun onInit(status: Int)
     {
         if (status != TextToSpeech.SUCCESS)

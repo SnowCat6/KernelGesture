@@ -29,7 +29,10 @@ class InputDetectActivity : AppCompatActivity() {
             setDisplayHomeAsUpEnabled(true)
         }
 
-        logListAdapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, logx)
+        logListAdapter = ArrayAdapter(this,
+                android.R.layout.simple_list_item_1,
+                logx)
+
 //        logList?.addHeaderView(listHeader)
         logList?.adapter = logListAdapter
 

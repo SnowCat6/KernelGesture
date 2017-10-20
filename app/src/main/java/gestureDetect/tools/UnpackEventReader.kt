@@ -16,9 +16,8 @@ class UnpackEventReader(val context: Context)
         val source = mutableListOf<String>()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Build.SUPPORTED_ABIS.forEach {
-                source.add("lib/$it/$sourceName")
-            }
+            source.addAll(Build.SUPPORTED_ABIS
+                    .map { "lib/$it/$sourceName" })
         } else {
             source.add("lib/${Build.CPU_ABI}/$sourceName")
         }
@@ -28,9 +27,6 @@ class UnpackEventReader(val context: Context)
         } catch (x: Throwable) { return null }
 
         val destName = applicationInfo.dataDir + "/" + destinationName
-        try{
-            File(destName).delete()
-        }catch (e:Exception){}
 
         try {
             val zipFile = applicationInfo.publicSourceDir
@@ -38,6 +34,10 @@ class UnpackEventReader(val context: Context)
 
             source.forEach {
                 getZipFile(ZipInputStream(fin), it)?.also {
+
+                    try{
+                        File(destName).delete()
+                    }catch (e:Exception){}
 
                     val fout = FileOutputStream(destName, false)
                     val buffer = ByteArray(8192)
@@ -64,11 +64,13 @@ class UnpackEventReader(val context: Context)
 
     private fun getZipFile(zin: ZipInputStream, abi: String) : ZipInputStream?
     {
-        while (true) {
-            val ze = zin.nextEntry ?: break
-            if (abi != ze.name) continue
-            return zin
-        }
+        try {
+            while (true) {
+                val ze = zin.nextEntry ?: break
+                if (abi != ze.name) continue
+                return zin
+            }
+        }catch (e:Exception){}
         zin.close()
         return null
     }

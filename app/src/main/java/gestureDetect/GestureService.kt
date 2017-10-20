@@ -32,6 +32,7 @@ class GestureService :
     private var gestureDetector:GestureDetect? = null
     private var gestureActions:GestureAction? = null
 
+    private var hw : GestureHW? = null
     private val su = ShellSU()
     private var bForeground = false
 
@@ -46,10 +47,9 @@ class GestureService :
      */
     override fun onHandleIntent(intent: Intent?)
     {
-        val settings = GestureSettings(this)
-        val hw = GestureHW(this)
-        hw.registerEvents()
         su.checkRootAccess()
+
+        val settings = GestureSettings(this)
 
         val gesture = gestureDetector ?: GestureDetect(this, su)
         gestureDetector = gesture
@@ -61,7 +61,7 @@ class GestureService :
         //  Enable/disable gestures on start service
         gesture.enable(true)
 
-        setServiceForeground(!hw.isScreenOn())
+        setServiceForeground(hw?.isScreenOn() == false)
 
         actions.onStart()
         gesture.bClosed = false
@@ -91,7 +91,6 @@ class GestureService :
         if (bProximityEnable) {
             mSensorManager?.unregisterListener(this)
         }
-        hw.unregisterEvents()
         actions.onStop()
         gesture.close()
 
@@ -144,6 +143,9 @@ class GestureService :
             Log.d("Start service", "**************************")
         }
 
+        hw = hw ?: GestureHW(this).also {
+            it.registerEvents()
+        }
         //  Get sensor devices
         mSensorManager  = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         mProximity      = mSensorManager?.getDefaultSensor(Sensor.TYPE_PROXIMITY)
@@ -151,14 +153,12 @@ class GestureService :
         composites += GestureSettings.rxUpdateValue
                 .filter { it.key ==  GestureSettings.GESTURE_ENABLE && it.value == false }
                 .observeOn(Schedulers.io())
-                .subscribe {
-                    stopSelf()
-                }
+                .subscribe { stopSelf() }
 
         composites += GestureHW.rxScreenOn.subscribe {
 
             setServiceForeground(!it)
-            if (!it)gestureDetector?.hw?.screenLock()
+            if (!it) gestureDetector?.hw?.screenLock()
         }
 
         super.onCreate()
@@ -182,11 +182,13 @@ class GestureService :
         }
         composites.clear()
 
-        gestureDetector?.hw?.screenLock()
-        gestureDetector?.hw?.unregisterEvents()
-        gestureDetector?.close()
         gestureActions?.close()
-//        su.killJobs()
+        gestureDetector?.also {
+            it.hw.screenLock()
+            it.close()
+        }
+        hw?.unregisterEvents()
+        hw = null
     }
     /************************************/
     /*
