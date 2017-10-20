@@ -23,7 +23,7 @@ abstract class ActionSpeechItem(action: GestureAction) :
 
     override fun onCreate(context: Context): Boolean {
         if (tts == null) {
-            tts = TextToSpeech(context, this)
+            tts = TextToSpeech(context.applicationContext, this)
         }
         return super.onCreate(context)
     }
