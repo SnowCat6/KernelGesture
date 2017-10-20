@@ -85,9 +85,9 @@ class InputDetect2Activity : AppCompatActivity()
     override fun onResume() {
         super.onResume()
         val wind = window
-        wind.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD);
-        wind.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-        wind.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        wind.addFlags(WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD)
+        wind.addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED)
+        wind.addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON)
     }
 
     override fun onDestroy()

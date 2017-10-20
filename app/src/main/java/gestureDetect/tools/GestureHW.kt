@@ -1,20 +1,17 @@
 package gestureDetect.tools
 
 import android.app.ActivityManager
+import android.app.KeyguardManager
 import android.content.Context
+import android.content.Context.POWER_SERVICE
 import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorManager
 import android.hardware.display.DisplayManager
+import android.os.Build
 import android.os.PowerManager
 import android.os.Vibrator
 import android.view.Display
-import android.app.KeyguardManager
-import android.content.BroadcastReceiver
-import android.os.Build
-import android.content.Context.POWER_SERVICE
-import android.content.IntentFilter
-import android.hardware.Sensor
-import android.hardware.SensorManager
-import io.reactivex.subjects.BehaviorSubject
 
 class GestureHW(val context:Context)
 {

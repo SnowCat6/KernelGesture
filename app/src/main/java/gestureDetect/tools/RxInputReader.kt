@@ -4,12 +4,10 @@ import SuperSU.ShellSU
 import android.content.Context
 import io.reactivex.Observable
 import io.reactivex.Observer
-import io.reactivex.Scheduler
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
-import kotlin.concurrent.thread
 
 class RxInputReader(val su: ShellSU = ShellSU())
     : Observable<RxInputReader.EvData>()
@@ -23,7 +21,6 @@ class RxInputReader(val su: ShellSU = ShellSU())
     )
 
     private var inputDevices  = emptyList<String>()
-//    private var threadHandler : Thread? = null
     private val observers = mutableListOf<Observer<in EvData>>()
     private val composites = CompositeDisposable()
     private var cmdName : String? = null
@@ -72,6 +69,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
             composites += it
                     .subscribeOn(Schedulers.io())
                     .filter{ hasObservers() }
+                    .onErrorReturn { null }
                     .subscribe {
 
                 val ev = regSplit.find(it) ?: return@subscribe
@@ -116,6 +114,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
             composites += it
                     .subscribeOn(Schedulers.io())
                     .filter{ hasObservers() }
+                    .onErrorReturn { null }
                     .subscribe { rawLine ->
 
                         //  Check query number for skip old events output

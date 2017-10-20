@@ -13,7 +13,7 @@ import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 
 class EventDetector(private val context: Context,
-                    private val su : ShellSU)
+                    su : ShellSU)
     : LiveData<List<RxInputReader.EvData>>()
 {
     private val composites      = CompositeDisposable()

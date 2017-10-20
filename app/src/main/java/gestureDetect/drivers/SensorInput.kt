@@ -3,7 +3,6 @@ package gestureDetect.drivers
 import android.content.Context
 import gestureDetect.GestureDetect
 import gestureDetect.drivers.input.*
-import gestureDetect.tools.GestureHW
 import gestureDetect.tools.RxInputReader
 import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable

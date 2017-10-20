@@ -13,10 +13,6 @@ class DetectModelView(application: Application) :
     val events  = EventDetector(application, su)
     val inputs  = InputDetector(application, su)
 
-    override fun onCleared() {
-        super.onCleared()
-    }
-
     companion object {
         fun getModel(activity : FragmentActivity)
                 = ViewModelProviders.of(activity).get(DetectModelView::class.java)

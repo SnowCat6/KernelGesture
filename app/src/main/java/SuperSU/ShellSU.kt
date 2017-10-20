@@ -1,7 +1,6 @@
 package SuperSU
 
 import android.util.Log
-import com.google.firebase.crash.FirebaseCrash
 import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import ru.vpro.kernelgesture.BuildConfig
@@ -28,7 +27,6 @@ class ShellSU(val su : ProcessSU = commonSU)
         var bEnableCheck = true
         val rxRootEnable = BehaviorSubject.createDefault(false)
 
-        var rxReader : Observable<String>? = null
         var rxError  : Observable<String>? = null
     }
 
@@ -62,20 +60,11 @@ class ShellSU(val su : ProcessSU = commonSU)
                     errorSU = processSU?.errorStream?.bufferedReader()
                     writerSU = processSU?.outputStream
 
-                    rxReader = Observable.create<String> {
-                        while(!it.isDisposed) {
-                            readerSU?.readLine()?.apply {
-                                it.onNext(this)
-                            } ?: return@create
-                        }
-                    }.doOnDispose {
-                        rxReader = null
-                    }
-
                     writerSU?.apply {
                         write("id\n".toByteArray())
                         flush()
                     }
+
                     val id = readExecLine()?.contains("root")
                     if (id == null || id == false) close()
 
@@ -139,7 +128,6 @@ class ShellSU(val su : ProcessSU = commonSU)
                 errorSU?.close()
                 processSU?.destroy()
 
-                rxReader = null
                 rxError = null
 
                 bEnableSU = false
@@ -181,17 +169,6 @@ class ShellSU(val su : ProcessSU = commonSU)
         it.onComplete()
     }.also { su.rxError = it }
 
-    /*
-    fun readErrorLine() : String? {
-        try {
-            return  su.errorSU?.readLine()
-        }catch (e:Exception){
-            e.printStackTrace()
-            FirebaseCrash.report(e)
-        }
-        return null
-    }
-*/
     fun writeErr(value:String):Boolean
         = exec("echo $value>&2")
 }
