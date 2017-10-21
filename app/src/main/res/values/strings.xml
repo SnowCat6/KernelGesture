@@ -94,6 +94,10 @@
     <string name="ui_detect2_subtitle">Detect gesture events</string>
     <string name="ui_menu_detect">Gestures detect</string>
     <string name="ui_btn_close">Close</string>
+    <string name="ui_warning_gesture_title">Gesture warning</string>
+    <string name="ui_warning_gesture_content">There is no way to know which gestures work on your device. Go to the Gesture Detection menu and test the device.</string>
+    <string name="ui_warning_key_title">Device sleep warning</string>
+    <string name="ui_warning_key_content">On some devices (MTK processors), the keys may not work in the processor sleep mode. This is a hardware problem and can not be solved by software.</string>
 
     <!-- Strings related to Settings -->
 

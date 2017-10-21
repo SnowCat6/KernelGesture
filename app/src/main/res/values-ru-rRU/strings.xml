@@ -94,4 +94,8 @@
     <string name="ui_detect2_subtitle">Получение событий жестов</string>
     <string name="ui_menu_detect">Обнаружение жестов</string>
     <string name="ui_btn_close">Закрыть</string>
+    <string name="ui_warning_gesture_title">Предупреждение</string>
+    <string name="ui_warning_gesture_content">Нет возможности узнать, какие жесты работают на вашем устройстве. Перейдите в меню Обнаружение Жестов и протестируйте устройство.</string>
+    <string name="ui_warning_key_title">Предупреждение</string>
+    <string name="ui_warning_key_content">На некоторых устройчтвх (процессоры MTK) клавиши могут не работать в режиме засыпания процессора. Это аппаратная проблема и не может быть решена програмно.</string>
 </resources>

@@ -1,5 +1,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <Preference
+        android:key="perf_WARNING_GESTURE"
+        android:title="@string/ui_warning_gesture_title"
+        android:summary="@string/ui_warning_gesture_content"
+        />
+
     <PreferenceCategory
         android:title="@string/ui_title_screen_off"
         android:key="GESTURE_GROUP"

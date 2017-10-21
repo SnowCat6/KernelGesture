@@ -20,6 +20,7 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import ru.vpro.kernelgesture.SettingsActivity.Companion.uiAction
+import ru.vpro.kernelgesture.detect.InputDetectActivity
 import ru.vpro.kernelgesture.tools.BoxAdapter
 import ru.vpro.kernelgesture.tools.getDrawableEx
 import kotlin.concurrent.thread
@@ -101,6 +102,12 @@ open class GesturePreferenceFragment : PreferenceFragment()
                    if (su.checkRootAccess())
                        settings?.setAllEnable(true)
                }
+               true
+           }
+       }
+       findPreference("perf_WARNING_GESTURE")?.apply {
+           this.setOnPreferenceClickListener {
+               InputDetectActivity.startActivity(activity)
                true
            }
        }
