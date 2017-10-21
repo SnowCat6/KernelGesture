@@ -12,7 +12,8 @@ import io.reactivex.Observable
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
 
-class RxScreenOn(val context: Context): Observable<Boolean>()
+class RxScreenOn(val context: Context):
+        Observable<Boolean>()
 {
     private val observers = mutableListOf<Observer<in Boolean>>()
     private val onEventIntent = object : BroadcastReceiver()
@@ -20,10 +21,7 @@ class RxScreenOn(val context: Context): Observable<Boolean>()
         //  Events for screen on and screen off
         override fun onReceive(context: Context, intent: Intent)
         {
-            when (intent.action) {
-                Intent.ACTION_SCREEN_OFF -> onNext(false)
-                Intent.ACTION_SCREEN_ON ->  onNext(true)
-            }
+            onNext(intent.action == Intent.ACTION_SCREEN_ON)
         }
     }
 
@@ -37,6 +35,7 @@ class RxScreenOn(val context: Context): Observable<Boolean>()
                 observers.size
             }
             if (size == 1) onSubscribe()
+            observer.onNext(isScreenOn())
         }
     }
     inner class EvDispose(private val observer: Observer<in Boolean>)
@@ -72,8 +71,7 @@ class RxScreenOn(val context: Context): Observable<Boolean>()
         synchronized(observers) {
             try {
                 context.applicationContext.unregisterReceiver(onEventIntent)
-            } catch (e: Exception) {
-            }
+            } catch (e: Exception) {  }
         }
     }
 
