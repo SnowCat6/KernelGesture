@@ -99,4 +99,5 @@
     <string name="ui_warning_key_title">Предупреждение</string>
     <string name="ui_warning_key_content">На некоторых устройчтвх (процессоры MTK) клавиши могут не работать в режиме засыпания процессора. Это аппаратная проблема и не может быть решена програмно.</string>
     <string name="ui_root_title_install">Пожалуйста установите SuperSU для получения результатов</string>
+    <string name="ui_snack_clipboard">Скопировано в буффер</string>
 </resources>

@@ -99,6 +99,7 @@
     <string name="ui_warning_key_title">Device sleep warning</string>
     <string name="ui_warning_key_content">On some devices (MTK processors), the keys may not work in the processor sleep mode. This is a hardware problem and can not be solved by software.</string>
     <string name="ui_root_title_install">Please install SuperSU to give result</string>
+    <string name="ui_snack_clipboard">Copied to clipboard</string>
 
     <!-- Strings related to Settings -->
 
