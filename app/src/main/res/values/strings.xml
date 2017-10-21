@@ -98,6 +98,7 @@
     <string name="ui_warning_gesture_content">There is no way to know which gestures work on your device. Go to the Gesture Detection menu and test the device.</string>
     <string name="ui_warning_key_title">Device sleep warning</string>
     <string name="ui_warning_key_content">On some devices (MTK processors), the keys may not work in the processor sleep mode. This is a hardware problem and can not be solved by software.</string>
+    <string name="ui_root_title_install">Please install SuperSU to give result</string>
 
     <!-- Strings related to Settings -->
 

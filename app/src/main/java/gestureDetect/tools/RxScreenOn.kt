@@ -79,7 +79,7 @@ class RxScreenOn(val context: Context): Observable<Boolean>()
 
     private fun onNext(event : Boolean)
     {
-        synchronized(observers){ observers.subList(0, observers.size) }
+        synchronized(observers){ ArrayList(observers) }
         .forEach { it.onNext(event) }
     }
 

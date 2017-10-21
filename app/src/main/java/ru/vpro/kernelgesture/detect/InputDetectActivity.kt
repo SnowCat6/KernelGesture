@@ -76,14 +76,26 @@ class InputDetectActivity : AppCompatActivity() {
             }
         }
 
-        DetectModelView.getModel(this).inputs.let {
+        DetectModelView.getModel(this).inputs.also {
+
             it.onComplete {
 
                 closeDialog()
                 startLog?.isEnabled = true
-                seendLog?.isEnabled = true
 
-                InputDetect2Activity.startActivity(this)
+                if (getModel().su.hasRootProcess()) {
+                    seendLog?.isEnabled = true
+                    InputDetect2Activity.startActivity(this)
+                }else{
+                    with(AlertDialog.Builder(this)) {
+                        setTitle(getString(R.string.ui_root_title))
+                        setMessage(getString(R.string.ui_root_title_install))
+
+                        dlg = create()
+                        dlg?.setOnDismissListener { dlg = null }
+                        dlg?.show()
+                    }
+                }
             }
 
             it.observe(this, Observer {
@@ -98,6 +110,7 @@ class InputDetectActivity : AppCompatActivity() {
         adapter.addHeaderView(listHeader)
         logList?.bindAdapter(adapter)
     }
+    private fun getModel() = DetectModelView.getModel(this)
     private fun onButtonDetect(button : Button)
     {
         DetectModelView.getModel(this).inputs.start()

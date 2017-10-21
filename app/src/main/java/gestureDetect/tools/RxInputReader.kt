@@ -200,7 +200,7 @@ class RxInputReader(val su: ShellSU = ShellSU())
 
     private fun onNext(event : EvData)
     {
-        synchronized(observers){ observers.subList(0, observers.size) }
+        synchronized(observers){ ArrayList(observers) }
         .forEach { it.onNext(event) }
     }
     fun hasObservers()

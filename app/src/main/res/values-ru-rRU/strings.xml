@@ -98,4 +98,5 @@
     <string name="ui_warning_gesture_content">Нет возможности узнать, какие жесты работают на вашем устройстве. Перейдите в меню Обнаружение Жестов и протестируйте устройство.</string>
     <string name="ui_warning_key_title">Предупреждение</string>
     <string name="ui_warning_key_content">На некоторых устройчтвх (процессоры MTK) клавиши могут не работать в режиме засыпания процессора. Это аппаратная проблема и не может быть решена програмно.</string>
+    <string name="ui_root_title_install">Пожалуйста установите SuperSU для получения результатов</string>
 </resources>
