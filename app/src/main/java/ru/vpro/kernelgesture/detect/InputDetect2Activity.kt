@@ -6,7 +6,6 @@ import android.arch.lifecycle.Observer
 import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.util.JsonReader
 import android.util.Log
 import android.view.MenuItem
 import android.view.WindowManager
@@ -16,18 +15,18 @@ import gestureDetect.tools.RxScreenOn
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import kotlinx.android.synthetic.main.activity_detect_2.*
-import org.inowave.planning.ui.common.adapter.HeaderString
-import org.inowave.planning.ui.common.adapter.TwoString
+import org.inowave.planning.common.tools.bindAdapter
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.detect.detectors.DetectModelView
+import ru.vpro.kernelgesture.tools.HeaderString
+import ru.vpro.kernelgesture.tools.TwoString
 import ru.vpro.kernelgesture.tools.adapter.ReAdapter
-import ru.vpro.kernelgesture.tools.adapter.bindAdapter
-import java.io.StringReader
+
 
 class InputDetect2Activity : AppCompatActivity()
 {
     private val composites  = CompositeDisposable()
-    private var events      = mutableListOf<Any>()
+    private var events      = ArrayList<Any>()
     private var adapter     = ReAdapter(events)
     private var bNeedRun    = false
 
@@ -120,9 +119,11 @@ class InputDetect2Activity : AppCompatActivity()
         dlg = null
     }
 
-    private fun reportLog(events:List<Any>)
+    private fun reportLog(events:ArrayList<Any>)
     {
-        DetectModelView.eventLog = events
+        val intent = Intent()
+        intent.putExtra("result", events)
+//        intent.putExtra("result", registerJson().toJson(events))
         setResult(Activity.RESULT_OK, intent)
 
         closeDialog()
@@ -143,6 +144,13 @@ class InputDetect2Activity : AppCompatActivity()
         fun startActivity(activity: Activity){
             val intent = Intent(activity, InputDetect2Activity::class.java)
             activity.startActivityForResult(intent, RESULT_ID)
+        }
+        fun getActivityResult(requestCode:Int, resultCode:Int, data:Intent?): List<Any>?
+        {
+            if (requestCode != RESULT_ID || resultCode != Activity.RESULT_OK || data == null)
+                return null
+
+            return data.getSerializableExtra("result") as ArrayList<Any>
         }
     }
 }

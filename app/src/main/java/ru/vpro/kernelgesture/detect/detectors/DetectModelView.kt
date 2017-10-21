@@ -16,7 +16,5 @@ class DetectModelView(application: Application) :
     companion object {
         fun getModel(activity : FragmentActivity)
                 = ViewModelProviders.of(activity).get(DetectModelView::class.java)
-
-        var eventLog = emptyList<Any>()
     }
 }

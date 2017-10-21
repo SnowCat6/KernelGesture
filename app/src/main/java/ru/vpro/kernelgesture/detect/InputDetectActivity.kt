@@ -10,8 +10,7 @@ import android.support.v7.app.AppCompatActivity
 import android.view.MenuItem
 import android.widget.Button
 import kotlinx.android.synthetic.main.activity_detect_1.*
-import org.inowave.planning.ui.common.adapter.HeaderString
-import ru.vpro.kernelgesture.tools.adapter.bindAdapter
+import org.inowave.planning.common.tools.bindAdapter
 import ru.vpro.kernelgesture.R
 import ru.vpro.kernelgesture.detect.detectors.DetectModelView
 import ru.vpro.kernelgesture.tools.adapter.ReAdapter
@@ -106,8 +105,12 @@ class InputDetectActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?)
     {
-        logx.addAll(DetectModelView.eventLog)
-        updateProgress()
+        InputDetect2Activity.getActivityResult(requestCode, resultCode, data)
+            ?.also {
+                logx.addAll(it)
+                updateProgress()
+
+            }
 
         super.onActivityResult(requestCode, resultCode, data)
     }

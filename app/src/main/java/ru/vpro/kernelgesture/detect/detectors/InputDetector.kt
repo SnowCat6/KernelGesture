@@ -3,6 +3,7 @@ package ru.vpro.kernelgesture.detect.detectors
 import SuperSU.ShellSU
 import android.arch.lifecycle.LiveData
 import android.content.Context
+import android.os.Build
 import gestureDetect.drivers.SensorInput
 import io.reactivex.Observable
 import io.reactivex.ObservableEmitter
@@ -10,8 +11,8 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
 import io.reactivex.schedulers.Schedulers
-import org.inowave.planning.ui.common.adapter.HeaderString
-import org.inowave.planning.ui.common.adapter.TwoString
+import ru.vpro.kernelgesture.tools.HeaderString
+import ru.vpro.kernelgesture.tools.TwoString
 import ru.vpro.kernelgesture.BuildConfig
 
 
@@ -28,13 +29,13 @@ class InputDetector (private val context: Context,
 
             onNext(HeaderString("Device info"))
 
-            onNext(TwoString("Android SDK", android.os.Build.VERSION.SDK_INT.toString()))
-            onNext(TwoString("Device name", android.os.Build.MODEL))
+            onNext(TwoString("Android SDK", Build.VERSION.SDK_INT.toString()))
+            onNext(TwoString("Device name", Build.MODEL))
 
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             onNext(TwoString("App version", pInfo.versionName))
 
-            onNext(HeaderString( "Input devices list"))
+            onNext(HeaderString("Input devices list"))
             SensorInput.getInputEvents().forEach {
                 onNext(TwoString(it.first, it.second))
             }

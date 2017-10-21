@@ -499,12 +499,3 @@ open class RecyclerAdapterT<T>(items: List<T>? = null) :
     }
 }
 
-fun RecyclerView.bindAdapter(adapter : RecyclerView.Adapter<RecyclerView.ViewHolder>)
-{
-    setHasFixedSize(true)
-
-    layoutManager = LinearLayoutManager(context)
-    addItemDecoration(RecyclerAdapterT.AdapterDivider(context))
-    (itemAnimator as SimpleItemAnimator).supportsChangeAnimations = false
-    this.adapter = adapter
-}
