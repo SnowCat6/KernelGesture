@@ -16,6 +16,7 @@ import android.preference.*
 import gestureDetect.GestureAction
 import gestureDetect.tools.GestureHW
 import gestureDetect.tools.GestureSettings
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.rxkotlin.plusAssign
@@ -235,7 +236,8 @@ open class GesturePreferenceFragment : PreferenceFragment()
                 ?.let { if (it.isEmpty()) null else it }
         adapter.setCurrent(objects.firstOrNull { uiAction(context, it) == currentAction })
 
-        thread {
+        composites += Observable.create<List<Any>>{
+
             val pm = context.packageManager
             val mainIntent = Intent(Intent.ACTION_MAIN, null)
             mainIntent.addCategory(Intent.CATEGORY_LAUNCHER)
@@ -250,13 +252,15 @@ open class GesturePreferenceFragment : PreferenceFragment()
                     filterMap += it.activityInfo.applicationInfo.packageName
                 }
             }
-
-            Handler(Looper.getMainLooper()).post {
-                objects.addAll(items)
+            it.onNext(items)
+            it.onComplete()
+        }
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                objects.addAll(it)
                 adapter.setCurrent(objects.firstOrNull { uiAction(context, it) == currentAction })
                 adapter.setItems(objects)
             }
-        }
     }
 
    private val notifyListener = Preference.OnPreferenceChangeListener { preference, value ->
